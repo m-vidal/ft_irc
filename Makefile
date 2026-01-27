@@ -1,5 +1,5 @@
 CXXFLAGS = -Wextra -Wall -Werror -std=c++98
-OBJS = main.cpp
+OBJS = main.o
 NAME = ircserv
 CXX = c++
 
