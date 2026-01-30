@@ -6,10 +6,13 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/01/27 11:15:21 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/01/30 16:12:59 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <iostream>
 #include <cstdlib>
 #include <sstream>
@@ -31,6 +34,14 @@ int main(int ac, char** av)
     if (password != std::getenv("PASSWORD"))
         return (std::cerr << "Error: wrong password." << std::endl, 1);
 
-    std::cout << "001" << std::endl;
+    {
+        int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        if (sockfd == -1)
+        {
+            return(std::cout << "Socket Not Created!" << std::endl, 1);
+        }
+        std::cout << "Socket fd: " << sockfd << std::endl;
+        close(sockfd);
+    }
     return (0);
 }
