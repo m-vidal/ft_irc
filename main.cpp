@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/01/27 10:59:26 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/01/27 11:15:21 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,4 @@ int main(int ac, char** av)
 
     std::cout << "001" << std::endl;
     return (0);
-    //std::cout << std::getenv("HOME") << std::endl;
-    //std::cout << "Port number: " << port << "\nPassword: " << password << std::endl;
 }
