@@ -1,0 +1,8 @@
+o que fazer quando uma linha estiver mal estruturada?
+Recebes strings
+
+Processas comandos
+
+Atualizas estado do utilizador
+
+Produzes strings de resposta IRC

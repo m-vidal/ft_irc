@@ -1,0 +1,35 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Parser.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/02/03 17:57:24 by marcsilv          #+#    #+#             */
+/*   Updated: 2026/02/03 18:26:24 by marcsilv         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef PARSER_HPP
+# define PARSER_HPP
+
+#include <string>
+#include "User.hpp"
+
+class Parser {
+
+	public:
+		Parser();
+		~Parser();
+		Parser(const Parser &other);
+		Parser &operator=(const Parser &other);
+
+		void		receiveLine(User &user, std::string &line);
+		std::string	getLine(void);
+		void		setLine(std::string line);
+
+	private:
+		std::string _line;
+};
+
+#endif
