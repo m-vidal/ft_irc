@@ -19,8 +19,8 @@ SRC_DIR		= src/
 OBJ_DIR		= obj/
 INC_DIR		= inc/
 
-SRC_FILES	= main.cpp User.cpp
-HEADERS		= User.hpp
+SRC_FILES	= main.cpp User.cpp ACommand.cpp Parser.cpp User.cpp
+HEADERS		= User.hpp Parser.hpp ACommand.hpp
 
 SRC			= $(addprefix $(SRC_DIR), $(SRC_FILES))
 OBJ			= $(addprefix $(OBJ_DIR), $(SRC_FILES:.cpp=.o))
