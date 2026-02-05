@@ -6,14 +6,14 @@
 /*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/03 18:19:09 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/02/05 17:37:05 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/User.hpp"
 #include <string>
 
-User::User(void) { }
+User::User(void) { _username = "default";}
 User::~User(void) { }
 User &User::operator=(const User &other) {
 	std::cout << "User's Copy assignment operator called" << std::endl;

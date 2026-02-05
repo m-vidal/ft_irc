@@ -1,33 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Command.hpp                                        :+:      :+:    :+:   */
+/*   ACommand.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/03 18:07:14 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/03 18:18:10 by marcsilv         ###   ########.fr       */
+/*   Created: 2026/02/03 18:06:53 by marcsilv          #+#    #+#             */
+/*   Updated: 2026/02/05 17:34:07 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef COMMAND_HPP
-# define COMMAND_HPP
+#include "../inc/ACommand.hpp"
 
-#include <string>
-class Command {
-
-	public:
-		Command();
-		~Command();
-		Command(const Command &other);
-		Command &operator=(const Command &other);
-
-	private:
-		std::string	_prefix;
-		std::string _command;
-		std::string *_params;
-		std::string	_trailing;
-
-};
-
-#endif

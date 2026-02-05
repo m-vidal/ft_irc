@@ -6,7 +6,7 @@
 #    By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/30 19:00:19 by marcsilv          #+#    #+#              #
-#    Updated: 2026/01/30 19:00:55 by marcsilv         ###   ########.fr        #
+#    Updated: 2026/02/05 17:37:57 by marcsilv         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ SRC_DIR		= src/
 OBJ_DIR		= obj/
 INC_DIR		= inc/
 
-SRC_FILES	= main.cpp User.cpp ACommand.cpp Parser.cpp User.cpp
+SRC_FILES	= main.cpp User.cpp ACommand.cpp Parser.cpp
 HEADERS		= User.hpp Parser.hpp ACommand.hpp
 
 SRC			= $(addprefix $(SRC_DIR), $(SRC_FILES))
