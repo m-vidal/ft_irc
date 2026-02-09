@@ -1,0 +1,20 @@
+# Ignore everything
+*
+
+# But do not ignore directories (needed to find files inside them)
+!*/
+
+# Do not ignore source and header files
+!*.cpp
+!*.hpp
+
+# Do not ignore the Makefile
+!Makefile
+![Mm]akefile
+
+# Optional: If you use a header file with .h or .cpp files with .c
+#!*.h
+#!*.c
+
+# Keep the .gitignore itself
+!.gitignore
