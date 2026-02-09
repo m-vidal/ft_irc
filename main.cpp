@@ -6,12 +6,11 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/01/30 16:12:59 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/01/30 16:20:52 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include <iostream>
 #include <cstdlib>
@@ -36,7 +35,7 @@ int main(int ac, char** av)
 
     {
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-        if (sockfd == -1)
+        if (sockfd < 0)
         {
             return(std::cout << "Socket Not Created!" << std::endl, 1);
         }
