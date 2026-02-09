@@ -26,7 +26,10 @@ SRC			= $(addprefix $(SRC_DIR), $(SRC_FILES))
 OBJ			= $(addprefix $(OBJ_DIR), $(SRC_FILES:.cpp=.o))
 INC			= $(addprefix $(INC_DIR), $(HEADERS))
 
+
 all: $(NAME)
+
+$(OBJ) : $(INC)
 
 $(NAME): $(OBJ)
 	$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME)
