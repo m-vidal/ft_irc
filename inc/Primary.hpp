@@ -1,34 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ACommand.hpp                                       :+:      :+:    :+:   */
+/*   Primary.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/03 18:07:14 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/09 19:14:07 by marcsilv         ###   ########.fr       */
+/*   Created: 2026/02/09 18:56:57 by marcsilv          #+#    #+#             */
+/*   Updated: 2026/02/09 19:01:24 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef COMMAND_HPP
-# define COMMAND_HPP
+#ifndef PRIMARY_HPP
+# define PRIMARY_HPP
 
-#include "Primary.hpp"
-class ACommand {
-		
-	public:
-		ACommand();
-		~ACommand();
-		ACommand(const ACommand &other);
-		ACommand &operator=(const ACommand &other);
-	
-		void		runCommand(User user);
-		void		runCommand(User user, Channel channel);
+#include "ACommand.hpp"
+#include "Channel.hpp"
+#include "Parser.hpp"
+#include "User.hpp"
 
-	private:
-		std::string _command;
-		std::string *_params;
-		std::string	_trailing;
-};
+#include <vector>
+#include <iostream>
+#include <string>
+#include <cstddef>
 
 #endif
