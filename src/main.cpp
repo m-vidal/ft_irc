@@ -14,6 +14,6 @@
 
 int main(void) {
 
-	Parser p("PRIVMSG joao :Olá tudo bem\r\n");
+	Parser a("Privmsg joao    :Olá\n");
     return (0);
 }
