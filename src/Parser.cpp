@@ -30,7 +30,9 @@ void Parser::setLine(std::string line) {
 }
 
 void Parser::receiveLine(User &user, std::string &line) {
-	std::string trimmed = line.substr(0, line.find("\r\n")); //trimming the \r\n
+	std::string trimmed ;
+	if (line.size() >= 2)
+		trimmed = line.substr(0, line.find("\r\n")); //trimming the \r\n
 
 	std::size_t commaPos = trimmed.find(":");
 	std::string	trailing;
