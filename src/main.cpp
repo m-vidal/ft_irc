@@ -12,8 +12,10 @@
 
 #include "../inc/Parser.hpp"
 
-int main(void) {
+int main(int ac, char **av) {
 
-	Parser a("Privmsg joao    :Olá\n");
+	(void)ac;
+	std::string str = av[1];
+	Parser a(str);
     return (0);
 }

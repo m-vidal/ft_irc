@@ -23,13 +23,13 @@ class ACommand {
 		ACommand();
 		~ACommand();
 	
-		void		runCommand(User user);
-		void		runCommand(User user, Channel channel);
+		virtual void				runCommand(User &user, std::string command) = 0;
+		virtual void				runCommand(User &user, Channel &channel) = 0;
 
 	private:
-		std::string _command;
-		std::string *_params;
-		std::string	_trailing;
+		std::string					_command;
+		std::string					_trailing;
+		std::vector<std::string>	_params;
 };
 
 #endif

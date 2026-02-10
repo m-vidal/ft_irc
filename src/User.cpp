@@ -23,7 +23,6 @@ void User::setUser(const std::string &user) {
 	this->_username = user;
 }
 
-
 const std::string &User::getNick(void) const {
 	return (this->_nickname);
 }

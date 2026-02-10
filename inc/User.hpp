@@ -23,7 +23,8 @@ class User {
 		std::string				_nickname;
 		std::string 			_username;
 		bool					_isOperator;
-		std::vector<Channel>	channels;
+		std::vector<Channel>	_channels;	//acho que se vai apagar depois
+		short					_fd;
 
 	public:
 		User(void);
