@@ -28,7 +28,7 @@ const std::string &User::getNick(void) const {
 	return (this->_nickname);
 }
 
-const std::string &User::getUser(void) const {
+const std::string &User::getUsername(void) const {
 	return (this->_username);
 }
 

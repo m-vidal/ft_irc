@@ -33,7 +33,7 @@ class User {
 
 		// getters
 		const std::string &getNick(void) const;
-		const std::string &getUser(void) const;
+		const std::string &getUsername(void) const;
 		bool isOperator(void) const;
 
 		// setters
