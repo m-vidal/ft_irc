@@ -13,14 +13,15 @@
 #ifndef COMMAND_HPP
 # define COMMAND_HPP
 
-#include "Primary.hpp"
+#include "User.hpp"
+
+#include <string>
+
 class ACommand {
 		
 	public:
 		ACommand();
 		~ACommand();
-		ACommand(const ACommand &other);
-		ACommand &operator=(const ACommand &other);
 	
 		void		runCommand(User user);
 		void		runCommand(User user, Channel channel);

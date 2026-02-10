@@ -13,7 +13,10 @@
 #ifndef PARSER_HPP
 # define PARSER_HPP
 
-#include "Primary.hpp"
+#include <string>
+#include <iostream>
+
+#include "User.hpp"
 
 class Parser {
 

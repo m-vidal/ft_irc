@@ -12,7 +12,10 @@
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
-#include "Primary.hpp"
+#include <string>
+#include <vector>
+
+class User { };
 
 class Channel {
 

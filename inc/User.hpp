@@ -13,7 +13,10 @@
 #ifndef USER_HPP
 # define USER_HPP
 
-#include "Primary.hpp"
+#include <string>
+#include <vector>
+
+class Channel { };
 
 class User {
 	private:

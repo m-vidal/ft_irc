@@ -10,25 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/Primary.hpp"
+#include "../inc/User.hpp"
 
 User::User(void) { _username = "default";}
 User::~User(void) { }
-User &User::operator=(const User &other) {
-	std::cout << "User's Copy assignment operator called" << std::endl;
-	if (this != &other)
-	{
-		this->setNick(other.getNick());
-		this->setUser(other.getUser());
-	}
-	return (*this);
-}
-
-User::User(const User &other) {
-	std::cout << "User's copy constructor operator called" << std::endl;
-
-	*this = other;
-}
 
 void User::setNick(const std::string &nick) {
 	this->_nickname = nick;
