@@ -30,36 +30,52 @@ void Parser::setLine(std::string line) {
 }
 
 void Parser::receiveLine(User &user, std::string &line) {
-	const std::size_t ending = line.find("\r\n");
-	std::string trimmed = line.substr(0, ending);
+	std::string trimmed = line.substr(0, line.find("\r\n")); //trimming the \r\n
 
-	std::size_t commaPos = line.find(":");
+	std::size_t commaPos = trimmed.find(":");
 	std::string	trailing;
 
-	if (commaPos != std::string::npos){
-		trailing = line.substr(commaPos + 1); //trailing
-	}
 	trailing = "\0";
-	std::string	tempArgs = line.substr(0, commaPos); //COMMAND param1 param2 ....
+	if (commaPos != std::string::npos){
+		trailing = trimmed.substr(commaPos + 1); //trailing
+	}
+	
+	std::string	strBeforeTrailing = trimmed.substr(0, commaPos); //COMMAND param1 param2 ....
 
 	std::string					command;
 	std::vector<std::string>	params;
-	short						i = 0;
-	
-	
-	std::size_t spacePos = tempArgs.find(' ');
-	command = tempArgs.substr(0, spacePos);
 
-	while (spacePos != std::string::npos) {
-		spacePos = tempArgs.find(' ', spacePos + 1);
-		params[i++] = tempArgs.substr(0, spacePos);
+	std::size_t spacePos = strBeforeTrailing.find(' ');
+	
+	command = strBeforeTrailing.substr(0, spacePos);
+	std::size_t commandLength = command.length();
+	for (std::size_t i = 0; i < commandLength; i++) {
+		command[i] = std::toupper(command[i]);
 	}
-	std::cout << "command: " << command << std::endl;
-	std::cout << "params: " << command;
-	std::size_t paramSize = params.size();
-	for (size_t i = 0; i < paramSize; i++) {
-		std::cout << params[i] << std::endl;
-	}
-	std::cout << "trailing: " << trailing << std::endl;
-	std::cout << "user: " << user.getUser() << std::endl;
+	std::string tempArgs = strBeforeTrailing.substr(spacePos + 1);
+	std::vector<std::string> args = this->split(tempArgs);
+}
+
+std::vector<std::string> Parser::split(const std::string& input) {
+    std::vector<std::string> result;
+    std::string token;
+    std::string::size_type i = 0;
+    const std::string::size_type n = input.size();
+
+    while (i < n && (input[i] == ' ' || input[i] == '\t'))
+        ++i;
+
+    while (i < n) {
+        token.clear();
+        while (i < n && input[i] != ' ' && input[i] != '\t') {
+            token += input[i];
+            ++i;
+        }
+
+        if (!token.empty())
+            result.push_back(token);
+        while (i < n && (input[i] == ' ' || input[i] == '\t'))
+            ++i;
+    }
+    return result;
 }

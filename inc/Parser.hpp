@@ -14,6 +14,7 @@
 # define PARSER_HPP
 
 #include <string>
+#include <cctype>
 #include <iostream>
 
 #include "User.hpp"
@@ -34,6 +35,7 @@ class Parser {
 
 	private:
 		std::string _line;
+		std::vector<std::string> split(const std::string& input);
 };
 
 #endif
