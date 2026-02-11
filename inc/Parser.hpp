@@ -13,29 +13,24 @@
 #ifndef PARSER_HPP
 # define PARSER_HPP
 
-#include <string>
-#include <cctype>
-#include <iostream>
+# include <string>
+# include <cctype>
+# include <iostream>
 
-#include "User.hpp"
+# include "User.hpp"
 
 class Parser {
 
 	public:
 		Parser();
 		~Parser();
-		Parser(const Parser &other);
-		Parser &operator=(const Parser &other);
 		//just for testing
-		Parser(std::string s);
+		Parser(User &user, std::string &str);
 
-		void		receiveLine(User &user, std::string &line);
-		std::string	getLine(void);
-		void		setLine(std::string line);
 
 	private:
-		std::string _line;
-		std::vector<std::string> split(const std::string& input);
+		std::vector<std::string>	split(const std::string& input);
+		void						receiveLine(User &user, std::string &line);
 };
 
 #endif
