@@ -12,7 +12,7 @@
 
 #include "../inc/User.hpp"
 
-User::User(void) { _username = "default";}
+User::User(void): _fd(1) { _username = "default";}
 User::~User(void) { }
 
 void User::setNick(const std::string &nick) {
@@ -34,5 +34,3 @@ const std::string &User::getUsername(void) const {
 bool User::isOperator(void) const {
 	return (this->_isOperator);
 }
-
-

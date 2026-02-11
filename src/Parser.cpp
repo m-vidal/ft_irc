@@ -15,22 +15,14 @@
 
 Parser::Parser(void) { }
 //just for testing
-Parser::Parser(std::string s) {
-	User u;
-	this->receiveLine(u, s);
+Parser::Parser(User &user, std::string &str) {
+	this->receiveLine(user, str);
 }
+
 Parser::~Parser(void) { }
 
-std::string Parser::getLine(void) {
-	return (this->_line);
-}
-
-void Parser::setLine(std::string line) {
-	this->_line = line;
-}
-
 void Parser::receiveLine(User &user, std::string &line) {
-	std::string trimmed ;
+	std::string trimmed;
 	if (line.size() >= 2)
 		trimmed = line.substr(0, line.find("\r\n")); //trimming the \r\n
 
@@ -56,6 +48,7 @@ void Parser::receiveLine(User &user, std::string &line) {
 	}
 	std::string tempArgs = strBeforeTrailing.substr(spacePos + 1);
 	std::vector<std::string> args = this->split(tempArgs);
+	user.setUser("dafault");//delete later
 }
 
 std::vector<std::string> Parser::split(const std::string& input) {
