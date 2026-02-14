@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/01/30 16:20:52 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/09 23:01:14 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ int main(int ac, char** av)
     password = av[2];
     if (password != std::getenv("PASSWORD"))
         return (std::cerr << "Error: wrong password." << std::endl, 1);
-
     {
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd < 0)
