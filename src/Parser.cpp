@@ -16,15 +16,9 @@
 Parser::Parser(void) { }
 //just for testing
 Parser::Parser(User &user, std::string &str) {
-	this->receiveLine(user, str);
-}
-
-Parser::~Parser(void) { }
-
-void Parser::receiveLine(User &user, std::string &line) {
 	std::string trimmed;
-	if (line.size() >= 2)
-		trimmed = line.substr(0, line.find("\r\n")); //trimming the \r\n
+	if (str.size() >= 2)
+		trimmed = str.substr(0, str.find("\r\n")); //trimming the \r\n
 
 	std::size_t commaPos = trimmed.find(":");
 	std::string	trailing;
@@ -50,6 +44,8 @@ void Parser::receiveLine(User &user, std::string &line) {
 	std::vector<std::string> args = this->split(tempArgs);
 	user.setUser("dafault");//delete later
 }
+
+Parser::~Parser(void) { }
 
 std::vector<std::string> Parser::split(const std::string& input) {
     std::vector<std::string> result;
