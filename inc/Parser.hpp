@@ -27,10 +27,8 @@ class Parser {
 		//just for testing
 		Parser(User &user, std::string &str);
 
-
 	private:
 		std::vector<std::string>	split(const std::string& input);
-		void						receiveLine(User &user, std::string &line);
 };
 
 #endif
