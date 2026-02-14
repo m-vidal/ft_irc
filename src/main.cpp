@@ -12,14 +12,8 @@
 
 #include "../inc/Parser.hpp"
 
-int main(int ac, char **av) {
-    if (ac < 2) {
-        std::cerr << "Usage: " << av[0] << " <argument>\n";
-        return 1;
-    }
+int main(void) {
 
-    std::string str = av[1];
-    User u;
-    Parser a(u, str);
-    return 0;
+	Parser a("PRIVMSG joao    :Olá\n");
+    return (0);
 }
