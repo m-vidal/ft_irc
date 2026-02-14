@@ -14,7 +14,8 @@
 #include "../inc/Parser.hpp"
 
 Parser::Parser(void) { }
-//just for testing
+Parser::~Parser(void) { }
+
 Parser::Parser(User &user, std::string &str) {
 	std::string trimmed;
 	if (str.size() >= 2)
@@ -45,8 +46,6 @@ Parser::Parser(User &user, std::string &str) {
 	user.setUser("dafault");//delete later
 }
 
-Parser::~Parser(void) { }
-
 std::vector<std::string> Parser::split(const std::string& input) {
     std::vector<std::string> result;
     std::string token;
@@ -68,5 +67,5 @@ std::vector<std::string> Parser::split(const std::string& input) {
         while (i < n && (input[i] == ' ' || input[i] == '\t'))
             ++i;
     }
-    return result;
+    return (result);
 }
