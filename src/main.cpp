@@ -12,8 +12,3 @@
 
 #include "../inc/Parser.hpp"
 
-int main(void) {
-
-	Parser a("PRIVMSG joao    :Olá\n");
-    return (0);
-}
