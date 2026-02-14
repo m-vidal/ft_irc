@@ -3,23 +3,24 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
+/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/14 14:45:10 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/02/14 19:42:15 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include "User.hpp"
 # include <sys/socket.h>
+# include <sys/poll.h>
+# include "User.hpp"
+# include <sstream>
+# include <string>
+# include <vector>
 # include <list>
 # include <map>
-# include <string>
-# include <sys/poll.h>
-# include <vector>
 
 class Server {
 
