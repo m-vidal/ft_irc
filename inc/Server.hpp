@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/14 19:42:15 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/14 20:07:00 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,17 +25,18 @@
 class Server {
 
 	public:
+		static bool is_running;
+
 		Server(unsigned short &port, std::string &password);
 		~Server();
 
 	private:
-		int						_fd;    //acredito que o server também deve ter um fd, se não se encontrar necessário pode apagar
-		const short				_port;
-		std::map<int, User>		_users; // um mapa porque assim conseguimos identificar cada user pelo seu fd
-		const short				_socket;
 		std::list<Channel>		_channels;
 		const std::string		_password;
+		const short				_socket;
+		std::map<int, User>		_users; // um mapa porque assim conseguimos identificar cada user pelo seu fd
 		std::vector<pollfd>		_polls;		//para controlar os eventos de cada cliente
+		const short				_port;
 };
 
 #endif
