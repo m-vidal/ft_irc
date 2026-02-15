@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 02:14:02 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 02:55:07 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 class Server {
 
 	public:
-		static bool is_running;
+		bool is_running;
 
 		Server(unsigned short &port, std::string &password);
 		~Server();
