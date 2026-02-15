@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 17:27:16 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 23:30:51 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,6 @@ std::string	User::getBuffer( void ) {
 	return (_buffer);
 }
 
-void	User::clearBuffer( void ) {
-	_buffer = "";
+void	User::clearBuffer( size_t pos ) {
+	_buffer.erase(0, pos);
 }
