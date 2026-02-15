@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 16:22:05 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 16:59:42 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,8 @@ void	Server::listenMode() {
 				client.revents = 0;
 
 				_polls.push_back(client);
+				_users.insert(std::make_pair(static_cast<int>(clientfd), User()));
+				
 			}
 		}
 		for (size_t i = 1; i < _polls.size(); ++i)
@@ -111,7 +113,6 @@ void	Server::listenMode() {
 			}
 		}
 	}
-	//configurar comportamento quando há uma nova conexão
 	//processar linhas vindas do cliente
 	//para cada linha completa instanciar o parser
 }

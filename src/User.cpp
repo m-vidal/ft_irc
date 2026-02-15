@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   User.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
+/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/09 19:00:07 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/02/15 16:57:52 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,15 @@
 
 User::User(void): _fd(1) { _username = "default";}
 User::~User(void) { }
+
+User::User(const User &other): _fd(other._fd)
+{
+	_isOperator = other._isOperator;
+	_ipAddress = other._ipAddress;
+	_username = other._username;
+	_nickname = other._nickname;
+	_channels = other._channels;
+}
 
 void User::setNick(const std::string &nick) {
 	this->_nickname = nick;
