@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 04:30:40 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 11:39:00 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,10 +38,14 @@ void	Server::listenMode() {
 	int flag = fcntl(_socket, F_GETFL, 0);
 	if (flag == -1 || fcntl(_socket, F_SETFL, flag | O_NONBLOCK) == -1)
 		throw std::runtime_error("Errorn: failure to enter non block mode!");
+	is_running = true;
+	
+	while(is_running) {
+		usleep(100000);
+	}
 	//configurar comportamento quando há uma nova conexão
 	//processar linhas vindas do cliente
 	//para cada linha completa instanciar o parser
-	is_running = true;
 }
 
 Server::~Server(void) {
