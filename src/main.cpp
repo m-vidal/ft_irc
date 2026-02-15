@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/02/15 13:55:53 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 14:26:43 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ int main(int ac, char** av) {
 	password = av[2];
 	try {
 		Server server(port, password);
-		
+		server.listenMode();
 	} catch (std::exception &e) {
 		std::cout << e.what() << std::endl;
 	}

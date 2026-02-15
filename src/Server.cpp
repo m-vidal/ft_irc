@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 13:56:12 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 15:37:55 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,10 +64,41 @@ void	Server::listenMode() {
 	int flag = fcntl(_socket, F_GETFL, 0);
 	if (flag == -1 || fcntl(_socket, F_SETFL, flag | O_NONBLOCK) == -1)
 		throw std::runtime_error("Errorn: failure to enter non block mode!");
+
+	struct pollfd	server_fd;
+	server_fd.fd = _socket;
+	server_fd.events = POLLIN;
+	server_fd.revents = 0;
+
+	_polls.push_back(server_fd);
 	is_running = true;
-	
-	while(is_running) {
-		usleep(100000);
+	while(is_running)
+	{
+		int poll_return = poll(_polls.data(), _polls.size(), 10000);
+		if (poll_return < 0)
+			throw std::runtime_error("Error: poll() sys call failed!");
+		else if (poll_return == 0)
+			continue ;
+		if (_polls[0].revents & POLLIN)
+		{
+			int clientfd = accept(_socket, NULL, NULL);
+			if (clientfd > -1)
+			{
+				std::cout << clientfd << " Conected" << std::endl;
+
+				struct pollfd client;
+				client.fd = clientfd;
+				client.events = POLLIN;
+				client.revents = 0;
+
+				_polls.push_back(client);
+			}
+		}
+		for (size_t i = 1; i < _polls.size(); ++i)
+		{
+			if (_polls[i].revents & POLLIN)
+				std::cout << "Client " << _polls[i].fd << " has data!" << std::endl;
+		}
 	}
 	//configurar comportamento quando há uma nova conexão
 	//processar linhas vindas do cliente
