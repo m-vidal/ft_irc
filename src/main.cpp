@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/02/15 02:41:47 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 13:55:53 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,14 +26,10 @@ int main(int ac, char** av) {
         return (std::cerr << "Error: bad arguments." << std::endl, 1);
 
 	std::stringstream ss(av[1]);
-	if (!(ss >> port) || ss >> c) {
+	if (!(ss >> port) || ss >> c)
 		return (std::cerr << "Error: invalid port." << std::endl, 1);
-	}
 
 	password = av[2];
-	if (password != std::getenv("PASSWORD"))
-		return (std::cerr << "Error: wrong password!" << std::endl, 1);
-	
 	try {
 		Server server(port, password);
 		
