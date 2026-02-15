@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 16:57:52 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 17:13:54 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,4 +42,12 @@ const std::string &User::getUsername(void) const {
 
 bool User::isOperator(void) const {
 	return (this->_isOperator);
+}
+
+void	User::appendToBuffer(std::string data) {
+	_buffer += data;
+}
+
+std::string User::getBuffer( void ) {
+	return (_buffer);
 }
