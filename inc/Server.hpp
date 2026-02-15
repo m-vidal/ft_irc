@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 03:34:39 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 03:44:33 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ class Server {
 
 		Server(unsigned short &port, std::string &password);
 		~Server();
+		void	listenMode();
 
 	private:
 		std::list<Channel>		_channels;
@@ -40,6 +41,7 @@ class Server {
 		const short				_socket;
 		std::map<int, User>		_users; // um mapa porque assim conseguimos identificar cada user pelo seu fd
 		std::vector<pollfd>		_polls;		//para controlar os eventos de cada cliente
+		struct sockaddr_in 		_addr;
 		const short				_port;
 };
 
