@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/02/15 02:14:30 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 02:25:25 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,11 @@ int main(int ac, char** av) {
 	if (!(ss >> port) || ss >> c) {
 		return (std::cerr << "Error: invalid port." << std::endl, 1);
 	}
-	//task: verificar o range da password [1024;65536]
-	std::cout << port << std::endl;
+
 	password = av[2];
+	if (password != std::getenv("PASSWORD"))
+		return (std::cerr << "Error: wrong password!" << std::endl, 1);
+	
 	try {
 		Server server(port, password);
 	} catch (std::runtime_error &e) {
