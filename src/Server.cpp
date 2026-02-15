@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 17:28:30 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 17:50:15 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,8 +113,14 @@ void	Server::listenMode() {
 				{
 					buff[bytes_received] = '\0';
 					_users[_polls[i].fd].appendToBuffer(std::string(buff));
-					std::cout << "Client@" << _polls[i].fd << ": " << _users[_polls[i].fd].getBuffer()[];
-					_users[_polls[i].fd].clearBuffer();
+					std::string	aux = _users[_polls[i].fd].getBuffer();
+					
+					size_t	pos = aux.find("\n\v");
+					if (pos != std::string::npos)
+					{
+						std::cout << "Client@" << _polls[i].fd << ": " << aux.substr(0, pos + 2);
+						_users[_polls[i].fd].clearBuffer();
+					}
 				}
 			}
 		}
