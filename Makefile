@@ -6,11 +6,11 @@
 #    By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/30 19:00:19 by marcsilv          #+#    #+#              #
-#    Updated: 2026/02/15 02:08:27 by mvidal           ###   ########.fr        #
+#    Updated: 2026/02/15 03:11:06 by mvidal           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME		= testCommand
+NAME		= ircserv
 
 CXX			= c++
 CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
