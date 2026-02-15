@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 23:11:48 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 23:34:46 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,16 +114,18 @@ void	Server::listenMode() {
 					_users[_polls[i].fd].appendToBuffer(std::string(buff));
 					std::string	aux = _users[_polls[i].fd].getBuffer();
 					
-					size_t	pos = aux.find("\\r\\n");
-					if (pos != std::string::npos)
+					size_t	pos;
+					while ((pos = aux.find("\\r\\n")) != std::string::npos)
 					{
-						std::cout << "Client@" << _polls[i].fd << ": " << aux.substr(0, pos);
+						std::cout << "Client@" << _polls[i].fd << ": " << aux.substr(0, pos) << std::endl;
+						_users[_polls[i].fd].clearBuffer(pos + 4);
 						aux.erase(0, pos + 4);
 					}
 				}
 				else if (bytes_received == 0)
 				{
 					std::cout << "Client@" << _polls[i].fd << ": disconected " << std::endl;
+					_users[_polls[i].fd].clearBuffer(_users[_polls[i].fd].getBuffer().size());
 					close(_polls[i].fd);
 					_polls.erase(_polls.begin() + i);
 					i--;
@@ -132,7 +134,7 @@ void	Server::listenMode() {
 				{
 					std::cerr << "Error receiving data from client@" << _polls[i].fd << std::endl;
 					close(_polls[i].fd);
-					_polls.erase(_polls.begin() + i); // Remover o cliente da lista
+					_polls.erase(_polls.begin() + i);
 					--i;
 				}
 			}
