@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 15:46:02 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 16:22:05 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,16 @@ void	Server::listenMode() {
 		for (size_t i = 1; i < _polls.size(); ++i)
 		{
 			if (_polls[i].revents & POLLIN)
-				std::cout << "Client " << _polls[i].fd << " has data!" << std::endl;
+			{
+				char	buff[1024] = {0};
+				size_t bytes_received = recv(_polls[i].fd, buff, sizeof(buff) - 1, 0);
+				
+				if (bytes_received > 0)
+				{
+					buff[bytes_received] = '\0';
+					std::cout << "Client@" << _polls[i].fd << ": " << buff;
+				}
+			}
 		}
 	}
 	//configurar comportamento quando há uma nova conexão
