@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 15:37:55 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 15:46:02 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,8 @@ void	Server::listenMode() {
 			if (clientfd > -1)
 			{
 				std::cout << clientfd << " Conected" << std::endl;
+				int client_flag = fcntl(clientfd, F_GETFL);
+				fcntl(clientfd, F_SETFL, client_flag | O_NONBLOCK);
 
 				struct pollfd client;
 				client.fd = clientfd;
