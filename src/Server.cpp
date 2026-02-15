@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 16:59:42 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 17:22:27 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,8 @@ bool	Server::checkPassword(std::string password) {
 	for (size_t i = 0; i < password.size(); i++)
 	{
 		if (std::isupper(password[i]))
-			hasUpper = true;
+			hasUpper = true;nc 127.0.0.1 6667
+
 		else if (std::islower(password[i]))
 			hasLower = true;
 		else if (std::isdigit(password[i]))
@@ -55,7 +56,8 @@ bool	Server::checkPassword(std::string password) {
 	if (hasUpper && hasLower && hasNumbr && hasSmbl)
 		return (true);
 	return (false);
-}
+}nc 127.0.0.1 6667
+
 
 void	Server::listenMode() {
 	if (listen(_socket, 5))
@@ -91,12 +93,14 @@ void	Server::listenMode() {
 				struct pollfd client;
 				client.fd = clientfd;
 				client.events = POLLIN;
-				client.revents = 0;
+				client.revents = 0;nc 127.0.0.1 6667
+
 
 				_polls.push_back(client);
 				_users.insert(std::make_pair(static_cast<int>(clientfd), User()));
 				
-			}
+			}nc 127.0.0.1 6667
+
 		}
 		for (size_t i = 1; i < _polls.size(); ++i)
 		{
@@ -108,7 +112,8 @@ void	Server::listenMode() {
 				if (bytes_received > 0)
 				{
 					buff[bytes_received] = '\0';
-					std::cout << "Client@" << _polls[i].fd << ": " << buff;
+					_users[_polls[i].fd].appendToBuffer(std::string(buff));
+					std::cout << "Client@" << _polls[i].fd << ": " << _users[_polls[i].fd].getBuffer();
 				}
 			}
 		}
