@@ -6,17 +6,14 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/02/14 14:58:58 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/02/15 02:14:30 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdexcept>
-#include <sys/socket.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <iostream>
 #include <cstdlib>
-#include <sstream>
 
 #include "../inc/Server.hpp"
 
