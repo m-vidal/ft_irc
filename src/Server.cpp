@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 04:13:41 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 04:23:12 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,9 @@ _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 void	Server::listenMode() {
 	if (listen(_socket, 5))
 		throw std::runtime_error("Error: failure to enter listening mode!");
+	
+	int flag = fcntl(_socket, F_GETFL, 0);
+	fcntl(_socket, F_SETFL, flag | O_NONBLOCK);
 	//configurar comportamento quando há uma nova conexão
 	//processar linhas vindas do cliente
 	//para cada linha completa instanciar o parser

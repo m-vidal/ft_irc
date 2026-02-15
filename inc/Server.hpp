@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 03:44:33 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 04:22:57 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 # include <unistd.h>
 # include "User.hpp"
 # include <sstream>
+# include <fcntl.h>
 # include <string>
 # include <vector>
 # include <list>
