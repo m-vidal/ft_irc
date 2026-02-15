@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/02/15 02:25:25 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 02:41:47 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,16 +36,10 @@ int main(int ac, char** av) {
 	
 	try {
 		Server server(port, password);
-	} catch (std::runtime_error &e) {
+		
+	} catch (std::exception &e) {
 		std::cout << e.what() << std::endl;
 	}
-	//task: verificar password vazia
 
-	/*int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		return(std::cout << "Socket Not Created!" << std::endl, 1);
-	}
-	std::cout << "Socket fd: " << sockfd << std::endl;
-	close(sockfd);*/
 	return (0);
 }
