@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 02:55:07 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 03:00:21 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include <sys/socket.h>
 # include <sys/poll.h>
+# include <iostream>
 # include <unistd.h>
 # include "User.hpp"
 # include <sstream>
