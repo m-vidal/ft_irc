@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 04:28:28 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/15 04:30:40 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ void	Server::listenMode() {
 		throw std::runtime_error("Error: failure to enter listening mode!");
 	
 	int flag = fcntl(_socket, F_GETFL, 0);
-	if (fcntl(_socket, F_SETFL, flag | O_NONBLOCK) == -1)
+	if (flag == -1 || fcntl(_socket, F_SETFL, flag | O_NONBLOCK) == -1)
 		throw std::runtime_error("Errorn: failure to enter non block mode!");
 	//configurar comportamento quando há uma nova conexão
 	//processar linhas vindas do cliente
