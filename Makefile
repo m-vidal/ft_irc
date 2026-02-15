@@ -6,11 +6,11 @@
 #    By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/30 19:00:19 by marcsilv          #+#    #+#              #
-#    Updated: 2026/02/05 17:37:57 by marcsilv         ###   ########.fr        #
+#    Updated: 2026/02/15 00:16:26 by atambo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME		= testCommand
+NAME		= ircserver
 
 CXX			= c++
 CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
