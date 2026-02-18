@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/18 17:04:49 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/18 17:17:38 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,8 +118,8 @@ void	Server::listenMode() {
 					while ((pos = aux.find("\r\n")) != std::string::npos)
 					{
 						std::cout << "Client@" << _polls[i].fd << ": " << aux.substr(0, pos) << std::endl;
-						_users[_polls[i].fd].clearBuffer(pos + 4);
-						aux.erase(0, pos + 4);
+						_users[_polls[i].fd].clearBuffer(pos + 2);
+						aux.erase(0, pos + 2);
 					}
 				}
 				else if (bytes_received == 0)
