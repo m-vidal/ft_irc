@@ -6,7 +6,7 @@
 /*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 18:07:14 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/09 19:14:07 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/02/19 09:12:58 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,13 +23,15 @@ class ACommand {
 		ACommand();
 		~ACommand();
 	
-		virtual void				runCommand(User &user, std::string command) = 0;
-		virtual void				runCommand(User &user, Channel &channel) = 0;
+		virtual void				runCommand() = 0;
+		virtual void				runCommand() = 0;
 
 	private:
 		std::string					_command;
 		std::string					_trailing;
 		std::vector<std::string>	_params;
+		User						_user;
+		Channel						_channel;
 };
 
 #endif

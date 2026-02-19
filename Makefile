@@ -6,15 +6,11 @@
 #    By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/30 19:00:19 by marcsilv          #+#    #+#              #
-#    Updated: 2026/02/15 00:16:26 by atambo           ###   ########.fr        #
+#    Updated: 2026/02/19 15:33:47 by atambo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-<<<<<<< Updated upstream
 NAME		= ircserver
-=======
-NAME		= ircserv
->>>>>>> Stashed changes
 
 CXX			= c++
 CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
@@ -23,8 +19,10 @@ SRC_DIR		= src/
 OBJ_DIR		= obj/
 INC_DIR		= inc/
 
-SRC_FILES	= main.cpp User.cpp ACommand.cpp Parser.cpp 
-HEADERS		= User.hpp Parser.hpp ACommand.hpp Channel.hpp
+SRC_FILES	= main.cpp\
+			  User.cpp ACommand.cpp Parser.cpp numReplies.cpp 
+
+HEADERS		= User.hpp ACommand.hpp Parser.cpp numReplies.hpp
 
 SRC			= $(addprefix $(SRC_DIR), $(SRC_FILES))
 OBJ			= $(addprefix $(OBJ_DIR), $(SRC_FILES:.cpp=.o))

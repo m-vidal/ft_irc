@@ -6,7 +6,7 @@
 /*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/19 10:22:25 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/19 12:59:28 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef CHANNEL_HPP
@@ -19,21 +19,21 @@
 class User { };
 
 typedef struct Member {
-	bool isoperator;
 	User &user;
+	bool isoperator;
 }
 
 class Channel {
 
 	private:
-		std::string			name;
-		std::string			topic;
-		unsigned int		maxmemb;
-		unsigned short		modes;
-		std::list<Member>	membs;
-		std::list<&User>	invited;
-		std::string			passwd;
-
+		std::string			_name;
+		std::string			_topic;
+		unsigned int		_limit;
+		unsigned short		_modes;
+		std::list<Member>	_membs;
+		std::list<&User>	_invited;
+		std::string			_key;
+        
 	public:
 		Channel(const User &exec, const std::string &name);
 		// --------------------
@@ -42,7 +42,6 @@ class Channel {
 		const std::string &getTopic(void) const;
 		unsigned int &getMaxMemb(void) const;
 		unsigned short &getModes(void) const;
-		const std::string printMemb(void) const;
 		// ---------------------
 		// command functions
 		bool	join(const User &exec);
@@ -51,11 +50,18 @@ class Channel {
 		bool	setTopic(const Member &exec, const std::string &topic);
 		//------------------------------------------------
 		bool	mode(const Member &exec, const short modes);
-		bool	modeInvite(const Member &exec, const &Member);
-		bool	modeTopic(const Member &exec, const size_t len);
-		bool	modeKey(const Member &exec, const std::string key);
-		bool	modeOperator(const Member &exec, const Member &target);
-		bool	modeMembMax(const Member &exec, unsigned int num);
+		void	setMode(unsigned char mode)
+		void	unsetMode(unsigned char mode)
+		bool	hasMode(unsigned char mode) const
+		//---------------------------------------------
+		//mode enums (00000) (i k l o t)
+		enum ModeFlags {
+			INVITE_ONLY = 1 << 0,	// 1  (00001)
+			KEY_REQ     = 1 << 1,	// 4  (00010)
+			LIMIT_SET   = 1 << 2,	// 16 (00100)
+			OPER_ONLY   = 1 << 3,	// 8  (01000)
+			TOPIC_PRIV  = 1 << 4	// 2  (10000)
+		};
 };
 
 #endif
