@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/15 00:34:17 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/19 14:26:50 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/19 16:03:57 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,9 +43,13 @@ bool	setTopic(const Member &exec, const std::string &topic);
 bool	mode(const Member &exec, const short modes);
 void	setMode(unsigned char mode)
 void	unsetMode(unsigned char mode) {  }
-bool	hasMode(unsigned char mode) const {
-	if (exec.isoperator)
-		return (_modes & modes) != 0;
+
+void	hasMode(const Member &exec, unsigned int mode) const {
+	std::string reply; 
+	if (exec.isoperator){
+		
+		serverReply(exec, &reply)
+	}
 	else
 }
 
