@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/18 17:17:38 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/19 22:22:58 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,11 +58,10 @@ bool	Server::checkPassword(std::string password) {
 	return (false);
 }
 
-
 void	Server::listenMode() {
 	if (listen(_socket, 5))
 		throw std::runtime_error("Error: failure to enter listening mode!");
-	
+
 	int flag = fcntl(_socket, F_GETFL, 0);
 	if (flag == -1 || fcntl(_socket, F_SETFL, flag | O_NONBLOCK) == -1)
 		throw std::runtime_error("Errorn: failure to enter non block mode!");
@@ -117,7 +116,8 @@ void	Server::listenMode() {
 					size_t	pos;
 					while ((pos = aux.find("\r\n")) != std::string::npos)
 					{
-						std::cout << "Client@" << _polls[i].fd << ": " << aux.substr(0, pos) << std::endl;
+						std::string	line(aux.substr(0, pos + 2));
+						send(_polls[i].fd, line.c_str(), line.size(), 0);
 						_users[_polls[i].fd].clearBuffer(pos + 2);
 						aux.erase(0, pos + 2);
 					}
@@ -140,8 +140,6 @@ void	Server::listenMode() {
 			}
 		}
 	}
-	//processar linhas vindas do cliente
-	//para cada linha completa instanciar o parser
 }
 
 Server::~Server(void) {
