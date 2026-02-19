@@ -10,7 +10,11 @@
 #                                                                              #
 # **************************************************************************** #
 
+<<<<<<< Updated upstream
 NAME		= ircserver
+=======
+NAME		= ircserv
+>>>>>>> Stashed changes
 
 CXX			= c++
 CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
