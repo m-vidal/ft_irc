@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 23:10:50 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/20 02:59:21 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ class Server {
 		Server(unsigned short &port, std::string &password);
 		~Server();
 	
+		void	processMessage(int fd, std::string str);
+		void	sendToClient(int fd, std::string str);
 		bool	checkPassword(std::string password);
 		void	listenMode();
 

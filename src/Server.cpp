@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/19 22:22:58 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/20 03:14:05 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,30 @@ bool	Server::checkPassword(std::string password) {
 	if (hasUpper && hasLower && hasNumbr && hasSmbl)
 		return (true);
 	return (false);
+}
+
+void	processMessage(int fd, std::string str)
+{
+	std::cout << "Client@" << fd << ": " + str << std::endl;
+	
+}
+
+void	sendToClient(int fd, std::string str)
+{
+	const char	*aux = str.c_str();
+	size_t	size = str.size(); 
+	size_t	total_read = 0;
+
+	while (total_read < size)
+	{
+		size_t sent_bytes = send(fd, aux + total_read, size - total_read, 0);
+		if (sent_bytes < 1)
+		{
+			std::cout << "Client@" << fd << ": " << "disconnected" << std::endl;
+			return ;
+		}
+		total_read += sent_bytes;
+	}
 }
 
 void	Server::listenMode() {
@@ -117,6 +141,7 @@ void	Server::listenMode() {
 					while ((pos = aux.find("\r\n")) != std::string::npos)
 					{
 						std::string	line(aux.substr(0, pos + 2));
+						
 						send(_polls[i].fd, line.c_str(), line.size(), 0);
 						_users[_polls[i].fd].clearBuffer(pos + 2);
 						aux.erase(0, pos + 2);
