@@ -6,16 +6,17 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/20 09:16:04 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/20 09:46:45 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# include "../inc/Parser.hpp"
 # include <sys/socket.h>
 # include <netinet/in.h>
-# include <arpa/inet.h> 
+# include <arpa/inet.h>
 # include <sys/poll.h>
 # include <iostream>
 # include <unistd.h>

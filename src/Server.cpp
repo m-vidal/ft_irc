@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/20 09:29:24 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/20 09:47:55 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,13 +79,13 @@ bool	Server::checkPassword(std::string password) {
 	return (false);
 }
 
-void	processMessage(int fd, std::string str)
+void	Server::processMessage(int fd, std::string str)
 {
 	std::cout << "Client@" << fd << ": " + str << std::endl;
 	Parser parser(_users[fd], str);
 }
 
-void	sendToClient(int fd, std::string str)
+void	Server::sendToClient(int fd, std::string str)
 {
 	const char	*aux = str.c_str();
 	size_t	size = str.size(); 
