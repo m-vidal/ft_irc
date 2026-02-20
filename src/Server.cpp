@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/20 13:01:13 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/20 13:05:35 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,15 +184,13 @@ void	Server::listenMode() {
 				{
 					std::cout << "Client@" << _polls[i].fd << ": disconected " << std::endl;
 					_users[_polls[i].fd].clearBuffer(_users[_polls[i].fd].getBuffer().size());
-					close(_polls[i].fd);
-					_polls.erase(_polls.begin() + i);
+					disconnectClient(_polls[i].fd);
 					i--;
 				}
 				else
 				{
 					std::cerr << "Error receiving data from client@" << _polls[i].fd << std::endl;
-					close(_polls[i].fd);
-					_polls.erase(_polls.begin() + i);
+					disconnectClient(_polls[i].fd);
 					--i;
 				}
 			}
