@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/20 09:47:55 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/20 13:01:13 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ bool	Server::checkPassword(std::string password) {
 
 void	Server::processMessage(int fd, std::string str)
 {
-	std::cout << "Client@" << fd << ": " + str << std::endl;
+	sendToClient(fd, str);
 	Parser parser(_users[fd], str);
 }
 
@@ -102,6 +102,20 @@ void	Server::sendToClient(int fd, std::string str)
 		total_read += sent_bytes;
 	}
 }
+
+void	Server::disconnectClient(int fd) {
+	for (size_t i = 0; i < _polls.size(); i++)
+	{
+		if (_polls[i].fd == fd)
+		{
+			_polls.erase(_polls.begin() + i);
+			break;
+		}
+	}
+	_users.erase(fd);
+	close(fd);
+}
+
 
 void	Server::listenMode() {
 	if (listen(_socket, 5))
@@ -139,7 +153,6 @@ void	Server::listenMode() {
 				client.events = POLLIN;
 				client.revents = 0;
 
-
 				_polls.push_back(client);
 				_users.insert(std::make_pair(static_cast<int>(clientfd), User()));
 				
@@ -161,9 +174,8 @@ void	Server::listenMode() {
 					size_t	pos;
 					while ((pos = aux.find("\r\n")) != std::string::npos)
 					{
-						std::string	line(aux.substr(0, pos + 2));
-						
-						send(_polls[i].fd, line.c_str(), line.size(), 0);
+						std::string	line(aux.substr(0, pos));
+						processMessage(_polls[i].fd, line);
 						_users[_polls[i].fd].clearBuffer(pos + 2);
 						aux.erase(0, pos + 2);
 					}

@@ -6,18 +6,18 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/20 09:46:45 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/20 12:55:00 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include "../inc/Parser.hpp"
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <arpa/inet.h>
 # include <sys/poll.h>
+# include "Parser.hpp"
 # include <iostream>
 # include <unistd.h>
 # include "User.hpp"
@@ -38,12 +38,15 @@ class Server {
 		Server(const Server& other);
 		~Server();
 	
+		void	listenMode();
+		
+	private:
 		void	processMessage(int fd, std::string str);
 		void	sendToClient(int fd, std::string str);
 		bool	checkPassword(std::string password);
-		void	listenMode();
-
-	private:
+		void	disconnectClient(int fd);
+		
+		
 		std::list<Channel>		_channels;
 		const std::string		_password;
 		const short				_socket;
