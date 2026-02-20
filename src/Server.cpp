@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/20 03:14:05 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/20 09:29:24 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,27 @@ _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 	if (bind(_socket, reinterpret_cast<struct sockaddr *>(&_addr), sizeof(_addr)))
 		throw std::runtime_error("Error: failure to associate the port.");
 	is_running = false;
+}
+
+Server::Server(const Server& other):
+_password(other._password), _socket(other._socket), _port(other._port)
+{
+	_channels = other._channels;
+	_users = other._users;
+	_polls = other._polls;
+	_addr = other._addr;
+}
+
+Server	Server::operator=(const Server& other)
+{
+	if (this != &other)
+	{	
+		_channels = other._channels;
+		_users = other._users;
+		_polls = other._polls;
+		_addr = other._addr;
+	}
+	return (*this);
 }
 
 bool	Server::checkPassword(std::string password) {
@@ -61,7 +82,7 @@ bool	Server::checkPassword(std::string password) {
 void	processMessage(int fd, std::string str)
 {
 	std::cout << "Client@" << fd << ": " + str << std::endl;
-	
+	Parser parser(_users[fd], str);
 }
 
 void	sendToClient(int fd, std::string str)

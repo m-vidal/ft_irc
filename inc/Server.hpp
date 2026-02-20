@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/20 02:59:21 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/20 09:16:04 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,8 @@ class Server {
 		bool is_running;
 
 		Server(unsigned short &port, std::string &password);
+		Server operator=(const Server& other);
+		Server(const Server& other);
 		~Server();
 	
 		void	processMessage(int fd, std::string str);
