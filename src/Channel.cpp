@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/15 00:34:17 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/19 16:03:57 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/21 14:07:21 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,18 +38,38 @@ bool	join(const User &exec) {
 
 bool	kick(const Member &exec, const Member &target);
 bool	message(const Member &exec);
-bool	setTopic(const Member &exec, const std::string &topic);
-//------------------------------------------------
-bool	mode(const Member &exec, const short modes);
-void	setMode(unsigned char mode)
-void	unsetMode(unsigned char mode) {  }
 
-void	hasMode(const Member &exec, unsigned int mode) const {
-	std::string reply; 
-	if (exec.isoperator){
-		
-		serverReply(exec, &reply)
-	}
-	else
+bool	setTopic(const Member &exec, const std::string &topic) {
+	//	attempt to execute orders trough getters and setters
+	//	write respondes to the buffers
 }
 
+//------------------------------------------------
+
+bool	mode(const Member &exec, const short modes);
+
+void	setMode(unsigned char mode){
+	std::string reply; 
+	if (exec.isoperator == false){
+		//send numeric reply
+	}
+	else {
+		this.mode = mode;
+		// send non numeric
+	}
+}
+
+void	unsetMode(unsigned char mode) {  }
+
+void	hasMode(const Member &exec, unsigned int mode) const {}
+// ----------------------------------------------
+void	modeCommand()
+{
+	//	parse the string
+	//	split by spaces
+	//	check param number
+	//		if incorrect send num reply
+	//	
+	//	attempt to execute orders trough getters and setters
+	//	write respondes to the buffers
+}

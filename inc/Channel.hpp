@@ -6,7 +6,7 @@
 /*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/19 12:59:28 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/19 19:41:46 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #ifndef CHANNEL_HPP
@@ -14,6 +14,8 @@
 
 #include <string>
 #include <vector>
+//--------------------------------------------------
+#include "inc/numReply.hpp"
 
 
 class User { };
@@ -33,6 +35,8 @@ class Channel {
 		std::list<Member>	_membs;
 		std::list<&User>	_invited;
 		std::string			_key;
+
+		void serverReply();
         
 	public:
 		Channel(const User &exec, const std::string &name);

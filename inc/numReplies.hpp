@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/19 15:09:27 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/19 15:37:39 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/21 13:34:18 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,15 +49,15 @@
 	#define ERR_UNKNOWNMODE			"472"
 	#define ERR_INVITEONLYCHAN		"473"
 	#define ERR_BADCHANNELKEY		"475"
-	#define ERR_CHANOPRIVSNEEDED	"482"
+	#define ERR_CHANOPRIVSNEEDED	"482" // not channel operator
 
 
 namespace Reply {
     /*	This is the generic template for all numerics
 		Format: :<server> <numeric> <target> <args> :<message> */
-    inline std::string format(
-        const std::string& server,
-        const std::string& code,
+    std::string numeric(
+        const Server &server,
+        const char *code,
         const std::string& target,
         const std::string& subject,
         const std::string& message

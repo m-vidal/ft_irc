@@ -6,7 +6,7 @@
 /*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 13:09:57 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/19 19:32:06 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@ class User {
 		std::string				_nickname;
 		std::string 			_username;
 		std::vector<Channel>	_channels;
+		std::string				_inbuf;
+		std::string				_outbuf;
 
 	public:
 		User(fd, nick, name);
