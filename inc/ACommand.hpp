@@ -6,7 +6,7 @@
 /*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 18:07:14 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/19 09:12:58 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/21 18:18:44 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,10 @@ class ACommand {
 		std::string					_command;
 		std::string					_trailing;
 		std::vector<std::string>	_params;
-		User						_user;
-		Channel						_channel;
+		User&						_user;
+		Channel&					_channel;
 };
+
+
 
 #endif

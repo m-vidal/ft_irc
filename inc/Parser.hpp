@@ -6,7 +6,7 @@
 /*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 17:57:24 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/09 19:03:10 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/02/21 18:33:21 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,14 +20,8 @@
 # include "User.hpp"
 
 class Parser {
-
-	public:
-		Parser();
-		~Parser();
-		//just for testing
-		Parser(User &user, std::string &str);
-
-
+	Public:
+		Parser(Server &server, User &user, std::string command);
 	private:
 		std::vector<std::string>	split(const std::string& input);
 		void						receiveLine(User &user, std::string &line);

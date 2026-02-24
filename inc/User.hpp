@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   User.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
+/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/19 19:32:06 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/24 15:16:44 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 
 #include <string>
 #include <vector>
+//--------------------------------------------------
+#include "inc/Channel.hpp"
 
 class Channel { };
 
@@ -28,15 +30,17 @@ class User {
 		std::string				_outbuf;
 
 	public:
-		User(fd, nick, name);
+		User(short fd, const std::string &nick, const std::string &name);
 
 		// getters
-		const					std::string &getNick(void) const;
-		const					std::string &getUsername(void) const;
-
+		const std::string getNick(void) const;
+		const std::string getName(void) const;
 		// setters
-		void					setNick(const std::string &nick);
-		void					setUser(const std::string &user);
+		void	setNick(const std::string &nick);
+		void	setName(const std::string &user);
+		// ------------------------------------------
+		void	write();
+		void	read();
 };
 
 #endif

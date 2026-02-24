@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
+/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/10 18:18:20 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/02/24 15:13:45 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,17 +18,16 @@
 # include <string>
 
 class Server {
-
-	public:
-		Server();
-		~Server();
-
 	private:
 		const short				_port;
 		std::list<User>			_users;
 		const short				_socket;
 		std::list<Channel>		_channels;
 		const std::string		_password;
+		
+	public:
+		User	*getUser(std::string &user_name);
+		Channel	*getChannel(std::string &channel_name);
 };
 
 #endif
