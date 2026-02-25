@@ -3,17 +3,17 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+         #
+#    By: atambo <atambo@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/30 19:00:19 by marcsilv          #+#    #+#              #
-#    Updated: 2026/02/19 15:33:47 by atambo           ###   ########.fr        #
+#    Updated: 2026/02/25 18:24:46 by atambo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		= ircserver
 
 CXX			= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
+CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -I./inc
 
 SRC_DIR		= src/
 OBJ_DIR		= obj/

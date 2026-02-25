@@ -6,35 +6,42 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 22:44:41 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/24 17:09:33 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/25 19:35:01 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
 #ifndef EXECUTER_HPP
-# define EXECUTER_HPP
+#define EXECUTER_HPP
 
+#include <map>
+#include <sstream>
+// ---------------------------------
 #include "Server.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
 
-class Executor {
-    private:
-    
-        Server &_server;
-        typedef void (Executor::*CommandFunc)(User&, const std::vector<std::string>&);
-        std::unordered_map<std::string, CommandFunc> _cmd;
-        std::vector<std::string>	parser(std::string &rawCommand);
-        
-        //std::map<std::string, CommandFunc> _commands;
+class Executer
+{
+private:
+    Server &_server;
+    User *_user;
+    typedef void (Executer::*CommandFunc)(void);
+    std::map<std::string, CommandFunc> _cmdHandlers;
+    void parser(std::string &rawCommand);
+    // cmd data ------------------------------------------
+    unsigned int param_count;
+    std::string _cmd;
+    std::vector<std::string> _params;
+    std::string _trailing;
+    // cmd handlers --------------------------------------
+    void unknowCmd();
+    void join();
+    void privmsg();
+    void topic();
 
-        void	Join(User& sender, const std::vector<std::string>& params);
-        void	Privmsg(User& sender, const std::vector<std::string>& params);
-        void	Topic(User& sender, const std::vector<std::string>& params);
-
-    public:
-        Executor(Server& server);
-        void execute(User& sender, std::string rawCommand);
+public:
+    Executer(Server &server);
+    void execute(User *sender, std::string rawCommand);
 };
 
 #endif
