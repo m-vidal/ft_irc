@@ -3,34 +3,34 @@
 /*                                                        :::      ::::::::   */
 /*   User.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
+/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/09 19:00:07 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/02/25 11:39:36 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/User.hpp"
 
-User::User(void): _fd(1) { _username = "default";}
-User::~User(void) { }
+User::User(short fd, std::string name, std::string nick) : _fd(fd), _nick(nick), _name(name) {}
 
-void User::setNick(const std::string &nick) {
-	this->_nickname = nick;
+void User::setNick(const std::string &nick)
+{
+	this->_nick = nick;
 }
 
-void User::setUser(const std::string &user) {
-	this->_username = user;
+// getters
+const std::string User::getNick() const { return _nick; }
+
+const std::string User::getName() const { return _name; }
+
+// setters
+void User::setNick(const std::string &nick)
+{
+	this->_nick = nick;
 }
 
-const std::string &User::getNick(void) const {
-	return (this->_nickname);
-}
-
-const std::string &User::getUsername(void) const {
-	return (this->_username);
-}
-
-bool User::isOperator(void) const {
-	return (this->_isOperator);
+void User::setName(const std::string &name)
+{
+	this->_name = name;
 }

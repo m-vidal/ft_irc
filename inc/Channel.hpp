@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/24 15:30:07 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/25 11:08:27 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,13 @@
 
 #include <string>
 #include <vector>
+#include <list>
+#include <exception>
 //--------------------------------------------------
 #include "inc/numReply.hpp"
+#include "inc/User.hpp"
+#include "inc/Server.hpp"
+#include "inc/Executer.hpp"
 
 //mode enums (00000) (i k l o t)
 enum ModeFlags {
@@ -53,8 +58,8 @@ class Channel {
 		// getters
 		const std::string	&getName(void) const;
 		const std::string	&getTopic(void) const;
-		unsigned int 		&getMaxMemb(void) const;
-		unsigned short		&getModes(void) const;
+		const unsigned int 		&getMaxMemb(void) const;
+		const unsigned short	&getModes(void) const;
 
 		bool	isMember(const std::string &user_name) const;
 		bool	isOperator(const User &user) const;

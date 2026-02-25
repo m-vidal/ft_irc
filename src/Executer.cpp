@@ -6,13 +6,50 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 18:48:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/24 15:30:29 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/24 17:12:08 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "inc/Executer.hpp"
 
-Executor::Executor(Server& server) : _server(server) {}
+Executor::Executor(Server& server) : _server(server){
+	// Initialize command map
+	_cmd["JOIN"] = &Executor::Join;
+	_cmd["PRIVMSG"] = &Executor::Privmsg;
+	_cmd["TOPIC"] = &Executor::Topic;
+}
+
+std::vector<std::string>	Executor::parser(std::string &rawCommand) {
+	/* split rawCommand into command and params
+	 * return vector of command and params
+	*/
+	std::vector<std::string> result;
+	std::istringstream iss(rawCommand);
+	std::string token;
+	while (iss >> token) {
+		result.push_back(token);
+	}
+	return result;
+}
+
+void Executor::execute(User& sender, std::string rawCommand) {
+    std::vector<std::string> params = parser(rawCommand);
+    if (params.empty())
+        return;
+
+    std::string command = params[0];
+
+    // Look for the command in the map
+    auto it = _cmd.find(command);
+
+    if (it != _cmd.end()) {
+        // Syntax for calling a member function pointer: (instance->*pointer)(args)
+        CommandHandler handler = it->second;
+        (this->*handler)(sender, params);
+    } else {
+        // Handle unknown command (e.g., send ERR_UNKNOWNCOMMAND to client)
+    }
+}
 
 void Executor::Topic(User& sender, const std::vector<std::string>& params){
 	/*	/topic <channel> <topic>
@@ -37,5 +74,4 @@ void Executor::Topic(User& sender, const std::vector<std::string>& params){
 		// return invalid topic string
 	}
 	channel->setTopic(params.at(2));
-
 }

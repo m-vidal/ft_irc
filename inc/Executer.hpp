@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 22:44:41 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/24 15:12:50 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/24 17:09:33 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,14 +19,18 @@
 #include "Channel.hpp"
 
 class Executor {
-private:
-    Server &_server;
+    private:
+    
+        Server &_server;
+        typedef void (Executor::*CommandFunc)(User&, const std::vector<std::string>&);
+        std::unordered_map<std::string, CommandFunc> _cmd;
+        std::vector<std::string>	parser(std::string &rawCommand);
+        
+        //std::map<std::string, CommandFunc> _commands;
 
-	std::vector<std::string>	parser(std::string &rawCommand);
-
-    void	Join(User& sender, const std::vector<std::string>& params);
-    void	Privmsg(User& sender, const std::vector<std::string>& params);
-    void	Topic(User& sender, const std::vector<std::string>& params);
+        void	Join(User& sender, const std::vector<std::string>& params);
+        void	Privmsg(User& sender, const std::vector<std::string>& params);
+        void	Topic(User& sender, const std::vector<std::string>& params);
 
     public:
         Executor(Server& server);
