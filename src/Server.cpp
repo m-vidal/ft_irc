@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/24 12:05:41 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/26 19:13:21 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 19:50:23 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,120 +65,148 @@ bool Server::checkPassword(std::string password)
 // 	// Parser parser(_users[fd], str);
 // }
 
-void Server::sendToClient(int fd, std::string str)
+void Server::sendToClient(const short fd, std::string str)
 {
-	const char *aux = str.c_str();
-	size_t size = str.size();
-	size_t total_read = 0;
+	std::map<unsigned short, Client>::iterator it = _clients.find(fd);
+	if (it == _clients.end())
+		return;
 
-	while (total_read < size)
+	// Append the message (usually IRC needs \r\n at the end)
+	it->second.outbuf += str;
+
+	// Tell poll() we are now interested in WRITING to this socket
+	for (size_t i = 0; i < _polls.size(); ++i)
 	{
-		size_t sent_bytes = send(fd, aux + total_read, size - total_read, 0);
-		if (sent_bytes < 1)
+		if (_polls[i].fd == fd)
 		{
-			std::cout << "Client@" << fd << ": " << "disconnected" << std::endl;
-			return;
+			_polls[i].events |= POLLOUT;
+			break;
 		}
-		total_read += sent_bytes;
 	}
 }
 
 void Server::disconnectClient(const short fd)
 {
-	Client &client = _clients.at(fd);
-	for (size_t i = 0; i < _polls.size(); i++)
+	// 1. Check if the client actually exists to avoid .at() crashes
+	std::map<unsigned short, Client>::iterator it = _clients.find(fd);
+	if (it == _clients.end())
+		return;
+
+	// 2. IMPORTANT: Clean up Channel references
+	// Since User is stored BY VALUE inside Client, if you delete the Client,
+	// any pointers to &it->second.user inside your Channels become DEAD.
+	for (std::list<Channel>::iterator cit = _channels.begin(); cit != _channels.end(); ++cit)
 	{
-		if (_polls[i].fd == fd)
-		{
-			_polls.erase(_polls.begin() + i);
-			break;
-		}
+		// You'll need a method in Channel to remove a user by pointer or nick
+		cit->removeMember(it->second.user.getName());
 	}
-	_users.erase(fd);
+
+	// 3. Close the file descriptor
+	std::cout << "Client " << fd << " (nick: " << it->second.user.getNick() << ") disconnected." << std::endl;
 	close(fd);
+
+	// 4. Remove from map (This cleans up the User and buffers automatically)
+	_clients.erase(it);
 }
 
 void Server::listenMode()
 {
-	if (listen(_socket, 5))
-		throw std::runtime_error("Error: failure to enter listening mode!");
+	if (listen(_socket, 5) == -1)
+		throw std::runtime_error("Error: listen failed");
 
-	int flag = fcntl(_socket, F_GETFL, 0);
-	if (flag == -1 || fcntl(_socket, F_SETFL, flag | O_NONBLOCK) == -1)
-		throw std::runtime_error("Errorn: failure to enter non block mode!");
+	// Set server socket to non-blocking
+	fcntl(_socket, F_SETFL, O_NONBLOCK);
 
-	struct pollfd server_fd;
-	server_fd.fd = _socket;
-	server_fd.events = POLLIN;
-	server_fd.revents = 0;
-
-	_polls.push_back(server_fd);
+	// Initial pollfd for the server itself
+	pollfd server_pfd = {_socket, POLLIN, 0};
+	_polls.push_back(server_pfd);
 	is_running = true;
+
 	while (is_running)
 	{
-		int poll_return = poll(_polls.data(), _polls.size(), 10000);
-		if (poll_return < 0)
-			throw std::runtime_error("Error: poll() sys call failed!");
-		else if (poll_return == 0)
-			continue;
-		if (_polls[0].revents & POLLIN)
+		if (poll(_polls.data(), _polls.size(), -1) < 0)
 		{
-			int clientfd = accept(_socket, NULL, NULL);
-			if (clientfd > -1)
-			{
-				std::cout << clientfd << " Conected" << std::endl;
-				int client_flag = fcntl(clientfd, F_GETFL);
-				fcntl(clientfd, F_SETFL, client_flag | O_NONBLOCK);
-
-				struct pollfd client;
-				client.fd = clientfd;
-				client.events = POLLIN;
-				client.revents = 0;
-
-				_polls.push_back(client);
-				_users.insert(std::make_pair(static_cast<int>(clientfd), User()));
-			}
+			if (is_running)
+				throw std::runtime_error("Error: poll failed");
+			break;
 		}
-		for (size_t i = 1; i < _polls.size(); ++i)
-		{
-			if (_polls[i].revents & POLLIN)
-			{
-				char buff[1024] = {0};
-				size_t bytes_received = recv(_polls[i].fd, buff, sizeof(buff) - 1, 0);
-				if (bytes_received > 0)
-				{
-					buff[bytes_received] = '\0';
-					_users[_polls[i].fd].appendToBuffer(std::string(buff));
-					std::string aux = _users[_polls[i].fd].getBuffer();
+		handleEvents();
+	}
+}
 
-					size_t pos;
-					while ((pos = aux.find("\r\n")) != std::string::npos)
-					{
-						std::string line(aux.substr(0, pos));
-						processMessage(_polls[i].fd, line);
-						_users[_polls[i].fd].clearBuffer(pos + 2);
-						aux.erase(0, pos + 2);
-					}
-				}
-				else if (bytes_received == 0)
-				{
-					std::cout << "Client@" << _polls[i].fd << ": disconected " << std::endl;
-					_users[_polls[i].fd].clearBuffer(_users[_polls[i].fd].getBuffer().size());
-					disconnectClient(_polls[i].fd);
-					i--;
-				}
-				else
-				{
-					std::cerr << "Error receiving data from client@" << _polls[i].fd << std::endl;
-					disconnectClient(_polls[i].fd);
-					--i;
-				}
-			}
+void Server::handleEvents()
+{
+	// 1. Handle New Connections
+	if (_polls[0].revents & POLLIN)
+	{
+		acceptNewClient();
+	}
+
+	// 2. Handle Existing Clients (Iterate backwards or carefully with i--)
+	for (size_t i = 1; i < _polls.size(); ++i)
+	{
+		if (_polls[i].revents & POLLIN)
+		{
+			readFromClient(i);
+		}
+		else if (_polls[i].revents & (POLLERR | POLLHUP))
+		{
+			disconnectClient(_polls[i].fd);
+			--i;
 		}
 	}
 }
 
-Server::~Server(void)
+void Server::acceptNewClient()
+{
+	int client_fd = accept(_socket, NULL, NULL);
+	if (client_fd == -1)
+		return;
+
+	fcntl(client_fd, F_SETFL, O_NONBLOCK);
+
+	pollfd pfd = {client_fd, POLLIN, 0};
+	_polls.push_back(pfd);
+
+	// Create new Client entry in the map
+	_clients.insert(std::make_pair(client_fd, Client()));
+	std::cout << "Client " << client_fd << " connected." << std::endl;
+}
+
+void Server::readFromClient(size_t &poll_idx)
+{
+	char buffer[1024];
+	int fd = _polls[poll_idx].fd;
+	ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+	if (bytes <= 0)
+	{
+		disconnectClient(fd);
+		--poll_idx;
+		return;
+	}
+	buffer[bytes] = '\0';
+	_clients[fd].inbuf += buffer;
+	processBuffer(fd);
+}
+
+void Server::processBuffer(int fd)
+{
+	std::string &buf = _clients[fd].inbuf;
+	size_t pos;
+
+	while ((pos = buf.find("\r\n")) != std::string::npos)
+	{
+		std::string message = buf.substr(0, pos);
+		buf.erase(0, pos + 2);
+
+		// if (!message.empty())
+		// {
+		// 	processMessage(fd, message);
+		// }
+	}
+}
+
+Server::~Server()
 {
 	if (_socket)
 		close(_socket);

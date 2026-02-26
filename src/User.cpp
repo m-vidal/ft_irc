@@ -6,13 +6,14 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/26 18:32:44 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 19:49:43 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "User.hpp"
 
-User::User(short fd, std::string name, std::string nick) : _fd(fd), _nick(nick), _name(name) {}
+User::User() : _nick("~NA"), _name("~NA") {}
+User::User(short fd, std::string name, std::string nick) : _nick(nick), _name(name) {}
 
 void User::setNick(const std::string &nick)
 {

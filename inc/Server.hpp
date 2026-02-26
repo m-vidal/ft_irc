@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/26 19:07:17 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 19:50:49 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ struct Client
 	User user;
 	std::string inbuf;
 	std::string outbuf;
-	pollfd poll;
 };
 
 class Server
@@ -42,6 +41,7 @@ class Server
 public:
 	bool is_running;
 	Server(unsigned short port, std::string password);
+	~Server();
 	void listenMode();
 
 private:
@@ -49,6 +49,8 @@ private:
 	const short _socket;
 	const std::string _password;
 	struct sockaddr_in _addr;
+	std::vector<pollfd> _polls;
+	// ----------------------------------------
 	std::map<unsigned short, Client> _clients;
 	std::list<Channel> _channels;
 	// ----------------------------------------
@@ -59,6 +61,11 @@ private:
 	User *getUser(std::string &nick);
 	User *getUser(const short fd);
 	Channel *getChannel(std::string &nick);
+	// listen mode helpers --------------------
+	void handleEvents();
+	void acceptNewClient();
+	void readFromClient(size_t &poll_idx);
+	void processBuffer(int fd);
 };
 
 #endif

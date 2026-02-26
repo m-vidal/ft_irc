@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/26 18:49:19 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 19:46:57 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ private:
 	std::vector<Channel> _channels;
 
 public:
+	User();
 	User(short fd, std::string name, std::string nick);
 	// getters
 	const std::string getNick() const;
