@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/26 17:50:44 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 18:47:44 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,10 @@
 #include <list>
 #include <exception>
 //--------------------------------------------------
-#include "inc/numReply.hpp"
-#include "inc/User.hpp"
-#include "inc/Server.hpp"
-#include "inc/Executer.hpp"
+#include "Server.hpp"
+#include "User.hpp"
+#include "Executer.hpp"
+#include "numReply.hpp"
 
 // mode enums (00000) (i k l o t)
 enum ModeFlags
@@ -33,11 +33,9 @@ enum ModeFlags
 	TOPIC_PRIV = 1 << 4	  // 2  (10000)
 };
 
-class User
-{
-};
+class User;
 
-typedef struct Member
+struct Member
 {
 	User &user;
 	bool isoperator;
@@ -52,7 +50,7 @@ private:
 	unsigned int _limit;
 	unsigned short _modes;
 	std::list<Member> _membs;
-	std::list<User &> _invited;
+	std::list<User *> _invited;
 	std::string _key;
 
 	void serverReply();

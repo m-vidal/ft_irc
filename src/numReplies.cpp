@@ -6,25 +6,28 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/19 15:36:07 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/21 13:29:50 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 18:32:36 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include inc/numReplies.hpp
+#include "numReply.hpp"
 
-namespace Reply {
+namespace Reply
+{
     /*	This is the generic template for all numerics
-		Format: :<server> <numeric> <target> <args> :<message> */
+        Format: :<server> <numeric> <target> <args> :<message> */
     inline std::string numeric(
-        const std::string& server,
-        const std::string& code,
-        const std::string& target,
-        const std::string& subject,
-        const std::string& message
-    ) {
+        const std::string &server,
+        const std::string &code,
+        const std::string &target,
+        const std::string &subject,
+        const std::string &message)
+    {
         std::string res = ":" + server + " " + code + " " + target;
-        if (!subject.empty()) res += " " + subject;
-        if (!message.empty()) res += " :" + message;
+        if (!subject.empty())
+            res += " " + subject;
+        if (!message.empty())
+            res += " :" + message;
         res += "\r\n";
         return res;
     }

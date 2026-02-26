@@ -6,23 +6,24 @@
 #    By: atambo <atambo@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/30 19:00:19 by marcsilv          #+#    #+#              #
-#    Updated: 2026/02/25 18:24:46 by atambo           ###   ########.fr        #
+#    Updated: 2026/02/26 18:31:32 by atambo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		= ircserver
 
 CXX			= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -I./inc
+CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -I ./inc/
 
 SRC_DIR		= src/
 OBJ_DIR		= obj/
 INC_DIR		= inc/
 
 SRC_FILES	= main.cpp\
-			  User.cpp ACommand.cpp Parser.cpp numReplies.cpp 
+			  Server.cpp Client.cpp Server.cpp numReplies.cpp\
+			  Executer/Executer.cpp Executer/Parser.cpp
 
-HEADERS		= User.hpp ACommand.hpp Parser.cpp numReplies.hpp
+HEADERS		= Server.hpp User.hpp  Channel.hpp Executer.hpp numReply.hpp
 
 SRC			= $(addprefix $(SRC_DIR), $(SRC_FILES))
 OBJ			= $(addprefix $(OBJ_DIR), $(SRC_FILES:.cpp=.o))

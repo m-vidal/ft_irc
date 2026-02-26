@@ -6,27 +6,13 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/24 12:05:41 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/26 17:52:42 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 19:13:21 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/20 13:05:35 by mvidal           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-#include "../inc/Server.hpp"
-
-Server::Server(unsigned short &port, std::string &password) : _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port)
+Server::Server(unsigned short port, std::string password) : _port(port), _socket(socket(AF_INET, SOCK_STREAM, 0)), _password(password)
 {
 	(void)_port;
 	if (!checkPassword(password))
@@ -73,11 +59,11 @@ bool Server::checkPassword(std::string password)
 	return (false);
 }
 
-void Server::processMessage(int fd, std::string str)
-{
-	sendToClient(fd, str);
-	Parser parser(_users[fd], str);
-}
+// void Server::processMessage(int fd, std::string str)
+// {
+// 	// sendToClient(fd, str);
+// 	// Parser parser(_users[fd], str);
+// }
 
 void Server::sendToClient(int fd, std::string str)
 {
@@ -97,8 +83,9 @@ void Server::sendToClient(int fd, std::string str)
 	}
 }
 
-void Server::disconnectClient(int fd)
+void Server::disconnectClient(const short fd)
 {
+	Client &client = _clients.at(fd);
 	for (size_t i = 0; i < _polls.size(); i++)
 	{
 		if (_polls[i].fd == fd)
@@ -209,13 +196,21 @@ User *Server::getUser(std::string &nick)
 	return NULL;
 }
 
+User *Server::getUser(const short fd)
+{
+	std::map<unsigned short, Client>::iterator it = _clients.find(fd);
+	if (it->first == fd)
+		return &(it->second.user);
+	return NULL;
+}
+
 Channel *Server::getChannel(std::string &name)
 {
 	std::list<Channel>::iterator it = _channels.begin();
-	while (it != _clients.end())
+	while (it != _channels.end())
 	{
 		if (it->getName() == name)
-			return (*it);
+			return &(*it);
 		it++;
 	}
 	return NULL;

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/26 18:09:33 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 19:07:17 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,20 +29,19 @@
 #include "User.hpp"
 #include "Channel.hpp"
 
-typedef struct Client
+struct Client
 {
 	User user;
 	std::string inbuf;
 	std::string outbuf;
-	pollfd poll; // para controlar os eventos de cada cliente
+	pollfd poll;
 };
 
 class Server
 {
-
 public:
 	bool is_running;
-	Server(unsigned short &port, std::string &password);
+	Server(unsigned short port, std::string password);
 	void listenMode();
 
 private:
@@ -50,14 +49,15 @@ private:
 	const short _socket;
 	const std::string _password;
 	struct sockaddr_in _addr;
-	std::list<Channel> _channels;
 	std::map<unsigned short, Client> _clients;
+	std::list<Channel> _channels;
 	// ----------------------------------------
-	void processMessage(int fd, std::string str);
-	void sendToClient(int fd, std::string str);
+	void processMessage(const short fd, std::string str);
+	void sendToClient(const short fd, std::string str);
 	bool checkPassword(std::string password);
-	void disconnectClient(int fd);
+	void disconnectClient(const short fd);
 	User *getUser(std::string &nick);
+	User *getUser(const short fd);
 	Channel *getChannel(std::string &nick);
 };
 
