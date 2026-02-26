@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 18:48:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/25 19:40:29 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 17:40:44 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,9 @@
 Executer::Executer(Server &server) : _server(server)
 {
 	// Initialize command map
-	_cmdHandlers["JOIN"] = &Executer::join;
-	_cmdHandlers["PRIVMSG"] = &Executer::privmsg;
-	_cmdHandlers["TOPIC"] = &Executer::topic;
+	_cmdHandlers["JOIN"] = {&Executer::join, 0, false};
+	_cmdHandlers["PRIVMSG"] = {&Executer::privmsg, 0, false};
+	_cmdHandlers["TOPIC"] = (&Executer::topic, 0, false);
 }
 
 //     /privmsg #atambo :
@@ -30,8 +30,7 @@ void Executer::execute(User *user, std::string rawCommand)
 	auto it = _cmdHandlers.find(_cmd);
 	if (it != _cmdHandlers.end())
 	{
-		CommandFunc handler = it->second;
-		(this->*handler)();
+		Command cmd = it->second.handler;
 	}
 	else
 	{
@@ -46,7 +45,7 @@ void Executer::privmsg()
 	if (_params.size() != 1)
 		return;
 	std::string target_nick = _params[0];
-	User *target = _server.getClient(target_nick);
+	User *target = _server.getUser(target_nick);
 	if (target == NULL)
 		return;
 }

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/24 12:05:41 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/25 19:48:52 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 17:52:42 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,26 +45,6 @@ Server::Server(unsigned short &port, std::string &password) : _password(password
 	if (bind(_socket, reinterpret_cast<struct sockaddr *>(&_addr), sizeof(_addr)))
 		throw std::runtime_error("Error: failure to associate the port.");
 	is_running = false;
-}
-
-Server::Server(const Server &other) : _password(other._password), _socket(other._socket), _port(other._port)
-{
-	_channels = other._channels;
-	_users = other._users;
-	_polls = other._polls;
-	_addr = other._addr;
-}
-
-Server Server::operator=(const Server &other)
-{
-	if (this != &other)
-	{
-		_channels = other._channels;
-		_users = other._users;
-		_polls = other._polls;
-		_addr = other._addr;
-	}
-	return (*this);
 }
 
 bool Server::checkPassword(std::string password)
@@ -217,24 +197,26 @@ Server::~Server(void)
 		close(_socket);
 }
 
-User *Server::getUser(std::string &user_nick)
+User *Server::getUser(std::string &nick)
 {
-	std::list<User>::iterator it = _users.begin();
-	while (it != _users.end())
+	std::map<unsigned short, Client>::iterator it = _clients.begin();
+	while (it != _clients.end())
 	{
-		if (it.getNick() == user_nick)
-			return it;
+		if (it->second.user.getNick() == nick)
+			return &(it->second.user);
+		it++;
 	}
 	return NULL;
 }
 
-Channl *Server::getChannel(std::string &channel_name)
+Channel *Server::getChannel(std::string &name)
 {
 	std::list<Channel>::iterator it = _channels.begin();
-	while (it != _channels.end())
+	while (it != _clients.end())
 	{
-		if (it.getName() == channel_name)
-			return it;
+		if (it->getName() == name)
+			return (*it);
+		it++;
 	}
 	return NULL;
 }

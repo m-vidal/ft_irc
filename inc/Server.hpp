@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/25 19:47:46 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 18:09:33 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,26 +42,23 @@ class Server
 
 public:
 	bool is_running;
-
 	Server(unsigned short &port, std::string &password);
-	Server operator=(const Server &other);
-	Server(const Server &other);
-	~Server();
-
 	void listenMode();
 
 private:
+	const short _port;
+	const short _socket;
+	const std::string _password;
+	struct sockaddr_in _addr;
+	std::list<Channel> _channels;
+	std::map<unsigned short, Client> _clients;
+	// ----------------------------------------
 	void processMessage(int fd, std::string str);
 	void sendToClient(int fd, std::string str);
 	bool checkPassword(std::string password);
 	void disconnectClient(int fd);
-
-	std::list<Channel> _channels;
-	const std::string _password;
-	const short _socket;
-	std::map<int, Client> _clients; // um mapa porque assim conseguimos identificar cada user pelo seu fd
-	struct sockaddr_in _addr;
-	const short _port;
+	User *getUser(std::string &nick);
+	Channel *getChannel(std::string &nick);
 };
 
 #endif

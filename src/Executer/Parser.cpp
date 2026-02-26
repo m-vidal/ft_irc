@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 18:17:59 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/25 19:30:12 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/26 17:30:32 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,10 +46,14 @@ void Executer::parser(std::string &rawCommand)
     }
     std::string tempArgs = strBeforeTrailing.substr(spacePos + 1);
     std::vector<std::string> args = split(tempArgs);
-    // -------------------------------------------------
+    //--------------------------------------------------
     _cmd = command;
     _params = args;
-    param_count = args.size();
+    auto it = _cmdHandlers.find(_cmd);
+    if (it->second.param_num != _params.size())
+        return; // wrong number of params
+    if (it->second.need_trail && trailing.empty())
+        return; // command needs trailing
     _trailing = trailing;
 }
 
