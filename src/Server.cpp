@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/20 13:05:35 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/27 18:51:01 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,20 +87,29 @@ void	Server::processMessage(int fd, std::string str)
 
 void	Server::sendToClient(int fd, std::string str)
 {
-	const char	*aux = str.c_str();
+	(void)str;
+	/*const char	*aux = str.c_str();
 	size_t	size = str.size(); 
-	size_t	total_read = 0;
+	size_t	total_read = 0;*/
+	
+	std::string msg(":ircsRev 001 User :Welcome to the Internet Relay Network\r\n");
 
-	while (total_read < size)
+	_users[fd].incInteractions();
+	if (_users[fd].getInteractions() == 1)
+		send(fd, msg.c_str(), msg.size(), 0);
+	std::cout << _users[fd].getInteractions() << " :....." << std::endl;
+	/*while (total_read < size)
 	{
-		size_t sent_bytes = send(fd, aux + total_read, size - total_read, 0);
+		if (_users[fd].getInteractions() < 2)
+			break;
+		size_t sent_bytes = send(fd, aux, str.size() - total_read, 0);
 		if (sent_bytes < 1)
 		{
 			std::cout << "Client@" << fd << ": " << "disconnected" << std::endl;
 			return ;
 		}
 		total_read += sent_bytes;
-	}
+	}*/
 }
 
 void	Server::disconnectClient(int fd) {
@@ -121,8 +130,7 @@ void	Server::listenMode() {
 	if (listen(_socket, 5))
 		throw std::runtime_error("Error: failure to enter listening mode!");
 
-	int flag = fcntl(_socket, F_GETFL, 0);
-	if (flag == -1 || fcntl(_socket, F_SETFL, flag | O_NONBLOCK) == -1)
+	if (fcntl(_socket, F_SETFL, O_NONBLOCK) == -1)
 		throw std::runtime_error("Errorn: failure to enter non block mode!");
 
 	struct pollfd	server_fd;
@@ -142,6 +150,7 @@ void	Server::listenMode() {
 		if (_polls[0].revents & POLLIN)
 		{
 			int clientfd = accept(_socket, NULL, NULL);
+			
 			if (clientfd > -1)
 			{
 				std::cout << clientfd << " Conected" << std::endl;
