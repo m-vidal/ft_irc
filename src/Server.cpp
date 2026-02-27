@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 18:51:01 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/27 19:21:33 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,7 +163,7 @@ void	Server::listenMode() {
 				client.revents = 0;
 
 				_polls.push_back(client);
-				_users.insert(std::make_pair(static_cast<int>(clientfd), User()));
+				_users.insert(std::make_pair(static_cast<int>(clientfd), User(clientfd)));
 				
 			}
 

@@ -6,23 +6,24 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 17:43:55 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/27 19:21:20 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/User.hpp"
 
-User::User(void): _fd(1), _interactions(0) { _username = "default";}
+User::User(int fd): _fd(fd), _interactions(0) { _username = "default";}
+User::User(void): _fd(-1), _interactions(0) { _username = "default"; }
 User::~User(void) { }
 
-User::User(const User &other): _fd(other._fd)
-{
-	_isOperator = other._isOperator;
-	_ipAddress = other._ipAddress;
-	_username = other._username;
-	_nickname = other._nickname;
-	_channels = other._channels;
-}
+// User::User(const User &other): _fd(other._fd)
+// {
+// 	_isOperator = other._isOperator;
+// 	_ipAddress = other._ipAddress;
+// 	_username = other._username;
+// 	_nickname = other._nickname;
+// 	_channels = other._channels;
+// }
 
 void User::setNick(const std::string &nick) {
 	this->_nickname = nick;

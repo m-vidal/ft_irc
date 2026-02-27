@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 17:31:20 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/27 19:15:28 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,10 +30,11 @@ class User {
 		size_t					_interactions;
 
 	public:
+		User(int fd);
 		User(void);
 		~User(void);
-		User(const User &other);
-		User &operator=(const User &other);
+		//User(const User &other);
+		//User &operator=(const User &other);
 
 		// getters
 		const					std::string &getNick(void) const;
@@ -49,6 +50,7 @@ class User {
 
 		void					incInteractions();
 		size_t					getInteractions();
+		int getFd(void) const;
 
 };
 
