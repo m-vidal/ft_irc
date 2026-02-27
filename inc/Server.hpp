@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/26 19:50:49 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/27 13:57:22 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ private:
 	std::vector<pollfd> _polls;
 	// ----------------------------------------
 	std::map<unsigned short, Client> _clients;
-	std::list<Channel> _channels;
+	// std::list<Channel> _channels;
 	// ----------------------------------------
 	void processMessage(const short fd, std::string str);
 	void sendToClient(const short fd, std::string str);
@@ -60,7 +60,7 @@ private:
 	void disconnectClient(const short fd);
 	User *getUser(std::string &nick);
 	User *getUser(const short fd);
-	Channel *getChannel(std::string &nick);
+	// Channel *getChannel(std::string &nick);
 	// listen mode helpers --------------------
 	void handleEvents();
 	void acceptNewClient();

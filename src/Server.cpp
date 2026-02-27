@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/24 12:05:41 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/26 19:50:23 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/27 13:58:13 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,11 +95,11 @@ void Server::disconnectClient(const short fd)
 	// 2. IMPORTANT: Clean up Channel references
 	// Since User is stored BY VALUE inside Client, if you delete the Client,
 	// any pointers to &it->second.user inside your Channels become DEAD.
-	for (std::list<Channel>::iterator cit = _channels.begin(); cit != _channels.end(); ++cit)
-	{
-		// You'll need a method in Channel to remove a user by pointer or nick
-		cit->removeMember(it->second.user.getName());
-	}
+	// for (std::list<Channel>::iterator cit = _channels.begin(); cit != _channels.end(); ++cit)
+	// {
+	// 	// You'll need a method in Channel to remove a user by pointer or nick
+	// 	cit->removeMember(it->second.user.getName());
+	// }
 
 	// 3. Close the file descriptor
 	std::cout << "Client " << fd << " (nick: " << it->second.user.getNick() << ") disconnected." << std::endl;
@@ -232,14 +232,14 @@ User *Server::getUser(const short fd)
 	return NULL;
 }
 
-Channel *Server::getChannel(std::string &name)
-{
-	std::list<Channel>::iterator it = _channels.begin();
-	while (it != _channels.end())
-	{
-		if (it->getName() == name)
-			return &(*it);
-		it++;
-	}
-	return NULL;
-}
+// Channel *Server::getChannel(std::string &name)
+// {
+// 	std::list<Channel>::iterator it = _channels.begin();
+// 	while (it != _channels.end())
+// 	{
+// 		if (it->getName() == name)
+// 			return &(*it);
+// 		it++;
+// 	}
+// 	return NULL;
+// }

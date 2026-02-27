@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/26 19:46:57 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/27 15:13:08 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,18 +16,18 @@
 #include <string>
 #include <vector>
 //--------------------------------------------------
-#include "Channel.hpp"
+// #include "Channel.hpp"
 
 class User
 {
 private:
 	std::string _nick;
 	std::string _name;
-	std::vector<Channel> _channels;
+	// std::vector<Channel> _channels;
 
 public:
 	User();
-	User(short fd, std::string name, std::string nick);
+	User(std::string name, std::string nick);
 	// getters
 	const std::string getNick() const;
 	const std::string getName() const;

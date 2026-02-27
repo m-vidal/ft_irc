@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 22:44:41 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/26 18:49:34 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/27 15:15:07 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,23 @@
 #define EXECUTER_HPP
 
 #include <map>
+#include <vector>
 #include <sstream>
 // ---------------------------------
 class User;
 class Channel;
 class Server;
 class Executer;
+
+typedef void (Executer::*Handler)(void);
 struct Command
 {
-    typedef void (Executer::*Handler)(void);
     Handler handler;
-    short param_num;
-    bool need_trail;
+    int minArgs;
+    bool requiresAuth;
+
+    Command();
+    Command(Handler h, int args, bool auth);
 };
 
 class Executer

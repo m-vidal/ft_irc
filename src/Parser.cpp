@@ -6,11 +6,38 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/25 18:17:59 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/26 17:30:32 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/27 15:10:18 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Executer.hpp"
+
+static std::vector<std::string> split(const std::string &input)
+{
+    std::vector<std::string> result;
+    std::string token;
+    std::string::size_type i = 0;
+    const std::string::size_type n = input.size();
+
+    while (i < n && (input[i] == ' ' || input[i] == '\t'))
+        ++i;
+
+    while (i < n)
+    {
+        token.clear();
+        while (i < n && input[i] != ' ' && input[i] != '\t')
+        {
+            token += input[i];
+            ++i;
+        }
+
+        if (!token.empty())
+            result.push_back(token);
+        while (i < n && (input[i] == ' ' || input[i] == '\t'))
+            ++i;
+    }
+    return result;
+}
 
 void Executer::parser(std::string &rawCommand)
 {
@@ -49,37 +76,19 @@ void Executer::parser(std::string &rawCommand)
     //--------------------------------------------------
     _cmd = command;
     _params = args;
-    auto it = _cmdHandlers.find(_cmd);
-    if (it->second.param_num != _params.size())
-        return; // wrong number of params
-    if (it->second.need_trail && trailing.empty())
-        return; // command needs trailing
     _trailing = trailing;
-}
 
-std::vector<std::string> split(const std::string &input)
-{
-    std::vector<std::string> result;
-    std::string token;
-    std::string::size_type i = 0;
-    const std::string::size_type n = input.size();
+    // Use 'auto' if you can, or the full iterator type for C++98:
+    std::map<std::string, Command>::iterator it = _cmdHandlers.find(_cmd);
 
-    while (i < n && (input[i] == ' ' || input[i] == '\t'))
-        ++i;
+    // Safety check: Does the command even exist in our map?
+    if (it == _cmdHandlers.end())
+        return;
 
-    while (i < n)
+    // Now access the Command struct using it->second
+    if (it->second.minArgs > (int)_params.size())
     {
-        token.clear();
-        while (i < n && input[i] != ' ' && input[i] != '\t')
-        {
-            token += input[i];
-            ++i;
-        }
-
-        if (!token.empty())
-            result.push_back(token);
-        while (i < n && (input[i] == ' ' || input[i] == '\t'))
-            ++i;
+        // Handle: Not enough parameters (ERR_NEEDMOREPARAMS)
+        return;
     }
-    return result;
 }

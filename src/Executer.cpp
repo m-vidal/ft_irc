@@ -6,48 +6,46 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 18:48:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/26 19:52:23 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/27 15:16:22 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Executer.hpp"
 
+Command::Command() : handler(NULL), minArgs(0), requiresAuth(false) {}
+Command::Command(Handler h, int args, bool auth) : handler(h), minArgs(args), requiresAuth(auth) {}
+
 Executer::Executer(Server &server) : _server(server)
 {
 	// Initialize command map
-	_cmdHandlers["JOIN"] = {&Executer::join, 0, false};
-	_cmdHandlers["PRIVMSG"] = {&Executer::privmsg, 0, false};
-	_cmdHandlers["TOPIC"] = (&Executer::topic, 0, false);
+	_cmdHandlers["JOIN"] = Command(&Executer::join, 0, false);
+	_cmdHandlers["PRIVMSG"] = Command(&Executer::privmsg, 0, false);
+	_cmdHandlers["TOPIC"] = Command(&Executer::topic, 0, false);
 }
-
-//     /privmsg #atambo :
 
 void Executer::execute(User *user, std::string rawCommand)
 {
-	if (user == NULL)
-		return;
-	parser(rawCommand);
-	auto it = _cmdHandlers.find(_cmd);
-	if (it != _cmdHandlers.end())
-	{
-		Command cmd = it->second.handler;
-	}
-	else
-	{
-		unknowCmd();
-	}
-}
+	(void)user;
+	(void)rawCommand;
+	// if (user == NULL)
+	// 	return;
 
-void Executer::privmsg()
-{
-	if (_trailing.size() < 1)
-		return;
-	if (_params.size() != 1)
-		return;
-	std::string target_nick = _params[0];
-	User *target = _server.getUser(target_nick);
-	if (target == NULL)
-		return;
+	// _user = user; // Good practice to store who is calling the command
+	// parser(rawCommand);
+
+	// std::map<std::string, Command>::iterator it = _cmdHandlers.find(_cmd);
+	// if (it != _cmdHandlers.end())
+	// {
+	// 	// 'it->second' is the Command object
+	// 	Command cmdInfo = it->second;
+
+	// 	// EXECUTION: You must use 'this' and the dereference operator
+	// 	(this->*(cmdInfo.handler))();
+	// }
+	// else
+	// {
+	// 	unknowCmd();
+	// }
 }
 
 // void Executer::Topic(User &sender, const std::vector<std::string> &params)
@@ -77,3 +75,11 @@ void Executer::privmsg()
 // 	}
 // 	channel->setTopic(params.at(2));
 // }
+
+void Executer::unknowCmd() {}
+
+void Executer::join() {}
+
+void Executer::privmsg() {}
+
+void Executer::topic() {}
