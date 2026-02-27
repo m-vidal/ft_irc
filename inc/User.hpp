@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/15 23:32:55 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/27 17:31:20 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ class User {
 		bool					_isOperator;
 		std::string				_ipAddress;
 		std::string				_buffer;
+		size_t					_interactions;
 
 	public:
 		User(void);
@@ -45,6 +46,9 @@ class User {
 		void					setUser(const std::string &user);
 		void					appendToBuffer(std::string data);
 		void					clearBuffer( size_t pos );
+
+		void					incInteractions();
+		size_t					getInteractions();
 
 };
 
