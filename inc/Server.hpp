@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/20 12:55:00 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/27 19:50:30 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 # include <netinet/in.h>
 # include <arpa/inet.h>
 # include <sys/poll.h>
-# include "Parser.hpp"
 # include <iostream>
 # include <unistd.h>
 # include "User.hpp"
@@ -43,17 +42,20 @@ class Server {
 	private:
 		void	processMessage(int fd, std::string str);
 		void	sendToClient(int fd, std::string str);
+		void	parser(User &user, std::string &str);
 		bool	checkPassword(std::string password);
 		void	disconnectClient(int fd);
 		
-		
-		std::list<Channel>		_channels;
-		const std::string		_password;
-		const short				_socket;
-		std::map<int, User>		_users; // um mapa porque assim conseguimos identificar cada user pelo seu fd
-		std::vector<pollfd>		_polls;		//para controlar os eventos de cada cliente
-		struct sockaddr_in 		_addr;
-		const short				_port;
+		typedef void (Server::*CommandFunc)(int fd, std::vector<std::string>& params);
+        
+		std::map<std::string, CommandFunc>	_commands;
+		std::list<Channel>					_channels;
+		const std::string					_password;
+		const short							_socket;
+		std::map<int, User>					_users; // um mapa porque assim conseguimos identificar cada user pelo seu fd
+		std::vector<pollfd>					_polls;		//para controlar os eventos de cada cliente
+		struct sockaddr_in 					_addr;
+		const short							_port;
 };
 
 #endif

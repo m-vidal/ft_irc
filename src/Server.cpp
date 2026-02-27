@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 19:21:33 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/27 19:34:01 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,61 @@ _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 	if (bind(_socket, reinterpret_cast<struct sockaddr *>(&_addr), sizeof(_addr)))
 		throw std::runtime_error("Error: failure to associate the port.");
 	is_running = false;
+}
+
+std::vector<std::string> split(const std::string& input) {
+    std::vector<std::string> result;
+    std::string token;
+    std::string::size_type i = 0;
+    const std::string::size_type n = input.size();
+
+    while (i < n && (input[i] == ' ' || input[i] == '\t'))
+        ++i;
+
+    while (i < n) {
+        token.clear();
+        while (i < n && input[i] != ' ' && input[i] != '\t') {
+            token += input[i];
+            ++i;
+        }
+
+        if (!token.empty())
+            result.push_back(token);
+        while (i < n && (input[i] == ' ' || input[i] == '\t'))
+            ++i;
+    }
+    return (result);
+}
+
+
+void Server::parser(User &user, std::string &str) {
+	std::string trimmed;
+	if (str.size() >= 2)
+		trimmed = str.substr(0, str.find("\r\n")); //trimming the \r\n
+
+	std::size_t commaPos = trimmed.find(":");
+	std::string	trailing;
+
+	trailing = "\0";
+	if (commaPos != std::string::npos){
+		trailing = trimmed.substr(commaPos + 1); //trailing
+	}
+	
+	std::string	strBeforeTrailing = trimmed.substr(0, commaPos); //COMMAND param1 param2 ....
+
+	std::string					command;
+	std::vector<std::string>	params;
+
+	std::size_t spacePos = strBeforeTrailing.find(' ');
+	
+	command = strBeforeTrailing.substr(0, spacePos);
+	std::size_t commandLength = command.length();
+	for (std::size_t i = 0; i < commandLength; i++) {
+		command[i] = std::toupper(command[i]);
+	}
+	std::string tempArgs = strBeforeTrailing.substr(spacePos + 1);
+	std::vector<std::string> args = split(tempArgs);
+	user.setUser("dafault");//delete later
 }
 
 Server::Server(const Server& other):
@@ -82,7 +137,7 @@ bool	Server::checkPassword(std::string password) {
 void	Server::processMessage(int fd, std::string str)
 {
 	sendToClient(fd, str);
-	Parser parser(_users[fd], str);
+	this->parser(_users[fd], str);
 }
 
 void	Server::sendToClient(int fd, std::string str)
