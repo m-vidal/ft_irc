@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 18:48:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/27 15:16:22 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/27 15:44:58 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,15 +23,19 @@ Executer::Executer(Server &server) : _server(server)
 	_cmdHandlers["TOPIC"] = Command(&Executer::topic, 0, false);
 }
 
-void Executer::execute(User *user, std::string rawCommand)
+void Executer::processMessage(User *user, std::string rawCommand)
 {
-	(void)user;
-	(void)rawCommand;
-	// if (user == NULL)
-	// 	return;
+	if (user == NULL)
+		return;
+	_user = user;
+	parser(rawCommand);
+	std::cout << "command : " << _cmd << "\n";
+	for (size_t i = 0; i++; i < _params.size())
+	{
 
-	// _user = user; // Good practice to store who is calling the command
-	// parser(rawCommand);
+		std::cout << "params : " << _params[i] << "\n";
+	}
+	std::cout << "trailing : " << _trailing << "\n";
 
 	// std::map<std::string, Command>::iterator it = _cmdHandlers.find(_cmd);
 	// if (it != _cmdHandlers.end())

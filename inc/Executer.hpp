@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 22:44:41 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/27 15:15:07 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/27 15:56:54 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,9 @@
 #include <map>
 #include <vector>
 #include <sstream>
+#include <iostream>
 // ---------------------------------
+
 class User;
 class Channel;
 class Server;
@@ -52,7 +54,7 @@ private:
 
 public:
     Executer(Server &server);
-    void execute(User *sender, std::string rawCommand);
+    void processMessage(User *sender, std::string rawCommand);
 };
 
 #endif

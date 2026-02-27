@@ -6,13 +6,13 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/24 12:05:41 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/27 13:58:13 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/27 15:54:07 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-Server::Server(unsigned short port, std::string password) : _port(port), _socket(socket(AF_INET, SOCK_STREAM, 0)), _password(password)
+Server::Server(unsigned short port, std::string password) : _port(port), _socket(socket(AF_INET, SOCK_STREAM, 0)), _password(password), _executer(*this)
 {
 	(void)_port;
 	if (!checkPassword(password))
@@ -199,10 +199,10 @@ void Server::processBuffer(int fd)
 		std::string message = buf.substr(0, pos);
 		buf.erase(0, pos + 2);
 
-		// if (!message.empty())
-		// {
-		// 	processMessage(fd, message);
-		// }
+		if (!message.empty())
+		{
+			_executer.processMessage(&(_clients[fd].user), message);
+		}
 	}
 }
 

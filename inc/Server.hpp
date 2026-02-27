@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 13:57:22 by atambo           ###   ########.fr       */
+/*   Updated: 2026/02/27 15:55:16 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ private:
 	const std::string _password;
 	struct sockaddr_in _addr;
 	std::vector<pollfd> _polls;
+	Executer _executer;
 	// ----------------------------------------
 	std::map<unsigned short, Client> _clients;
 	// std::list<Channel> _channels;
