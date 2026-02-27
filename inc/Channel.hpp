@@ -3,12 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
+/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/09 18:58:31 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/02/27 17:38:54 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
