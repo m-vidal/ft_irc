@@ -6,14 +6,14 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 16:28:23 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 17:27:17 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/User.hpp"
 
 User::User(int fd): _isAuthenticated(false),  _interactions(0), _stepOne(false), _fd(fd)
-{ _username = "Marcio Vidal"; _nickname = "mvidal"; }
+{ _username = "default"; _nickname = "default"; }
 
 User::User(void): _isAuthenticated(false),  _interactions(0), _stepOne(false), _fd(-2)
 { _username = "default"; _nickname = "default";  }

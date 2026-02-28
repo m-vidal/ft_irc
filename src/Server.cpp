@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 17:14:52 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 17:31:46 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,13 @@ void Server::autUser(int fd, std::string str)
 		_users.at(fd).setStepOne();
 	else if (_users.at(fd).getStepOne())
 	{
-		if (command[0] == "NIC" && command[1].size())
-			_users.at(fd).setNick(command[1]);
+		if (command[0] == "NICK")
+		{
+			if (getFdFromNick(command[1]) == -1 || getFdFromNick(command[1]) == fd)
+				_users.at(fd).setNick(command[1]);
+			else 
+				sendToClient(fd, ":ircserv 433 * NickJaExiste :Nickname is already in use\r\n");
+		}
 		if (command[0] == "USER" && command[1].size())
 			_users.at(fd).setUser(command[1]);
 		if (_users.at(fd).getUsername() != "default" && _users.at(fd).getNick() != "default")
