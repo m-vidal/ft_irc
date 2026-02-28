@@ -6,24 +6,20 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 13:06:00 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 14:51:57 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/User.hpp"
 
-User::User(int fd): _fd(fd), _interactions(0) { _username = "Marcio Vidal"; _nickname = "mvidal"; }
-User::User(void): _fd(-2), _interactions(0) { _username = "default"; _nickname = "default";  }
+User::User(int fd): _isAuthenticated(false),  _interactions(0), _fd(fd)
+{ _username = "Marcio Vidal"; _nickname = "mvidal"; }
+
+User::User(void): _isAuthenticated(false),  _interactions(0), _fd(-2)
+{ _username = "default"; _nickname = "default";  }
+
 User::~User(void) { }
 
-// User::User(const User &other): _fd(other._fd)
-// {
-// 	_isOperator = other._isOperator;
-// 	_ipAddress = other._ipAddress;
-// 	_username = other._username;
-// 	_nickname = other._nickname;
-// 	_channels = other._channels;
-// }
 
 void User::setNick(const std::string &nick) {
 	this->_nickname = nick;
@@ -40,6 +36,12 @@ void	User::incInteractions()
 size_t	User::getInteractions( void ) {
 	return (_interactions);
 }
+
+
+bool	User::isAuthenticated() { return (_isAuthenticated); }
+
+void	User::authenticate() { _isAuthenticated = true; }
+
 
 const std::string &User::getNick(void) const {
 	return (this->_nickname);

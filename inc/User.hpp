@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 12:22:26 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 13:55:30 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,38 +20,38 @@ class Channel { };
 
 class User {
 	private:
-		const short				_fd;
-		std::string				_nickname;
-		std::string 			_username;
-		std::vector<Channel>	_channels;	//acho que se vai apagar depois
+		bool					_isAuthenticated;
+		size_t					_interactions;
 		bool					_isOperator;
 		std::string				_ipAddress;
+		//std::vector<Channel>	_channels;	//acho que se vai apagar depois
+		std::string				_nickname;
+		std::string 			_username;
 		std::string				_buffer;
-		size_t					_interactions;
+		const short				_fd;
 
 	public:
 		User(int fd);
 		User(void);
 		~User(void);
-		//User(const User &other);
-		//User &operator=(const User &other);
 
 		// getters
-		const					std::string &getNick(void) const;
 		const					std::string &getUsername(void) const;
+		const					std::string &getNick(void) const;
+		void					clearBuffer( size_t pos );
 		bool					isOperator(void) const;
 		std::string				getBuffer( void );
+		size_t					getInteractions();
+		bool					isAuthenticated();
+		int						getFd(void) ;
 
 		// setters
 		void					setNick(const std::string &nick);
 		void					setUser(const std::string &user);
 		void					appendToBuffer(std::string data);
-		void					clearBuffer( size_t pos );
 
 		void					incInteractions();
-		size_t					getInteractions();
-		void					setFd(int newFd);
-		int						getFd(void) ;
+		void					authenticate();
 };
 
 #endif
