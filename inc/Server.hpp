@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 10:46:23 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 14:40:37 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ class Server {
 		typedef void (Server::*CommandFunc)(int fd, std::vector<std::string>& params, std::string trailing);
 
 		void	msg(int fd, std::vector<std::string>& params, std::string trailing);
+		void	autUser(int fd, std::string str);
 
 		std::map<std::string, CommandFunc>	_commands;
 		std::list<Channel>					_channels;

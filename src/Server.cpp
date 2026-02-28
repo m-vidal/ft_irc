@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 13:02:00 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 15:38:23 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,28 @@ _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 void	Server::setknowscommands()
 {
 	_commands["PRIVMSG"] = &Server::msg;
+}
+
+void Server::autUser(int fd, std::string str)
+{
+	std::stringstream ss(str);
+	std::string command[2];
+	
+	ss >> command[0] >> command[1];
+	if (command[0] == "PASS" && command[1] != _password)
+		sendToClient(fd, ":ircserv 464 * :Password incorrect\r\n");
+	else if (_users.at(fd).getInteractions() > 1)
+	{
+		if (command[0] == "NIC" && command[1].size())
+			_users.at(fd).setNick(command[1]);
+		if (command[0] == "USER" && command[1].size())
+			_users.at(fd).setUser(command[1]);
+		if (_users.at(fd).getUsername() != "default" && _users.at(fd).getNick() != "default")
+		{
+			sendToClient(fd, ":ircsRev 001 * :Welcome to the The Box IRC\r\n");
+			_users.at(fd).authenticate();
+		}
+	}	
 }
 
 /*
@@ -98,13 +120,9 @@ void	Server::msg(int fd, std::vector<std::string>& params, std::string trailing)
 		if (_users[_polls[i].fd].getNick() != params[0])
 			continue ;
 		sendToClient(_users[_polls[i].fd].getFd(), forward);
-		std::cout << "Sending to client fd: " << _users[_polls[i].fd].getFd() << std::endl;
-		std::cout << "Sending: " << forward << std::endl;
 		break ;
 	}
 }
-
-//:Vidal!mvidal@192.168.1.10 PRIVMSG Joao :olá como estás\r\n
 
 std::vector<std::string> split(const std::string& input) {
     std::vector<std::string> result;
@@ -189,17 +207,10 @@ bool	Server::checkPassword(std::string password) {
 
 void	Server::processMessage(int fd, std::string str)
 {
-	_users[fd].incInteractions();
-	if (_users[fd].getInteractions() == 2)
+	_users.at(fd).incInteractions();
+	if (_users.at(fd).getInteractions() > 1 && !_users.at(fd).isAuthenticated())
 	{
-		std::stringstream ss(str);
-		std::string command[2];
-		
-		ss >> command[0] >> command[1];
-		if (command[0] == "PASS" && command[1] == _password)
-			sendToClient(fd, ":ircsRev 001 * :Welcome to the The Box IRC\r\n");
-		else
-			sendToClient(fd, ":ircserv 464 * :Password incorrect\r\n");
+		autUser(fd, str);
 	}
 	else
 		this->parser(_users[fd], str);
