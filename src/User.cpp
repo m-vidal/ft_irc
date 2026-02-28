@@ -6,14 +6,14 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 19:21:20 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 13:06:00 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/User.hpp"
 
-User::User(int fd): _fd(fd), _interactions(0) { _username = "default";}
-User::User(void): _fd(-1), _interactions(0) { _username = "default"; }
+User::User(int fd): _fd(fd), _interactions(0) { _username = "Marcio Vidal"; _nickname = "mvidal"; }
+User::User(void): _fd(-2), _interactions(0) { _username = "default"; _nickname = "default";  }
 User::~User(void) { }
 
 // User::User(const User &other): _fd(other._fd)
@@ -64,3 +64,7 @@ std::string	User::getBuffer( void ) {
 void	User::clearBuffer( size_t pos ) {
 	_buffer.erase(0, pos);
 }
+
+//void	User::setFd(int newFd) { _fd = newFd; }
+
+int	User::getFd(void) { return (_fd); }

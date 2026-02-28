@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 19:15:28 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 12:22:26 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,8 @@ class User {
 
 		void					incInteractions();
 		size_t					getInteractions();
-		int getFd(void) const;
-
+		void					setFd(int newFd);
+		int						getFd(void) ;
 };
 
 #endif
