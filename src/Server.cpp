@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 01:59:40 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 13:02:00 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,75 @@ _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 
 void	Server::setknowscommands()
 {
-	//_commands["MSG"] = &Server::handlePass;
+	_commands["PRIVMSG"] = &Server::msg;
 }
+
+/*
+
+void Server::handlePrivmsg(int fd, std::vector<std::string>& params)
+{
+    if (params.empty() || params.size() < 2)
+    {
+        sendToClient(fd, ":ircserv 461 PRIVMSG :Not enough parameters\r\n");
+        return ;
+    }
+
+    std::string destination = params[0];
+    std::string message = params[1];
+
+    std::string prefix = ":" + _users[fd].getNick() + "!"
+                       + _users[fd].getUsername() + "@"
+                       + _users[fd].getIpAddress();
+
+    if (destination[0] == '#') // é um canal
+    {
+        std::map<std::string, Channel>::iterator it = _channels.find(destination);
+        if (it == _channels.end())
+        {
+            sendToClient(fd, ":ircserv 403 " + destination + " :No such channel\r\n");
+            return ;
+        }
+        // broadcast para membros do canal
+    }
+    else // é um utilizador
+    {
+        std::map<int, User>::iterator it = _users.begin();
+        for (; it != _users.end(); it++)
+        {
+            if (it->second.getNick() == destination)
+            {
+                sendToClient(it->first, prefix + " PRIVMSG " + destination + " :" + message + "\r\n");
+                return ;
+            }
+        }
+        sendToClient(fd, ":ircserv 401 " + destination + " :No such nick\r\n");
+    }
+}
+
+*/
+
+void	Server::msg(int fd, std::vector<std::string>& params, std::string trailing)
+{
+	std::string prefix = ":" + _users[fd].getNick() + "!" + _users[fd].getUsername() + "@" + "127.0.0.1";
+	std::string forward = prefix + " PRIVMSG " + params[0] + " " + trailing + "\r\n";
+	if (!params.size() || !trailing.size())
+	{
+		sendToClient(fd, ":ircserv 461 PRIVMSG :Not enough parameters\r\n");
+        return ;
+	}
+
+	for (size_t i = 1; i < _polls.size(); i++)
+	{
+		if (_users[_polls[i].fd].getNick() != params[0])
+			continue ;
+		sendToClient(_users[_polls[i].fd].getFd(), forward);
+		std::cout << "Sending to client fd: " << _users[_polls[i].fd].getFd() << std::endl;
+		std::cout << "Sending: " << forward << std::endl;
+		break ;
+	}
+}
+
+//:Vidal!mvidal@192.168.1.10 PRIVMSG Joao :olá como estás\r\n
 
 std::vector<std::string> split(const std::string& input) {
     std::vector<std::string> result;
@@ -64,6 +131,7 @@ std::vector<std::string> split(const std::string& input) {
 }
 
 void Server::parser(User &user, std::string &str) {
+	//no caso de faltar args ou trailing, mandar args vazios
 	std::string trimmed;
 	if (str.size() >= 2)
 		trimmed = str.substr(0, str.find("\r\n")); //trimming the \r\n
@@ -71,15 +139,13 @@ void Server::parser(User &user, std::string &str) {
 	std::size_t commaPos = trimmed.find(":");
 	std::string	trailing;
 
-	trailing = "\0";
 	if (commaPos != std::string::npos){
-		trailing = trimmed.substr(commaPos + 1); //trailing
+		trailing = trimmed.substr(commaPos + 1); //verificar mais tarde
 	}
 	
 	std::string	strBeforeTrailing = trimmed.substr(0, commaPos); //COMMAND param1 param2 ....
 
 	std::string					command;
-	std::vector<std::string>	params;
 
 	std::size_t spacePos = strBeforeTrailing.find(' ');
 	
@@ -90,7 +156,10 @@ void Server::parser(User &user, std::string &str) {
 	}
 	std::string tempArgs = strBeforeTrailing.substr(spacePos + 1);
 	std::vector<std::string> args = split(tempArgs);
-	user.setUser("dafault");//delete later
+
+	std::map<std::string, CommandFunc>::iterator it = _commands.find(command);
+	if (it != _commands.end())
+		(this->*(it->second))(user.getFd(), args, trailing);
 }
 
 bool	Server::checkPassword(std::string password) {

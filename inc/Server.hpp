@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 02:02:17 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 10:46:23 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,9 @@ class Server {
 		void	disconnectClient(int fd);
 		void	setknowscommands();
 
-		typedef void (Server::*CommandFunc)(int fd, std::vector<std::string>& params);
+		typedef void (Server::*CommandFunc)(int fd, std::vector<std::string>& params, std::string trailing);
+
+		void	msg(int fd, std::vector<std::string>& params, std::string trailing);
 
 		std::map<std::string, CommandFunc>	_commands;
 		std::list<Channel>					_channels;
