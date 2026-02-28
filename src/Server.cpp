@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 19:34:01 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 01:59:40 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,13 @@ _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 
 	if (bind(_socket, reinterpret_cast<struct sockaddr *>(&_addr), sizeof(_addr)))
 		throw std::runtime_error("Error: failure to associate the port.");
+	setknowscommands();
 	is_running = false;
+}
+
+void	Server::setknowscommands()
+{
+	//_commands["MSG"] = &Server::handlePass;
 }
 
 std::vector<std::string> split(const std::string& input) {
@@ -56,7 +62,6 @@ std::vector<std::string> split(const std::string& input) {
     }
     return (result);
 }
-
 
 void Server::parser(User &user, std::string &str) {
 	std::string trimmed;
@@ -88,27 +93,6 @@ void Server::parser(User &user, std::string &str) {
 	user.setUser("dafault");//delete later
 }
 
-Server::Server(const Server& other):
-_password(other._password), _socket(other._socket), _port(other._port)
-{
-	_channels = other._channels;
-	_users = other._users;
-	_polls = other._polls;
-	_addr = other._addr;
-}
-
-Server	Server::operator=(const Server& other)
-{
-	if (this != &other)
-	{	
-		_channels = other._channels;
-		_users = other._users;
-		_polls = other._polls;
-		_addr = other._addr;
-	}
-	return (*this);
-}
-
 bool	Server::checkPassword(std::string password) {
 	bool	hasUpper = false;
 	bool	hasLower = false;
@@ -136,35 +120,25 @@ bool	Server::checkPassword(std::string password) {
 
 void	Server::processMessage(int fd, std::string str)
 {
-	sendToClient(fd, str);
-	this->parser(_users[fd], str);
+	_users[fd].incInteractions();
+	if (_users[fd].getInteractions() == 2)
+	{
+		std::stringstream ss(str);
+		std::string command[2];
+		
+		ss >> command[0] >> command[1];
+		if (command[0] == "PASS" && command[1] == _password)
+			sendToClient(fd, ":ircsRev 001 * :Welcome to the The Box IRC\r\n");
+		else
+			sendToClient(fd, ":ircserv 464 * :Password incorrect\r\n");
+	}
+	else
+		this->parser(_users[fd], str);
 }
 
 void	Server::sendToClient(int fd, std::string str)
 {
-	(void)str;
-	/*const char	*aux = str.c_str();
-	size_t	size = str.size(); 
-	size_t	total_read = 0;*/
-	
-	std::string msg(":ircsRev 001 User :Welcome to the Internet Relay Network\r\n");
-
-	_users[fd].incInteractions();
-	if (_users[fd].getInteractions() == 1)
-		send(fd, msg.c_str(), msg.size(), 0);
-	std::cout << _users[fd].getInteractions() << " :....." << std::endl;
-	/*while (total_read < size)
-	{
-		if (_users[fd].getInteractions() < 2)
-			break;
-		size_t sent_bytes = send(fd, aux, str.size() - total_read, 0);
-		if (sent_bytes < 1)
-		{
-			std::cout << "Client@" << fd << ": " << "disconnected" << std::endl;
-			return ;
-		}
-		total_read += sent_bytes;
-	}*/
+	send(fd, str.c_str(), str.size(), 0);
 }
 
 void	Server::disconnectClient(int fd) {
@@ -179,7 +153,6 @@ void	Server::disconnectClient(int fd) {
 	_users.erase(fd);
 	close(fd);
 }
-
 
 void	Server::listenMode() {
 	if (listen(_socket, 5))
@@ -205,7 +178,7 @@ void	Server::listenMode() {
 		if (_polls[0].revents & POLLIN)
 		{
 			int clientfd = accept(_socket, NULL, NULL);
-			
+
 			if (clientfd > -1)
 			{
 				std::cout << clientfd << " Conected" << std::endl;
@@ -221,7 +194,6 @@ void	Server::listenMode() {
 				_users.insert(std::make_pair(static_cast<int>(clientfd), User(clientfd)));
 				
 			}
-
 		}
 		for (size_t i = 1; i < _polls.size(); ++i)
 		{

@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 19:50:30 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 02:02:17 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,21 +33,20 @@ class Server {
 		bool is_running;
 
 		Server(unsigned short &port, std::string &password);
-		Server operator=(const Server& other);
-		Server(const Server& other);
 		~Server();
-	
+
 		void	listenMode();
-		
+
 	private:
 		void	processMessage(int fd, std::string str);
 		void	sendToClient(int fd, std::string str);
 		void	parser(User &user, std::string &str);
 		bool	checkPassword(std::string password);
 		void	disconnectClient(int fd);
-		
+		void	setknowscommands();
+
 		typedef void (Server::*CommandFunc)(int fd, std::vector<std::string>& params);
-        
+
 		std::map<std::string, CommandFunc>	_commands;
 		std::list<Channel>					_channels;
 		const std::string					_password;
