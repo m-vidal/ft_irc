@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 15:38:23 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 17:14:52 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,9 @@ void Server::autUser(int fd, std::string str)
 	ss >> command[0] >> command[1];
 	if (command[0] == "PASS" && command[1] != _password)
 		sendToClient(fd, ":ircserv 464 * :Password incorrect\r\n");
-	else if (_users.at(fd).getInteractions() > 1)
+	else if (command[0] == "PASS" && command[1] == _password)
+		_users.at(fd).setStepOne();
+	else if (_users.at(fd).getStepOne())
 	{
 		if (command[0] == "NIC" && command[1].size())
 			_users.at(fd).setNick(command[1]);
@@ -115,14 +117,23 @@ void	Server::msg(int fd, std::vector<std::string>& params, std::string trailing)
         return ;
 	}
 
+	int destin = getFdFromNick(params[0]);
+	if (destin > 0)
+		sendToClient(destin, forward);
+}
+
+
+int	Server::getFdFromNick(std::string nick)
+{
 	for (size_t i = 1; i < _polls.size(); i++)
 	{
-		if (_users[_polls[i].fd].getNick() != params[0])
+		if (_users[_polls[i].fd].getNick() != nick)
 			continue ;
-		sendToClient(_users[_polls[i].fd].getFd(), forward);
-		break ;
+		return (_users[_polls[i].fd].getFd());
 	}
+	return (-1);
 }
+
 
 std::vector<std::string> split(const std::string& input) {
     std::vector<std::string> result;
@@ -147,6 +158,7 @@ std::vector<std::string> split(const std::string& input) {
     }
     return (result);
 }
+
 
 void Server::parser(User &user, std::string &str) {
 	//no caso de faltar args ou trailing, mandar args vazios
@@ -180,6 +192,7 @@ void Server::parser(User &user, std::string &str) {
 		(this->*(it->second))(user.getFd(), args, trailing);
 }
 
+
 bool	Server::checkPassword(std::string password) {
 	bool	hasUpper = false;
 	bool	hasLower = false;
@@ -205,10 +218,10 @@ bool	Server::checkPassword(std::string password) {
 	return (false);
 }
 
+
 void	Server::processMessage(int fd, std::string str)
 {
-	_users.at(fd).incInteractions();
-	if (_users.at(fd).getInteractions() > 1 && !_users.at(fd).isAuthenticated())
+	if (!_users.at(fd).isAuthenticated())
 	{
 		autUser(fd, str);
 	}
@@ -216,10 +229,12 @@ void	Server::processMessage(int fd, std::string str)
 		this->parser(_users[fd], str);
 }
 
+
 void	Server::sendToClient(int fd, std::string str)
 {
 	send(fd, str.c_str(), str.size(), 0);
 }
+
 
 void	Server::disconnectClient(int fd) {
 	for (size_t i = 0; i < _polls.size(); i++)
@@ -233,6 +248,7 @@ void	Server::disconnectClient(int fd) {
 	_users.erase(fd);
 	close(fd);
 }
+
 
 void	Server::listenMode() {
 	if (listen(_socket, 5))
