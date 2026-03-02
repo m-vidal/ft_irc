@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/02 14:09:08 by atambo           ###   ########.fr       */
+/*   Created: 2026/03/02 18:17:28 by atambo            #+#    #+#             */
+/*   Updated: 2026/03/02 18:54:45 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 #include <vector>
 #include <list>
 #include <map>
-// ----------------------------------
+
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Executer.hpp"
@@ -35,6 +35,9 @@ struct Client
 	User user;
 	std::string inbuf;
 	std::string outbuf;
+	int fd;
+	size_t poll_idx; // Link to position in _polls vector
+	bool is_auth;	 // Registration status
 };
 
 class Server
@@ -43,31 +46,42 @@ public:
 	bool is_running;
 	Server(unsigned short port, std::string password);
 	~Server();
+
 	void listenMode();
+	// WRITER: Logic -> Buffer
+	void ReplyClient(User &user, const std::string &msg);
+	const std::string &getName() const;
 
 private:
+	const std::string _name;
 	const short _port;
 	const short _socket;
 	const std::string _password;
 	struct sockaddr_in _addr;
 	std::vector<pollfd> _polls;
 	Executer _executer;
-	// ----------------------------------------
+
+	// Map uses FD as key for O(log N) lookup
 	std::map<unsigned short, Client> _clients;
-	// std::list<Channel> _channels;
-	// ----------------------------------------
-	void processMessage(const short fd, std::string str);
-	void sendToClient(const short fd, std::string str);
+
+	/* --- Core Internal Logic --- */
 	bool checkPassword(std::string password);
 	void disconnectClient(const short fd);
+	void syncPollIndices(); // Keeps poll_idx accurate after vector shifts
+
+	/* --- Getters --- */
 	User *getUser(std::string &nick);
 	User *getUser(const short fd);
-	// Channel *getChannel(std::string &nick);
-	// listen mode helpers --------------------
+	Client *getClient(User &user);
+
+	/* --- Data Flow: Reception (FD -> Command) --- */
 	void handleEvents();
 	void acceptNewClient();
-	void readFromClient(size_t &poll_idx);
-	void processBuffer(int fd);
+	void readFdToBuffer(size_t &poll_idx); // Stage 1: Recv from socket
+	void processBufferToCommand(int fd);   // Stage 2: Parse \r\n lines
+
+	/* --- Data Flow: Transmission (Buffer -> FD) --- */
+	void sendBufferToFd(int fd); // Stage 3: Send to socket
 };
 
 #endif

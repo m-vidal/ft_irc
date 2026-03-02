@@ -6,12 +6,14 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/19 15:09:27 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/26 18:34:15 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/02 18:41:45 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef NUMREPLY_HPP
 #define NUMREPLY_HPP
+
+#include <string>
 
 // --- Registration Replies ---
 #define RPL_WELCOME "001"
@@ -30,6 +32,7 @@
 #define ERR_NOSUCHCHANNEL "403"
 #define ERR_CANNOTSENDTOCHAN "404"
 #define ERR_TOOMANYCHANNELS "405"
+#define ERR_UNKNOWNCOMMAND "421"
 #define ERR_NONICKNAMEGIVEN "431"
 #define ERR_ERRONEUSNICKNAME "432"
 #define ERR_NICKNAMEINUSE "433"
@@ -44,20 +47,36 @@
 #define ERR_UNKNOWNMODE "472"
 #define ERR_INVITEONLYCHAN "473"
 #define ERR_BADCHANNELKEY "475"
-#define ERR_CHANOPRIVSNEEDED "482" // not channel operator
+#define ERR_CHANOPRIVSNEEDED "482"
 
 #include <string>
 // ----------------
 #include "Server.hpp"
+
 namespace Reply
 {
-	/*	This is the generic template for all numerics
-		Format: :<server> <numeric> <target> <args> :<message> */
-	std::string numeric(
-		const Server &server,
-		const char *code,
-		const std::string &target,
-		const std::string &subject,
-		const std::string &message);
+	/* Events */
+	std::string join(const User &u, const std::string &channel);
+	std::string privmsg(const User &u, const std::string &target, const std::string &msg);
+	std::string nick(const std::string &oldPrefix, const std::string &newNick);
+	std::string part(const User &u, const std::string &channel, const std::string &reason);
+
+	/* Handshake */
+	std::string welcome(const std::string &srv, const std::string &nick);
+	std::string yourhost(const std::string &srv, const std::string &nick);
+
+	/* Info */
+	std::string topic(const std::string &srv, const std::string &nick, const std::string &chan, const std::string &topicText);
+	std::string namreply(const std::string &srv, const std::string &nick, const std::string &chan, const std::string &users);
+	std::string endofnames(const std::string &srv, const std::string &nick, const std::string &chan);
+
+	/* Errors */
+	std::string err_nicknameinuse(const std::string &srv, const std::string &nick);
+	std::string err_needmoreparams(const std::string &srv, const std::string &nick, const std::string &command);
+	std::string err_nosuchchannel(const std::string &srv, const std::string &nick, const std::string &chan);
+	std::string err_chanoprivsneeded(const std::string &srv, const std::string &nick, const std::string &chan);
+	std::string err_unknowncommand(const std::string &srv, const std::string &nick, const std::string &cmd);
+
 }
+
 #endif

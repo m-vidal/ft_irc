@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 22:44:41 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/27 15:56:54 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/02 18:20:35 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <sstream>
 #include <iostream>
 // ---------------------------------
+#include "numReply.hpp"
 
 class User;
 class Channel;

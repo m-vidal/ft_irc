@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 15:13:08 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/02 15:44:25 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ class User
 private:
 	std::string _nick;
 	std::string _name;
+	std::string _hostname;
 	// std::vector<Channel> _channels;
 
 public:
@@ -31,9 +32,11 @@ public:
 	// getters
 	const std::string getNick() const;
 	const std::string getName() const;
+	const std::string getHost() const;
 	// setters
 	void setNick(const std::string &nick);
 	void setName(const std::string &name);
+	void setHost(const std::string &hostname);
 };
 
 #endif

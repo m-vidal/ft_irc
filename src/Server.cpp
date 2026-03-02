@@ -5,122 +5,60 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/24 12:05:41 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/27 15:54:07 by atambo           ###   ########.fr       */
+/*   Created: 2026/03/02 18:16:49 by atambo            #+#    #+#             */
+/*   Updated: 2026/03/02 18:52:50 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-Server::Server(unsigned short port, std::string password) : _port(port), _socket(socket(AF_INET, SOCK_STREAM, 0)), _password(password), _executer(*this)
+/* --- Construction & Setup --- */
+
+Server::Server(unsigned short port, std::string password)
+	: _name("ft_ircserver"), _port(port), _socket(socket(AF_INET, SOCK_STREAM, 0)),
+	  _password(password), _executer(*this)
 {
-	(void)_port;
 	if (!checkPassword(password))
 		throw std::runtime_error("Error: password too weak!");
 	if (_socket < 0)
-		throw std::runtime_error("Error: failure in the socket server creation!");
+		throw std::runtime_error("Error: socket creation failed!");
 
 	int opt = 1;
 	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
-		throw std::runtime_error("Error: failure in the socket server config!");
+		throw std::runtime_error("Error: setsockopt failed!");
 
 	_addr.sin_family = AF_INET;
 	_addr.sin_port = htons(port);
 	_addr.sin_addr.s_addr = INADDR_ANY;
 
 	if (bind(_socket, reinterpret_cast<struct sockaddr *>(&_addr), sizeof(_addr)))
-		throw std::runtime_error("Error: failure to associate the port.");
+		throw std::runtime_error("Error: bind failed!");
+
 	is_running = false;
 }
 
-bool Server::checkPassword(std::string password)
+const std::string &Server::getName() const { return _name; }
+
+Server::~Server()
 {
-	bool hasUpper = false;
-	bool hasLower = false;
-	bool hasNumbr = false;
-	bool hasSmbl = false;
-
-	if (password.size() < 8)
-		return (false);
-	for (size_t i = 0; i < password.size(); i++)
-	{
-		if (std::isupper(password[i]))
-			hasUpper = true;
-
-		else if (std::islower(password[i]))
-			hasLower = true;
-		else if (std::isdigit(password[i]))
-			hasNumbr = true;
-		else
-			hasSmbl = true;
-	}
-	if (hasUpper && hasLower && hasNumbr && hasSmbl)
-		return (true);
-	return (false);
+	if (_socket)
+		close(_socket);
 }
 
-// void Server::processMessage(int fd, std::string str)
-// {
-// 	// sendToClient(fd, str);
-// 	// Parser parser(_users[fd], str);
-// }
-
-void Server::sendToClient(const short fd, std::string str)
-{
-	std::map<unsigned short, Client>::iterator it = _clients.find(fd);
-	if (it == _clients.end())
-		return;
-
-	// Append the message (usually IRC needs \r\n at the end)
-	it->second.outbuf += str;
-
-	// Tell poll() we are now interested in WRITING to this socket
-	for (size_t i = 0; i < _polls.size(); ++i)
-	{
-		if (_polls[i].fd == fd)
-		{
-			_polls[i].events |= POLLOUT;
-			break;
-		}
-	}
-}
-
-void Server::disconnectClient(const short fd)
-{
-	// 1. Check if the client actually exists to avoid .at() crashes
-	std::map<unsigned short, Client>::iterator it = _clients.find(fd);
-	if (it == _clients.end())
-		return;
-
-	// 2. IMPORTANT: Clean up Channel references
-	// Since User is stored BY VALUE inside Client, if you delete the Client,
-	// any pointers to &it->second.user inside your Channels become DEAD.
-	// for (std::list<Channel>::iterator cit = _channels.begin(); cit != _channels.end(); ++cit)
-	// {
-	// 	// You'll need a method in Channel to remove a user by pointer or nick
-	// 	cit->removeMember(it->second.user.getName());
-	// }
-
-	// 3. Close the file descriptor
-	std::cout << "Client " << fd << " (nick: " << it->second.user.getNick() << ") disconnected." << std::endl;
-	close(fd);
-
-	// 4. Remove from map (This cleans up the User and buffers automatically)
-	_clients.erase(it);
-}
+/* --- Core Loop & Event Handling --- */
 
 void Server::listenMode()
 {
 	if (listen(_socket, 5) == -1)
 		throw std::runtime_error("Error: listen failed");
 
-	// Set server socket to non-blocking
 	fcntl(_socket, F_SETFL, O_NONBLOCK);
 
-	// Initial pollfd for the server itself
 	pollfd server_pfd = {_socket, POLLIN, 0};
 	_polls.push_back(server_pfd);
+
 	is_running = true;
+	std::cout << "IRC Server running on port " << _port << "..." << std::endl;
 
 	while (is_running)
 	{
@@ -136,26 +74,31 @@ void Server::listenMode()
 
 void Server::handleEvents()
 {
-	// 1. Handle New Connections
+	// 1. New Connections
 	if (_polls[0].revents & POLLIN)
-	{
 		acceptNewClient();
-	}
 
-	// 2. Handle Existing Clients (Iterate backwards or carefully with i--)
+	// 2. Existing Clients
 	for (size_t i = 1; i < _polls.size(); ++i)
 	{
+		// READ: FD -> Buffer
 		if (_polls[i].revents & POLLIN)
-		{
-			readFromClient(i);
-		}
-		else if (_polls[i].revents & (POLLERR | POLLHUP))
+			readFdToBuffer(i);
+
+		// WRITE: Buffer -> FD
+		if (i < _polls.size() && (_polls[i].revents & POLLOUT))
+			sendBufferToFd(_polls[i].fd);
+
+		// ERRORS/HUP
+		if (i < _polls.size() && (_polls[i].revents & (POLLERR | POLLHUP)))
 		{
 			disconnectClient(_polls[i].fd);
 			--i;
 		}
 	}
 }
+
+/* --- Data Flow: Reception --- */
 
 void Server::acceptNewClient()
 {
@@ -168,28 +111,36 @@ void Server::acceptNewClient()
 	pollfd pfd = {client_fd, POLLIN, 0};
 	_polls.push_back(pfd);
 
-	// Create new Client entry in the map
-	_clients.insert(std::make_pair(client_fd, Client()));
-	std::cout << "Client " << client_fd << " connected." << std::endl;
+	Client new_client;
+	new_client.fd = client_fd;
+	new_client.is_auth = false;
+	new_client.poll_idx = _polls.size() - 1;
+
+	_clients.insert(std::make_pair(client_fd, new_client));
+	std::cout << "Client FD " << client_fd << " connected at index " << new_client.poll_idx << std::endl;
 }
 
-void Server::readFromClient(size_t &poll_idx)
+void Server::readFdToBuffer(size_t &poll_idx)
 {
 	char buffer[1024];
 	int fd = _polls[poll_idx].fd;
 	ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
 	if (bytes <= 0)
 	{
 		disconnectClient(fd);
 		--poll_idx;
 		return;
 	}
+
 	buffer[bytes] = '\0';
 	_clients[fd].inbuf += buffer;
-	processBuffer(fd);
+
+	// Move to next stage: Buffer -> String/Command
+	processBufferToCommand(fd);
 }
 
-void Server::processBuffer(int fd)
+void Server::processBufferToCommand(int fd)
 {
 	std::string &buf = _clients[fd].inbuf;
 	size_t pos;
@@ -200,46 +151,103 @@ void Server::processBuffer(int fd)
 		buf.erase(0, pos + 2);
 
 		if (!message.empty())
-		{
 			_executer.processMessage(&(_clients[fd].user), message);
-		}
 	}
 }
 
-Server::~Server()
+/* --- Data Flow: Transmission --- */
+
+// WRITER: Command -> Buffer
+void Server::ReplyClient(User &user, const std::string &msg)
 {
-	if (_socket)
-		close(_socket);
+	Client *client = this->getClient(user);
+	if (!client)
+		return;
+
+	client->outbuf += msg;
+	// Enable the bit so poll() knows we have something to send
+	_polls[client->poll_idx].events |= POLLOUT;
 }
 
-User *Server::getUser(std::string &nick)
+// SENDER: Buffer -> FD
+void Server::sendBufferToFd(int fd)
 {
-	std::map<unsigned short, Client>::iterator it = _clients.begin();
-	while (it != _clients.end())
-	{
-		if (it->second.user.getNick() == nick)
-			return &(it->second.user);
-		it++;
-	}
-	return NULL;
+	Client &c = _clients[fd];
+	if (c.outbuf.empty())
+		return;
+
+	ssize_t sent = send(fd, c.outbuf.c_str(), c.outbuf.size(), 0);
+
+	if (sent > 0)
+		c.outbuf.erase(0, sent);
+
+	// If everything is sent, stop monitoring POLLOUT to save CPU
+	if (c.outbuf.empty())
+		_polls[c.poll_idx].events &= ~POLLOUT;
 }
 
-User *Server::getUser(const short fd)
+/* --- Utilities & Cleanup --- */
+
+void Server::disconnectClient(const short fd)
 {
 	std::map<unsigned short, Client>::iterator it = _clients.find(fd);
-	if (it->first == fd)
-		return &(it->second.user);
+	if (it == _clients.end())
+		return;
+
+	std::cout << "Client FD " << fd << " disconnected." << std::endl;
+
+	// Remove from poll vector
+	for (size_t i = 0; i < _polls.size(); ++i)
+	{
+		if (_polls[i].fd == fd)
+		{
+			_polls.erase(_polls.begin() + i);
+			break;
+		}
+	}
+
+	close(fd);
+	_clients.erase(it);
+
+	// Re-sync all indices because the vector shifted
+	syncPollIndices();
+}
+
+void Server::syncPollIndices()
+{
+	for (size_t i = 1; i < _polls.size(); ++i)
+	{
+		int fd = _polls[i].fd;
+		_clients[fd].poll_idx = i;
+	}
+}
+
+Client *Server::getClient(User &target)
+{
+	std::map<unsigned short, Client>::iterator it = _clients.begin();
+	for (; it != _clients.end(); ++it)
+	{
+		if (&(it->second.user) == &target)
+			return &(it->second);
+	}
 	return NULL;
 }
 
-// Channel *Server::getChannel(std::string &name)
-// {
-// 	std::list<Channel>::iterator it = _channels.begin();
-// 	while (it != _channels.end())
-// 	{
-// 		if (it->getName() == name)
-// 			return &(*it);
-// 		it++;
-// 	}
-// 	return NULL;
-// }
+bool Server::checkPassword(std::string password)
+{
+	if (password.size() < 8)
+		return false;
+	bool up = false, low = false, num = false, symb = false;
+	for (size_t i = 0; i < password.size(); i++)
+	{
+		if (isupper(password[i]))
+			up = true;
+		else if (islower(password[i]))
+			low = true;
+		else if (isdigit(password[i]))
+			num = true;
+		else
+			symb = true;
+	}
+	return (up && low && num && symb);
+}

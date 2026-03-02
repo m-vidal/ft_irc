@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 18:48:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/02 14:13:18 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/02 18:49:30 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,9 @@ Executer::Executer(Server &server) : _server(server)
 {
 	// Initialize command map
 
-	_cmdHandlers["JOIN"] = Command(&Executer::join, 0, false);
-	_cmdHandlers["PRIVMSG"] = Command(&Executer::privmsg, 0, false);
-	_cmdHandlers["TOPIC"] = Command(&Executer::topic, 0, false);
+	// _cmdHandlers["JOIN"] = Command(&Executer::join, 0, false);
+	// _cmdHandlers["PRIVMSG"] = Command(&Executer::privmsg, 0, false);
+	// _cmdHandlers["TOPIC"] = Command(&Executer::topic, 0, false);
 }
 
 void Executer::processMessage(User *user, std::string rawCommand)
@@ -30,6 +30,8 @@ void Executer::processMessage(User *user, std::string rawCommand)
 		return;
 	_user = user;
 	parser(rawCommand);
+	if (_cmd.empty())
+		return;
 	std::cout << "----------------------------------------------------------" << "\n";
 	std::cout << "command : " << _cmd << "\n";
 	for (size_t i = 0; i < _params.size(); i++)
@@ -39,19 +41,16 @@ void Executer::processMessage(User *user, std::string rawCommand)
 	std::cout << "trailing : " << _trailing << "\n";
 	std::cout << "----------------------------------------------------------" << "\n";
 
-	// std::map<std::string, Command>::iterator it = _cmdHandlers.find(_cmd);
-	// if (it != _cmdHandlers.end())
-	// {
-	// 	// 'it->second' is the Command object
-	// 	Command cmdInfo = it->second;
-
-	// 	// EXECUTION: You must use 'this' and the dereference operator
-	// 	(this->*(cmdInfo.handler))();
-	// }
-	// else
-	// {
-	// 	unknowCmd();
-	// }
+	std::map<std::string, Command>::iterator it = _cmdHandlers.find(_cmd);
+	if (it != _cmdHandlers.end())
+	{
+		Command cmdInfo = it->second;
+		(this->*(cmdInfo.handler))();
+	}
+	else
+	{
+		unknowCmd();
+	}
 }
 
 // void Executer::Topic(User &sender, const std::vector<std::string> &params)
@@ -82,7 +81,10 @@ void Executer::processMessage(User *user, std::string rawCommand)
 // 	channel->setTopic(params.at(2));
 // }
 
-void Executer::unknowCmd() {}
+void Executer::unknowCmd()
+{
+	_server.ReplyClient(*_user, Reply::err_unknowncommand(_server.getName(), _user->getNick(), _cmd));
+}
 
 void Executer::join() {}
 
