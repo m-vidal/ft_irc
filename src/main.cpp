@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/02/15 14:26:43 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 19:30:37 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ int main(int ac, char** av) {
 	std::stringstream ss(av[1]);
 	if (!(ss >> port) || ss >> c)
 		return (std::cerr << "Error: invalid port." << std::endl, 1);
+	
+	std::cout << "IRC Server starting..." << std::endl;
 
 	password = av[2];
 	try {
