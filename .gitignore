@@ -1,5 +1,4 @@
 # Ignore everything
-*
 
 # But do not ignore directories (needed to find files inside them)
 !*/
