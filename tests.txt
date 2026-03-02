@@ -1,0 +1,16 @@
+/pass ->pass vazio
+/msg ou /privmsg com varios destinatarios
+
+{
+	não pode começar com número
+
+	não pode conter espaços
+
+	não pode conter caracteres proibidos
+
+	tamanho razoável
+
+	432 ERR_ERRONEUSNICKNAME
+}
+
+check 
