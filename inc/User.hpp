@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 16:23:19 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 21:13:44 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,13 @@ class Channel { };
 class User {
 	private:
 		bool					_isAuthenticated;
+		bool					_isPassAccepted;
 		size_t					_interactions;
 		bool					_isOperator;
-		std::string				_ipAddress;
+		bool					_isNickSet;
+		bool					_isUserSet;
+		std::string				_hostname;
+		std::string				_realName;
 		//std::vector<Channel>	_channels;	//acho que se vai apagar depois
 		std::string				_nickname;
 		std::string 			_username;
@@ -37,24 +41,36 @@ class User {
 		~User(void);
 
 		// getters
-		const					std::string &getUsername(void) const;
-		const					std::string &getNick(void) const;
-		void					clearBuffer( size_t pos );
-		bool					isOperator(void) const;
-		std::string				getBuffer( void );
-		size_t					getInteractions();
-		bool					isAuthenticated();
-		bool					getStepOne();
-		int						getFd(void) ;
-
-		// setters
-		void					setNick(const std::string &nick);
-		void					setUser(const std::string &user);
-		void					appendToBuffer(std::string data);
+		std::string	getHostname(void) const;
+		std::string	getUsername(void) const;
+		std::string	getRealname(void) const;
+		size_t		getInteractions() const;
+		std::string	getBuffer(void) const;
+		std::string	getNick(void) const;
+		bool		getStepOne() const;
+		int			getFd(void) const;
 		
-		void					incInteractions();
-		void					authenticate();
-		void					setStepOne();
+		// setters
+		void		setNick(const std::string &nick);
+		void		setUser(const std::string &user);
+		void		setHostname(const std::string &name);
+		void		setRealname(const std::string &name);
+		void		setIsAuthenticated(void);
+		void		setPassAccepted(void);
+		
+		//checks
+		bool		checkIsPassAccepted(void) const;
+		bool		isAuthenticated(void) const;
+		bool		checkIsNickSet(void) const;
+		bool		checkIsUserSet(void) const;
+		bool		isOperator(void) const;
+		
+		//regular methods
+		void		setStepOne();
+		void		authenticate();
+		void		incInteractions();
+		void		clearBuffer(size_t pos);
+		void		appendToBuffer(std::string data);
 };
 
 #endif

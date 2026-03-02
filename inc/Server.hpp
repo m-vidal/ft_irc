@@ -6,13 +6,14 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 17:10:49 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/02/28 21:31:24 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# include "replyCodes.hpp"
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <arpa/inet.h>
@@ -20,9 +21,11 @@
 # include <iostream>
 # include <unistd.h>
 # include "User.hpp"
+# include <iomanip>
 # include <sstream>
 # include <fcntl.h>
 # include <string>
+# include <cctype>
 # include <vector>
 # include <list>
 # include <map>
@@ -38,19 +41,27 @@ class Server {
 		void	listenMode();
 
 	private:
-		void	processMessage(int fd, std::string str);
-		void	sendToClient(int fd, std::string str);
-		void	parser(User &user, std::string &str);
-		bool	checkPassword(std::string password);
-		void	disconnectClient(int fd);
-		void	setknowscommands();
+		void		processMessage(int fd, std::string str);
+		void		sendToClient(int fd, std::string str);
+		void		parser(User &user, std::string &str);
+		bool		checkPassword(std::string password);
+		void		disconnectClient(int fd);
+		void		setknowncommands();
 
-		typedef void (Server::*CommandFunc)(int fd, std::vector<std::string>& params, std::string trailing);
+		typedef		void (Server::*CommandFunc)(int fd, std::vector<std::string>& params, std::string trailing);
 
-		void	msg(int fd, std::vector<std::string>& params, std::string trailing);
-		void	autUser(int fd, std::string str);
+		void		msg(int fd, std::vector<std::string>& params, std::string trailing);
+		void		pass(int fd, std::vector<std::string>& params, std::string trailing);
+		void		nick(int fd, std::vector<std::string>& params, std::string trailing);
+		void		user(int fd, std::vector<std::string>& params, std::string trailing);
+		void		authUser(int fd, std::string str);
 
-		int	getFdFromNick(std::string nick);
+		int			getFdFromNick(std::string nick);
+		User		*findUserByNick(const std::string& nick);
+
+		void		ircReply(int fd, int code, const std::string &command, const std::string &trailing);
+		void		ircReply(int fd, const std::string &command, const std::string &trailing);
+		std::string	getUserNick(int fd) const;
 		
 		std::map<std::string, CommandFunc>	_commands;
 		std::list<Channel>					_channels;
