@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 15:55:16 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/02 14:09:08 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@
 // ----------------------------------
 #include "User.hpp"
 #include "Channel.hpp"
+#include "Executer.hpp"
 
 struct Client
 {

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 18:48:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/02/27 15:44:58 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/02 14:13:18 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ Command::Command(Handler h, int args, bool auth) : handler(h), minArgs(args), re
 Executer::Executer(Server &server) : _server(server)
 {
 	// Initialize command map
+
 	_cmdHandlers["JOIN"] = Command(&Executer::join, 0, false);
 	_cmdHandlers["PRIVMSG"] = Command(&Executer::privmsg, 0, false);
 	_cmdHandlers["TOPIC"] = Command(&Executer::topic, 0, false);
@@ -29,13 +30,14 @@ void Executer::processMessage(User *user, std::string rawCommand)
 		return;
 	_user = user;
 	parser(rawCommand);
+	std::cout << "----------------------------------------------------------" << "\n";
 	std::cout << "command : " << _cmd << "\n";
-	for (size_t i = 0; i++; i < _params.size())
+	for (size_t i = 0; i < _params.size(); i++)
 	{
-
-		std::cout << "params : " << _params[i] << "\n";
+		std::cout << "param [" << i << "] : " << _params[i] << "\n";
 	}
 	std::cout << "trailing : " << _trailing << "\n";
+	std::cout << "----------------------------------------------------------" << "\n";
 
 	// std::map<std::string, Command>::iterator it = _cmdHandlers.find(_cmd);
 	// if (it != _cmdHandlers.end())
