@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/27 13:56:30 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/02 19:07:04 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 #include <list>
 #include <exception>
 //--------------------------------------------------
-#include "Server.hpp"
 #include "User.hpp"
 #include "Executer.hpp"
 #include "numReply.hpp"

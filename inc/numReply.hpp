@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/19 15:09:27 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/02 18:41:45 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/03 11:08:30 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@
 
 #include <string>
 // ----------------
-#include "Server.hpp"
+#include "User.hpp"
 
 namespace Reply
 {
@@ -76,6 +76,7 @@ namespace Reply
 	std::string err_nosuchchannel(const std::string &srv, const std::string &nick, const std::string &chan);
 	std::string err_chanoprivsneeded(const std::string &srv, const std::string &nick, const std::string &chan);
 	std::string err_unknowncommand(const std::string &srv, const std::string &nick, const std::string &cmd);
+	std::string err_disconnect(const std::string &hostname, const std::string &reason);
 
 }
 

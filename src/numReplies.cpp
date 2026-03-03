@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/02 14:56:16 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/02 18:40:16 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/03 11:07:57 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,6 +142,11 @@ namespace Reply
     std::string err_unknowncommand(const std::string &srv, const std::string &nick, const std::string &cmd)
     {
         return createError(srv, ERR_UNKNOWNCOMMAND, nick, cmd);
+    }
+
+    std::string err_disconnect(const std::string &hostname, const std::string &reason)
+    {
+        return "ERROR :Closing Link: " + hostname + " (" + reason + ")\r\n";
     }
 
 }

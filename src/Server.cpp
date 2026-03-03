@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/02 18:16:49 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/02 18:52:50 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/03 11:53:48 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 /* --- Construction & Setup --- */
 
 Server::Server(unsigned short port, std::string password)
-	: _name("ft_ircserver"), _port(port), _socket(socket(AF_INET, SOCK_STREAM, 0)),
+	: _name("ircserv"), _port(port), _socket(socket(AF_INET, SOCK_STREAM, 0)),
 	  _password(password), _executer(*this)
 {
 	if (!checkPassword(password))
@@ -34,6 +34,11 @@ Server::Server(unsigned short port, std::string password)
 	if (bind(_socket, reinterpret_cast<struct sockaddr *>(&_addr), sizeof(_addr)))
 		throw std::runtime_error("Error: bind failed!");
 
+	const unsigned int timeout_limit = TIMEOUT_LIMIT;
+	const unsigned int dc_limit = DISCONNECT_TIME;
+	if (dc_limit <= timeout_limit)
+		throw std::invalid_argument("Bad time limit values : disconnect time must be greater than timeout_limit");
+
 	is_running = false;
 }
 
@@ -46,6 +51,84 @@ Server::~Server()
 }
 
 /* --- Core Loop & Event Handling --- */
+
+void Server::pingClients()
+{
+	time_t now = time(NULL);
+	const unsigned int timeout_limit = TIMEOUT_LIMIT;
+	const unsigned int dc_limit = DISCONNECT_TIME;
+	const unsigned int auth_limit = AUTHENTICAT_TIME;
+
+	std::vector<int> to_disconnect;
+
+	for (std::map<unsigned short, Client>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		// --- 1. AUTHENTICATION TIMEOUT ---
+		// If they aren't auth'd and have been connected longer than auth_limit
+		if (!it->second.is_auth && difftime(now, it->second.connected_at) > auth_limit)
+		{
+			std::cout << "Auth timeout for FD " << it->first << std::endl;
+			to_disconnect.push_back(it->first);
+			continue; // Skip further checks for this client
+		}
+
+		double diff = difftime(now, it->second.last_active);
+
+		// --- 2. GHOST DISCONNECT ---
+		if (diff > dc_limit)
+		{
+			to_disconnect.push_back(it->first);
+		}
+		// --- 3. PING NUDGE ---
+		else if (diff > timeout_limit && !it->second.ping_sent)
+		{
+			std::string ping_msg = "PING :" + _name + "\r\n";
+			it->second.outbuf += ping_msg;
+			_polls[it->second.poll_idx].events |= POLLOUT;
+			it->second.ping_sent = true;
+		}
+	}
+
+	for (size_t i = 0; i < to_disconnect.size(); ++i)
+		markForDisconnect(to_disconnect[i], "Connection timed out");
+}
+
+void Server::processDisconnects()
+{
+	if (_to_disconnect.empty())
+		return;
+
+	for (size_t i = 0; i < _to_disconnect.size(); ++i)
+	{
+		int fd = _to_disconnect[i];
+		std::map<unsigned short, Client>::iterator it = _clients.find(fd);
+
+		if (it == _clients.end())
+			continue;
+
+		// 1. Remove from the poll vector
+		for (std::vector<pollfd>::iterator p_it = _polls.begin(); p_it != _polls.end(); ++p_it)
+		{
+			if (p_it->fd == fd)
+			{
+				_polls.erase(p_it);
+				break;
+			}
+		}
+
+		// 2. Close the socket and erase the client
+		close(fd);
+		_clients.erase(it);
+
+		std::cout << "Successfully cleaned up FD " << fd << std::endl;
+	}
+
+	// 3. Clear the queue
+	_to_disconnect.clear();
+
+	// 4. Re-sync indices because the vector shifted
+	syncPollIndices();
+}
 
 void Server::listenMode()
 {
@@ -62,13 +145,15 @@ void Server::listenMode()
 
 	while (is_running)
 	{
-		if (poll(_polls.data(), _polls.size(), -1) < 0)
+		pingClients();
+		if (poll(_polls.data(), _polls.size(), 1000) < 0)
 		{
 			if (is_running)
 				throw std::runtime_error("Error: poll failed");
 			break;
 		}
 		handleEvents();
+		processDisconnects();
 	}
 }
 
@@ -83,16 +168,16 @@ void Server::handleEvents()
 	{
 		// READ: FD -> Buffer
 		if (_polls[i].revents & POLLIN)
-			readFdToBuffer(i);
+			fdToBuffer(i);
 
 		// WRITE: Buffer -> FD
 		if (i < _polls.size() && (_polls[i].revents & POLLOUT))
-			sendBufferToFd(_polls[i].fd);
+			sendBuffer(_polls[i].fd);
 
 		// ERRORS/HUP
 		if (i < _polls.size() && (_polls[i].revents & (POLLERR | POLLHUP)))
 		{
-			disconnectClient(_polls[i].fd);
+			markForDisconnect(_polls[i].fd, "Not sure what this error msh should be");
 			--i;
 		}
 	}
@@ -102,7 +187,11 @@ void Server::handleEvents()
 
 void Server::acceptNewClient()
 {
-	int client_fd = accept(_socket, NULL, NULL);
+	struct sockaddr_in client_addr;
+	socklen_t addr_len = sizeof(client_addr);
+
+	// Capture the client's address info
+	int client_fd = accept(_socket, (struct sockaddr *)&client_addr, &addr_len);
 	if (client_fd == -1)
 		return;
 
@@ -115,12 +204,22 @@ void Server::acceptNewClient()
 	new_client.fd = client_fd;
 	new_client.is_auth = false;
 	new_client.poll_idx = _polls.size() - 1;
+	new_client.last_active = time(NULL);
+	new_client.ping_sent = false;
+	new_client.connected_at = time(NULL);
+
+	// Store the raw 32-bit integer IP
+	new_client.ip = client_addr.sin_addr.s_addr;
 
 	_clients.insert(std::make_pair(client_fd, new_client));
-	std::cout << "Client FD " << client_fd << " connected at index " << new_client.poll_idx << std::endl;
+
+	// Optional: Log the IP immediately for debugging
+	std::cout << "Client FD " << client_fd << " ("
+			  << inet_ntoa(client_addr.sin_addr)
+			  << ") connected at poll index " << new_client.poll_idx << std::endl;
 }
 
-void Server::readFdToBuffer(size_t &poll_idx)
+void Server::fdToBuffer(size_t &poll_idx)
 {
 	char buffer[1024];
 	int fd = _polls[poll_idx].fd;
@@ -128,19 +227,21 @@ void Server::readFdToBuffer(size_t &poll_idx)
 
 	if (bytes <= 0)
 	{
-		disconnectClient(fd);
+		markForDisconnect(fd, "Client ended connection");
 		--poll_idx;
 		return;
 	}
 
 	buffer[bytes] = '\0';
 	_clients[fd].inbuf += buffer;
+	_clients[fd].last_active = time(NULL);
+	_clients[fd].ping_sent = false;
 
 	// Move to next stage: Buffer -> String/Command
-	processBufferToCommand(fd);
+	bufferToCommand(fd);
 }
 
-void Server::processBufferToCommand(int fd)
+void Server::bufferToCommand(int fd)
 {
 	std::string &buf = _clients[fd].inbuf;
 	size_t pos;
@@ -170,7 +271,7 @@ void Server::ReplyClient(User &user, const std::string &msg)
 }
 
 // SENDER: Buffer -> FD
-void Server::sendBufferToFd(int fd)
+void Server::sendBuffer(int fd)
 {
 	Client &c = _clients[fd];
 	if (c.outbuf.empty())
@@ -188,29 +289,15 @@ void Server::sendBufferToFd(int fd)
 
 /* --- Utilities & Cleanup --- */
 
-void Server::disconnectClient(const short fd)
+void Server::markForDisconnect(const short fd, const std::string &reason)
 {
-	std::map<unsigned short, Client>::iterator it = _clients.find(fd);
-	if (it == _clients.end())
-		return;
+	// 1. Send the ERROR message immediately so the client knows why
+	std::string msg = Reply::err_disconnect(_clients[fd].ip_str, reason);
+	send(fd, msg.c_str(), msg.length(), 0);
 
-	std::cout << "Client FD " << fd << " disconnected." << std::endl;
-
-	// Remove from poll vector
-	for (size_t i = 0; i < _polls.size(); ++i)
-	{
-		if (_polls[i].fd == fd)
-		{
-			_polls.erase(_polls.begin() + i);
-			break;
-		}
-	}
-
-	close(fd);
-	_clients.erase(it);
-
-	// Re-sync all indices because the vector shifted
-	syncPollIndices();
+	// 2. Add to the list if not already there
+	if (std::find(_to_disconnect.begin(), _to_disconnect.end(), fd) == _to_disconnect.end())
+		_to_disconnect.push_back(fd);
 }
 
 void Server::syncPollIndices()

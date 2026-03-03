@@ -6,11 +6,12 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/21 18:48:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/02 18:49:30 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/03 08:33:04 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Executer.hpp"
+#include "Server.hpp"
 
 Command::Command() : handler(NULL), minArgs(0), requiresAuth(false) {}
 Command::Command(Handler h, int args, bool auth) : handler(h), minArgs(args), requiresAuth(auth) {}
@@ -44,8 +45,7 @@ void Executer::processMessage(User *user, std::string rawCommand)
 	std::map<std::string, Command>::iterator it = _cmdHandlers.find(_cmd);
 	if (it != _cmdHandlers.end())
 	{
-		Command cmdInfo = it->second;
-		(this->*(cmdInfo.handler))();
+		it->second.handler;
 	}
 	else
 	{

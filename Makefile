@@ -6,11 +6,11 @@
 #    By: atambo <atambo@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/30 19:00:19 by marcsilv          #+#    #+#              #
-#    Updated: 2026/02/27 15:14:16 by atambo           ###   ########.fr        #
+#    Updated: 2026/03/02 19:09:29 by atambo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME		= ircserver
+NAME		= ircserv
 
 CXX			= c++
 CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -I ./inc/
