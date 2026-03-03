@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/03 12:29:39 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/03 13:17:25 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,8 @@
 Server::Server(unsigned short &port, std::string &password): 
 _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 	(void)_port;
-	if (!checkPassword(password))
-		throw std::runtime_error("Error: password too weak!");
+	if (_password.empty())
+		throw std::runtime_error("Error: empty password!");
 	if (_socket < 0)
 		throw std::runtime_error("Error: failure in the socket server creation!");
 
@@ -197,31 +197,6 @@ void Server::parser(User &user, std::string &str) {
 		(this->*(it->second))(user.getFd(), args, trailing);
 }
 
-
-bool	Server::checkPassword(std::string password) {
-	bool	hasUpper = false;
-	bool	hasLower = false;
-	bool	hasNumbr = false;
-	bool	hasSmbl = false;
-	
-	if (password.size() < 8)
-		return (false);
-	for (size_t i = 0; i < password.size(); i++)
-	{
-		if (std::isupper(password[i]))
-			hasUpper = true;
-
-		else if (std::islower(password[i]))
-			hasLower = true;
-		else if (std::isdigit(password[i]))
-			hasNumbr = true;
-		else
-			hasSmbl = true;
-	}
-	if (hasUpper && hasLower && hasNumbr && hasSmbl)
-		return (true);
-	return (false);
-}
 
 
 void	Server::processMessage(int fd, std::string str)
