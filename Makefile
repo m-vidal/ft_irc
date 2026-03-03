@@ -19,8 +19,8 @@ SRC_DIR		= src/
 OBJ_DIR		= obj/
 INC_DIR		= inc/
 
-SRC_FILES	= main.cpp Server.cpp User.cpp ACommand.cpp 
-HEADERS		= Server.hpp User.hpp ACommand.hpp Channel.hpp
+SRC_FILES	= main.cpp Server.cpp User.cpp 
+HEADERS		= Server.hpp User.hpp Channel.hpp
 
 SRC			= $(addprefix $(SRC_DIR), $(SRC_FILES))
 OBJ			= $(addprefix $(OBJ_DIR), $(SRC_FILES:.cpp=.o))
