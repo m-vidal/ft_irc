@@ -22,7 +22,6 @@ class User {
 	private:
 		bool					_isAuthenticated;
 		bool					_isPassAccepted;
-		size_t					_interactions;
 		bool					_isOperator;
 		bool					_isNickSet;
 		bool					_isUserSet;
@@ -31,7 +30,6 @@ class User {
 		//std::vector<Channel>	_channels;	//acho que se vai apagar depois
 		std::string				_nickname;
 		std::string 			_username;
-		bool					_stepOne;
 		std::string				_buffer;
 		const short				_fd;
 
@@ -41,36 +39,34 @@ class User {
 		~User(void);
 
 		// getters
-		std::string	getHostname(void) const;
-		std::string	getUsername(void) const;
-		std::string	getRealname(void) const;
-		size_t		getInteractions() const;
-		std::string	getBuffer(void) const;
-		std::string	getNick(void) const;
-		bool		getStepOne() const;
-		int			getFd(void) const;
+		std::string				getHostname(void) const;
+		std::string				getUsername(void) const;
+		std::string				getRealname(void) const;
+		size_t					getInteractions() const;
+		std::string				getBuffer(void) const;
+		std::string				getNick(void) const;
+		int						getFd(void) const;
 		
 		// setters
-		void		setNick(const std::string &nick);
-		void		setUser(const std::string &user);
-		void		setHostname(const std::string &name);
-		void		setRealname(const std::string &name);
-		void		setIsAuthenticated(void);
-		void		setPassAccepted(void);
+		void					setNick(const std::string &nick);
+		void					setUser(const std::string &user);
+		void					setHostname(const std::string &name);
+		void					setRealname(const std::string &name);
+		void					setIsAuthenticated(void);
+		void					setPassAccepted(void);
 		
 		//checks
-		bool		checkIsPassAccepted(void) const;
-		bool		isAuthenticated(void) const;
-		bool		checkIsNickSet(void) const;
-		bool		checkIsUserSet(void) const;
-		bool		isOperator(void) const;
+		bool					checkIsPassAccepted(void) const;
+		bool					isAuthenticated(void) const;
+		bool					checkIsNickSet(void) const;
+		bool					checkIsUserSet(void) const;
+		bool					isOperator(void) const;
 		
 		//regular methods
-		void		setStepOne();
-		void		authenticate();
-		void		incInteractions();
-		void		clearBuffer(size_t pos);
-		void		appendToBuffer(std::string data);
+		void					authenticate();
+		void					incInteractions();
+		void					clearBuffer(size_t pos);
+		void					appendToBuffer(std::string data);
 };
 
 #endif

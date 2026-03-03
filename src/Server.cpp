@@ -11,10 +11,13 @@
 /* ************************************************************************** */
 
 #include "../inc/Server.hpp"
-#include <sys/socket.h>
 
-Server::Server(unsigned short &port, std::string &password): 
-_password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
+//constructor destructor
+Server::~Server(void) {
+	if (_socket)
+		close(_socket);
+}
+Server::Server(unsigned short &port, std::string &password):  _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 	(void)_port;
 	if (!checkPassword(password))
 		throw std::runtime_error("Error: password too weak!");
@@ -35,13 +38,53 @@ _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 	is_running = false;
 }
 
-void	Server::setknowncommands() {
-	// _commands["PRIVMSG"] = &Server::msg;
-	_commands["PASS"] = &Server::pass;
-	_commands["NICK"] = &Server::nick;
-	_commands["USER"] = &Server::user;
+//commands
+void	Server::pass(int fd, std::vector<std::string>& params, std::string trailing) {
+	(void)trailing;
+	if(_users[fd].isAuthenticated() == true) {
+		ircReply(fd, ERR_ALREADYREGISTERED, "PASS", "User already registered!");
+		return ;
+	}
+	if (params.size() == 0) {
+		ircReply(fd, ERR_NEEDMOREPARAMS, "PASS", "Not enough parameters");
+		return ;
+	}
+	if (params[0] != _password) {
+		ircReply(fd, ERR_PASSWDMISMATCH, "PASS", "Wrong password!");
+		return ;
+	}
+	_users[fd].setPassAccepted();//sets passAccepted to true
 }
-
+void Server::nick(int fd, std::vector<std::string>& params, std::string trailing) {
+    (void)trailing;
+    if (params.empty()) {
+        ircReply(fd, ERR_NONICKNAMEGIVEN, "NICK", "No nickname given");
+        return;
+    }
+    const std::string& newNick = params[0];
+    if (std::isdigit(newNick[0]) ||
+        newNick.find_first_of(" ,*!@:#\n") != std::string::npos) {
+        ircReply(fd, ERR_ERRONEUSNICKNAME, "NICK", "Erroneous nickname");
+        return;
+    }
+    User* existing = findUserByNick(newNick);
+    if (existing && existing->getFd() != fd) {
+        ircReply(fd, ERR_NICKNAMEINUSE, newNick, "Nickname is already in use");
+        return;
+    }
+    std::string oldNick = _users[fd].getNick();
+    bool wasAuthenticated = _users[fd].isAuthenticated();
+    _users[fd].setNick(newNick);
+    if (wasAuthenticated) {
+        std::string message = ":" +
+            oldNick + "!" +
+            _users[fd].getUsername() + "@" +
+            _users[fd].getHostname() +
+            " NICK :" + newNick + "\r\n";
+        send(fd, message.c_str(), message.size(), 0);
+    }
+    checkRegistration(fd);
+}
 void	Server::user(int fd, std::vector<std::string>& params, std::string trailing) {
 	if (_users[fd].isAuthenticated() == true) {
 		ircReply(fd, ERR_ALREADYREGISTERED, "USER", "User already registered!");
@@ -54,9 +97,56 @@ void	Server::user(int fd, std::vector<std::string>& params, std::string trailing
 	_users[fd].setUser(params[0]);
 	_users[fd].setHostname(params[1]);
 	_users[fd].setRealname(trailing);
-	if (_users[fd].checkIsPassAccepted() == true || _users[fd].checkIsUserSet() == true || _users[fd].checkIsNickSet() == true) {
+	checkRegistration(fd);
+}
+void	Server::ping(int fd, std::vector<std::string>& params, std::string trailing) {
+	(void)trailing;
+	if (params.size() == 0) {
+		ircReply(fd, ERR_NEEDMOREPARAMS, "PING", "Not enough parameters!");
+		return ;
+	}
+	ircReply(fd, ":ircserv PONG ircserv :ircserv");
+}
+
+//replies
+void	Server::ircReply(int fd, int code, const std::string &command, const std::string &trailing) {
+    std::stringstream ss;
+
+    ss << std::setw(3) << std::setfill('0') << code;
+	std::string reply = ":ircserv " + ss.str() + " " + getUserNick(fd) + " " + command  + " :" + trailing + "\r\n";
+	send(fd, reply.c_str(), reply.size(), 0);
+}
+void	Server::ircReply(int fd, const std::string &msg) {
+	std::string reply = msg + "\r\n";
+	send(fd, reply.c_str(), reply.size(), 0);
+}
+void	Server::ircReply(int fd, const std::string &command, const std::string &trailing) {
+	std::string reply = ":ircserv " + _users[fd].getNick() +
+						"!" + _users[fd].getUsername() +
+						"@" + _users[fd].getHostname() +
+						" " + command + " :" + trailing + "\r\n";
+	send(fd, reply.c_str(), reply.size(), 0);
+}
+
+//utilities
+void	Server::setknowncommands() {
+	// _commands["PRIVMSG"] = &Server::msg;
+	_commands["PASS"] = &Server::pass;
+	_commands["NICK"] = &Server::nick;
+	_commands["USER"] = &Server::user;
+	_commands["PING"] = &Server::ping;
+}
+void	Server::checkRegistration(int fd) {
+	if (_users[fd].isAuthenticated() == true)
+		return ;
+	if ((_users[fd].checkIsPassAccepted() == true) && (_users[fd].checkIsUserSet() == true) && (_users[fd].checkIsNickSet() == true)) {
 		_users[fd].setIsAuthenticated();
-		std::cout << "User: " << _users[fd].getNick() << " is is authenticated." << std::endl;
+		std::cout << "User: " << _users[fd].getNick() << " is authenticated." << std::endl;
+		ircReply(fd, RPL_WELCOME, "", "Welcome to ircserv.");
+		ircReply(fd, RPL_YOURHOST, "", "Your host is ircserv, running version 1.0"); //make version and date macros.
+		ircReply(fd, RPL_CREATED, "", "This server was created <date>.");
+		ircReply(fd, RPL_MYINFO,  "", "ircserv 1.0 <user modes> <chan modes> ");
+		incUsers();
 	}
 }
 
@@ -73,65 +163,12 @@ User	*Server::findUserByNick(const std::string& nick) {
 	}
     return (NULL);
 }
-
-void	Server::nick(int fd, std::vector<std::string>& params, std::string trailing) {
-	(void)trailing;
-	if(params.size() == 0) {
-		ircReply(fd, ERR_NONICKNAMEGIVEN, "NICK", "No nickname given!");
-		return ;
-	}
-	if (std::isdigit(params[0][0]) || params[0].find_first_of(" ,*!@:#\n")){
-		ircReply(fd, ERR_ERRONEUSNICKNAME, "NICK", "Invalid nickname!");
-		return ;
-	}
-	if (findUserByNick(_users[fd].getNick()) != NULL) {
-		ircReply(fd, ERR_NICKNAMEINUSE, "NICK", "Nickname already in use!");
-		return ;
-	}
-	if (_users[fd].isAuthenticated() == true)
-		ircReply(fd, "NICK", params[0]);
-	_users[fd].setNick(params[0]);
-	if (_users[fd].checkIsPassAccepted() == true || _users[fd].checkIsUserSet() == true || _users[fd].checkIsNickSet() == true) {
-		_users[fd].setIsAuthenticated();
-		std::cout << "User: " << _users[fd].getNick() << " is is authenticated." << std::endl;
-	}
-}
 std::string Server::getUserNick(int fd) const {
-	if (_users.at(fd).isAuthenticated() == false) {
+	if (_users.at(fd).isAuthenticated() == false || _users.at(fd).getNick() == "*") {
 		return "*";
 	}
 	return (_users.at(fd).getNick());
 }
-
-void	Server::pass(int fd, std::vector<std::string>& params, std::string trailing) {
-	if(_users[fd].isAuthenticated()) {
-		ircReply(fd, ERR_ALREADYREGISTERED, "PASS", "User already registered!");
-		return ;
-	}
-	if (params.size() == 0) {
-		ircReply(fd, ERR_NEEDMOREPARAMS, "PASS", trailing);
-		return ;
-	}
-	if (params[0] != _password) {
-		ircReply(fd, ERR_PASSWDMISMATCH, "PASS", "Wrong password!");
-		return ;
-	}
-	_users[fd].setPassAccepted();//sets passAccepted to true
-}
-
-void	Server::msg(int fd, std::vector<std::string>& params, std::string trailing) {
-	std::string prefix = ":" + _users[fd].getNick() + "!" + _users[fd].getUsername() + "@" + "127.0.0.1";
-	std::string forward = prefix + " PRIVMSG " + params[0] + " " + trailing + "\r\n";
-	if (!params.size() || !trailing.size()) {
-		sendToClient(fd, ":ircserv 461 PRIVMSG :Not enough parameters\r\n");
-        return ;
-	}
-
-	int destin = getFdFromNick(params[0]);
-	if (destin > 0)
-		sendToClient(destin, forward);
-}
-
 int	Server::getFdFromNick(std::string nick) {
 	for (size_t i = 1; i < _polls.size(); i++) {
 		if (_users[_polls[i].fd].getNick() != nick)
@@ -140,7 +177,6 @@ int	Server::getFdFromNick(std::string nick) {
 	}
 	return (-1);
 }
-
 std::vector<std::string> split(const std::string& input) {
     std::vector<std::string> result;
     std::string token;
@@ -164,14 +200,13 @@ std::vector<std::string> split(const std::string& input) {
     }
     return (result);
 }
-
 void Server::parser(User &user, std::string &str) {
 	//no caso de faltar args ou trailing, mandar args vazios
 	std::string trimmed;
 	if (str.size() >= 2)
 		trimmed = str.substr(0, str.find("\r\n")); //trimming the \r\n
 
-	std::size_t commaPos = trimmed.find(":");
+	std::size_t commaPos = trimmed.find(" :");
 	std::string	trailing;
 
 	if (commaPos != std::string::npos){
@@ -196,7 +231,6 @@ void Server::parser(User &user, std::string &str) {
 	if (it != _commands.end())
 		(this->*(it->second))(user.getFd(), args, trailing);
 }
-
 bool	Server::checkPassword(std::string password) {
 	bool	hasUpper = false;
 	bool	hasLower = false;
@@ -220,7 +254,6 @@ bool	Server::checkPassword(std::string password) {
 		return (true);
 	return (false);
 }
-
 void	Server::processMessage(int fd, std::string str) {
 	// if (!_users.at(fd).isAuthenticated()) {
 	// 	authUser(fd, str);
@@ -228,28 +261,9 @@ void	Server::processMessage(int fd, std::string str) {
 	// else
 		this->parser(_users[fd], str);
 }
-//:ircserv 000 marcsilv NICK :traukubg
-//:prefix 123 [params1][param2][params3] :trailing
-void	Server::ircReply(int fd, int code, const std::string &command, const std::string &trailing) {
-    std::stringstream ss;
-
-    ss << std::setw(3) << std::setfill('0') << code;
-	std::string reply = ":ircserv " + ss.str() + " " + getUserNick(fd) + " " + command + " :" + trailing + "\r\n";
-	send(fd, reply.c_str(), reply.size(), 0);
-}
-
-void	Server::ircReply(int fd, const std::string &command, const std::string &trailing) {
-	std::string reply = ":" + _users[fd].getNick() +
-						"!" + _users[fd].getUsername() +
-						"@" + _users[fd].getHostname() +
-						" " + command + " :" + trailing + "\r\n";
-	send(fd, reply.c_str(), reply.size(), 0);
-}
-
 void	Server::sendToClient(int fd, std::string str) {
 	send(fd, str.c_str(), str.size(), 0);
 }
-
 void	Server::disconnectClient(int fd) {
 	for (size_t i = 0; i < _polls.size(); i++) {
 		if (_polls[i].fd == fd) {
@@ -259,8 +273,8 @@ void	Server::disconnectClient(int fd) {
 	}
 	_users.erase(fd);
 	close(fd);
+	decUsers();
 }
-
 void	Server::listenMode() {
 	if (listen(_socket, 5))
 		throw std::runtime_error("Error: failure to enter listening mode!");
@@ -289,7 +303,7 @@ void	Server::listenMode() {
 
 			if (clientfd > -1)
 			{
-				std::cout << "A client with fd:" << clientfd << " has connected" << std::endl;
+				std::cout << "A client with fd: " << clientfd << " has connected" << std::endl;
 				int client_flag = fcntl(clientfd, F_GETFL);
 				fcntl(clientfd, F_SETFL, client_flag | O_NONBLOCK);
 
@@ -320,7 +334,7 @@ void	Server::listenMode() {
 					}
 				}
 				else if (bytes_received == 0) {
-					std::cout << "Client@" << _users[_polls[i].fd].getNick() << ": disconnected " << std::endl;
+					std::cout << _users[_polls[i].fd].getNick() << ": disconnected " << std::endl;
 					_users[_polls[i].fd].clearBuffer(_users[_polls[i].fd].getBuffer().size());
 					disconnectClient(_polls[i].fd);
 					i--;
@@ -335,54 +349,9 @@ void	Server::listenMode() {
 	}
 }
 
-Server::~Server(void) {
-	if (_socket)
-		close(_socket);
+void	Server::incUsers(void) { _onlineUsers++; }
+void	Server::decUsers(void) { 
+	if (_onlineUsers >= 0)
+		_onlineUsers--;
 }
 
-/*
-
-void Server::handlePrivmsg(int fd, std::vector<std::string>& params)
-{
-    if (params.empty() || params.size() < 2)
-    {
-        sendToClient(fd, ":ircserv 461 PRIVMSG :Not enough parameters\r\n");
-        return ;
-    }
-
-    std::string destination = params[0];
-    std::string message = params[1];
-
-    std::string prefix = ":" + _users[fd].getNick() + "!"
-                       + _users[fd].getUsername() + "@"
-                       + _users[fd].getIpAddress();
-
-    if (destination[0] == '#') // é um canal
-    {
-        std::map<std::string, Channel>::iterator it = _channels.find(destination);
-        if (it == _channels.end())
-        {
-            sendToClient(fd, ":ircserv 403 " + destination + " :No such channel\r\n");
-            return ;
-        }
-        // broadcast para membros do canal
-    }
-    else // é um utilizador
-    {
-        std::map<int, User>::iterator it = _users.begin();
-        for (; it != _users.end(); it++)
-        {
-            if (it->second.getNick() == destination)
-            {
-                sendToClient(it->first, prefix + " PRIVMSG " + destination + " :" + message + "\r\n");
-                return ;
-            }
-        }
-        sendToClient(fd, ":ircserv 401 " + destination + " :No such nick\r\n");
-    }
-}	for (size_t i = 1; i < _polls.size(); i++) {
-		if (_users[_polls[i].fd].getNick() != nick)
-			continue ;
-		return (_users[_polls[i].fd].getFd());
-	}
-*/
