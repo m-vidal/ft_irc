@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 17:10:49 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/03 13:10:59 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ class Server {
 		std::map<std::string, CommandFunc>	_commands;
 		std::list<Channel>					_channels;
 		const std::string					_password;
-		const short							_socket;
+		const int							_socket;
 		std::map<int, User>					_users; // um mapa porque assim conseguimos identificar cada user pelo seu fd
 		std::vector<pollfd>					_polls;		//para controlar os eventos de cada cliente
 		struct sockaddr_in 					_addr;

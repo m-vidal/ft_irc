@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 16:23:19 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/03 13:11:48 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class User {
 		std::string 			_username;
 		bool					_stepOne;
 		std::string				_buffer;
-		const short				_fd;
+		const int				_fd;
 
 	public:
 		User(int fd);

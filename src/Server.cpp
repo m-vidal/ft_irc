@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 17:31:46 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/03 12:29:39 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,27 +141,27 @@ int	Server::getFdFromNick(std::string nick)
 
 
 std::vector<std::string> split(const std::string& input) {
-    std::vector<std::string> result;
-    std::string token;
-    std::string::size_type i = 0;
-    const std::string::size_type n = input.size();
+	std::vector<std::string> result;
+	std::string token;
+	std::string::size_type i = 0;
+	const std::string::size_type n = input.size();
 
-    while (i < n && (input[i] == ' ' || input[i] == '\t'))
-        ++i;
+	while (i < n && (input[i] == ' ' || input[i] == '\t'))
+		++i;
 
-    while (i < n) {
-        token.clear();
-        while (i < n && input[i] != ' ' && input[i] != '\t') {
-            token += input[i];
-            ++i;
-        }
+	while (i < n) {
+		token.clear();
+		while (i < n && input[i] != ' ' && input[i] != '\t') {
+			token += input[i];
+			++i;
+		}
 
-        if (!token.empty())
-            result.push_back(token);
-        while (i < n && (input[i] == ' ' || input[i] == '\t'))
-            ++i;
-    }
-    return (result);
+		if (!token.empty())
+			result.push_back(token);
+		while (i < n && (input[i] == ' ' || input[i] == '\t'))
+			++i;
+	}
+	return (result);
 }
 
 
@@ -307,7 +307,7 @@ void	Server::listenMode() {
 					buff[bytes_received] = '\0';
 					_users[_polls[i].fd].appendToBuffer(std::string(buff));
 					std::string	aux = _users[_polls[i].fd].getBuffer();
-					
+
 					size_t	pos;
 					while ((pos = aux.find("\r\n")) != std::string::npos)
 					{
