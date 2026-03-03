@@ -10,11 +10,6 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdexcept>
-#include <sys/types.h>
-#include <iostream>
-#include <cstdlib>
-
 #include "../inc/Server.hpp"
 
 int main(int ac, char** av) {
