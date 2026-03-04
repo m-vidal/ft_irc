@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 21:31:24 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/03/03 18:20:53 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,8 @@
 # include <list>
 # include <map>
 
+class Channel;
+
 class Server {
 
 	public:
@@ -58,14 +60,16 @@ class Server {
 		void								user(int fd, std::vector<std::string>& params, std::string trailing);
 		void								ping(int fd, std::vector<std::string>& params, std::string trailing);
 		void								msg(int fd, std::vector<std::string>& params, std::string trailing);
+		void								join(int fd, std::vector<std::string>& params, std::string trailing);
 
 
 		int									getFdFromNick(std::string nick);
 		User								*findUserByNick(const std::string& nick);
 
-		void								ircReply(int fd, int code, const std::string &command, const std::string &trailing);
-		void								ircReply(int fd, const std::string &command, const std::string &trailing);
-		void								ircReply(int fd, const std::string &msg);
+		void								ircReply(int fd, int code, const std::string &command, const std::string &trailing) const;
+		void								ircReply(int fd, const std::string &command, const std::string &trailing) const;
+		void								sendUserList(const Channel &channel, const int &fd) const;
+		void								ircReply(int fd, const std::string &msg) const;
 		std::string							getUserNick(int fd) const;
 		void								checkRegistration(int fd);
 		void								incUsers(void);
@@ -73,7 +77,7 @@ class Server {
 		
 		size_t								_onlineUsers;
 		std::map<std::string, CommandFunc>	_commands;
-		std::list<Channel>					_channels;
+		std::map<std::string, Channel>		_channels;
 		const std::string					_password;
 		const short							_socket;
 		std::map<int, User>					_users; // um mapa porque assim conseguimos identificar cada user pelo seu fd
