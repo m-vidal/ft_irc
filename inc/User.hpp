@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 21:13:44 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/03/03 18:46:43 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,6 @@
 
 #include <string>
 #include <vector>
-
-class Channel { };
 
 class User {
 	private:
@@ -42,7 +40,6 @@ class User {
 		std::string				getHostname(void) const;
 		std::string				getUsername(void) const;
 		std::string				getRealname(void) const;
-		size_t					getInteractions() const;
 		std::string				getBuffer(void) const;
 		std::string				getNick(void) const;
 		int						getFd(void) const;
@@ -64,7 +61,6 @@ class User {
 		
 		//regular methods
 		void					authenticate();
-		void					incInteractions();
 		void					clearBuffer(size_t pos);
 		void					appendToBuffer(std::string data);
 };

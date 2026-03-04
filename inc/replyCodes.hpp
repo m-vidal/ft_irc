@@ -6,15 +6,14 @@
 /*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/28 19:07:44 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 20:38:59 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/03/03 19:07:09 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef REPLYCODES_CPP
 # define REPLYCODES_CPP
 
-enum NumericReply
-{
+enum NumericReply {
     // Replies (OK)
     RPL_WELCOME           = 001,
     RPL_YOURHOST          = 002,
