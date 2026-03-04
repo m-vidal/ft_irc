@@ -6,18 +6,19 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 21:33:15 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/03/03 19:16:53 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Server.hpp"
+#include "../inc/Channel.hpp"
 
 //constructor destructor
 Server::~Server(void) {
 	if (_socket)
 		close(_socket);
 }
-Server::Server(unsigned short &port, std::string &password):  _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
+Server::Server(unsigned short &port, std::string &password): _onlineUsers(0), _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 	(void)_port;
 	if (!checkPassword(password))
 		throw std::runtime_error("Error: password too weak!");
@@ -69,8 +70,7 @@ void Server::nick(int fd, std::vector<std::string>& params, std::string trailing
     }
     User* existing = findUserByNick(newNick);
     if (existing && existing->getFd() != fd) {
-        ircReply(fd, ERR_NICKNAMEINUSE, newNick, "Nickname is already in use");
-        return;
+        return ircReply(fd, ERR_NICKNAMEINUSE, newNick, "Nickname is already in use");
     }
     std::string oldNick = _users[fd].getNick();
     bool wasAuthenticated = _users[fd].isAuthenticated();
@@ -81,7 +81,7 @@ void Server::nick(int fd, std::vector<std::string>& params, std::string trailing
             _users[fd].getUsername() + "@" +
             _users[fd].getHostname() +
             " NICK :" + newNick + "\r\n";
-        send(fd, message.c_str(), message.size(), 0);
+			ircReply(fd, message);
     }
     checkRegistration(fd);
 }
@@ -107,34 +107,89 @@ void	Server::ping(int fd, std::vector<std::string>& params, std::string trailing
 	}
 	ircReply(fd, ":ircserv PONG ircserv :ircserv");
 }
+void	Server::join(int fd, std::vector<std::string>& params, std::string trailing) {
+	(void)trailing;
+	// Fix #2: check params is non-empty before any access
+	if (params.empty() || params[0].empty()) {
+		ircReply(fd, ERR_NEEDMOREPARAMS, "JOIN", "Not enough parameters!");
+		return ;
+	}
+	if (_users[fd].isAuthenticated() == false) {
+		ircReply(fd, ERR_NOTREGISTERED, "JOIN", "User not registered!");
+		return ;
+	}
+	if (params[0][0] != '#') {
+		ircReply(fd, ERR_NOSUCHCHANNEL, "JOIN", "No such channel!");
+		return ;
+	}
+	// Fix #1: use find() instead of operator[] to avoid inserting a default Channel
+	if (_channels.find(params[0]) != _channels.end() && _channels.find(params[0])->second.isUser(_users[fd])) {
+		return;
+	}
+	if (_channels.find(params[0]) == _channels.end()) {
+		Channel channel(params[0]);
+		_channels.insert(std::make_pair(channel.getName(), channel));
+
+		std::cout << "Channel " << params[0] << " created." << std::endl;
+
+		_channels[params[0]].addUser(_users[fd]);
+		_channels[params[0]].addOperator(_users[fd]);
+		sendUserList(_channels[params[0]], fd);
+	} else {
+		_channels[params[0]].addUser(_users[fd]);
+		sendUserList(_channels[params[0]], fd);
+	}
+}
+void	Server::sendUserList(const Channel &channel, const int &fd) const {
+    std::stringstream ss;
+    std::stringstream ss1;
+	ircReply(fd, "JOIN", channel.getName());
+    ss << std::setw(3) << std::setfill('0') << RPL_NAMREPLY;
+	ircReply(fd, 
+		":ircserv " + ss.str() + " " + getUserNick(fd) + " = " + channel.getName() + " :" + channel.getUserNickList()
+	);
+    ss1 << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES;
+	ircReply(fd, ":ircserv " + ss1.str() + " " + getUserNick(fd) + " " + channel.getName() + " :End of /NAMES list");
+}
 
 //replies
-void	Server::ircReply(int fd, int code, const std::string &command, const std::string &trailing) {
+void	Server::ircReply(int fd, int code, const std::string &command, const std::string &trailing) const{
     std::stringstream ss;
 
     ss << std::setw(3) << std::setfill('0') << code;
 	std::string reply = ":ircserv " + ss.str() + " " + getUserNick(fd) + " " + command  + " :" + trailing + "\r\n";
 	send(fd, reply.c_str(), reply.size(), 0);
 }
-void	Server::ircReply(int fd, const std::string &msg) {
+void	Server::ircReply(int fd, const std::string &msg) const{
 	std::string reply = msg + "\r\n";
 	send(fd, reply.c_str(), reply.size(), 0);
 }
-void	Server::ircReply(int fd, const std::string &command, const std::string &trailing) {
-	std::string reply = ":ircserv " + _users[fd].getNick() +
-						"!" + _users[fd].getUsername() +
-						"@" + _users[fd].getHostname() +
-						" " + command + " :" + trailing + "\r\n";
-	send(fd, reply.c_str(), reply.size(), 0);
+void Server::ircReply(int fd, const std::string &command, const std::string &trailing) const {
+    std::map<int, User>::const_iterator it = _users.find(fd);
+    
+    if (it == _users.end()) {
+        return; // Or handle error
+    }
+
+    const User &user = it->second;
+
+    std::string reply = ":" + user.getNick() +
+                        "!" + user.getUsername() +
+                        "@" + user.getHostname() +
+                        " " + command + " " + trailing + "\r\n";
+	std::cout << reply << std::endl;
+                        
+    send(fd, reply.c_str(), reply.size(), 0);
 }
 
 //utilities
-void	Server::setknowncommands() {
+void	Server::setknowncommands(void) {
 	// _commands["PRIVMSG"] = &Server::msg;
 	_commands["PASS"] = &Server::pass;
 	_commands["NICK"] = &Server::nick;
 	_commands["USER"] = &Server::user;
 	_commands["PING"] = &Server::ping;
+	_commands["JOIN"] = &Server::join;
 }
 void	Server::checkRegistration(int fd) {
 	if (_users[fd].isAuthenticated() == true)
@@ -224,7 +279,9 @@ void Server::parser(User &user, std::string &str) {
 	for (std::size_t i = 0; i < commandLength; i++) {
 		command[i] = std::toupper(command[i]);
 	}
-	std::string tempArgs = strBeforeTrailing.substr(spacePos + 1);
+	std::string tempArgs;
+	if (spacePos != std::string::npos)
+		tempArgs = strBeforeTrailing.substr(spacePos + 1);
 	std::vector<std::string> args = split(tempArgs);
 
 	std::map<std::string, CommandFunc>::iterator it = _commands.find(command);
@@ -259,6 +316,7 @@ void	Server::processMessage(int fd, std::string str) {
 	// 	authUser(fd, str);
 	// }
 	// else
+		std::cout << str << std::endl;
 		this->parser(_users[fd], str);
 }
 void	Server::sendToClient(int fd, std::string str) {
@@ -349,9 +407,14 @@ void	Server::listenMode() {
 	}
 }
 
-void	Server::incUsers(void) { _onlineUsers++; }
-void	Server::decUsers(void) { 
-	if (_onlineUsers >= 0)
-		_onlineUsers--;
+void	Server::incUsers(void) {
+	_onlineUsers++;
+	std::cout << "Online users: " << _onlineUsers << "." << std::endl;
 }
-
+void	Server::decUsers(void) {
+	if (_onlineUsers > 0)
+		_onlineUsers--;
+	else 
+		std::cerr << "Number of users already at zero!" << std::endl;
+	std::cout << "Online users: " << _onlineUsers << "." << std::endl;
+}
