@@ -10,6 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#ifndef CHANNEL_HPP
+# define CHANNEL_HPP
+
 #include <map>
 # include <string>
 # include "User.hpp"
@@ -22,8 +25,9 @@ class Channel {
 		Channel(const std::string &name);
 			
 		std::string			getName(void) const;
-		std::string			getOperators(void) const;
 		std::string			getUserNickList(void) const;
+		size_t				getUserCount(void) const;
+		std::map<int, User>	getUsers(void) const;
 
 		void				setName(const std::string &newName);
 
@@ -49,3 +53,5 @@ class Channel {
 		size_t				_nbOperators;
 		//modes
 };
+
+#endif

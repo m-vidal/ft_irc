@@ -78,6 +78,12 @@ std::string	Channel::getUserNickList(void) const {
     }
 	return (nickList);
 }
+size_t	Channel::getUserCount(void) const {
+	return (_nbUsers);
+}
+std::map<int, User>	Channel::getUsers(void) const {
+	return (_users);
+}
 
 void	Channel::incUsers(void) {
 	_nbUsers++;

@@ -31,6 +31,7 @@
 # include <cctype>
 # include <vector>
 # include <list>
+# include <set>
 # include <map>
 
 class Channel;
@@ -55,20 +56,22 @@ class Server {
 
 		typedef								void (Server::*CommandFunc)(int fd, std::vector<std::string>& params, std::string trailing);
 
+		void								msg(int fd, std::vector<std::string>& params, std::string trailing);
 		void								pass(int fd, std::vector<std::string>& params, std::string trailing);
 		void								nick(int fd, std::vector<std::string>& params, std::string trailing);
 		void								user(int fd, std::vector<std::string>& params, std::string trailing);
 		void								ping(int fd, std::vector<std::string>& params, std::string trailing);
-		void								msg(int fd, std::vector<std::string>& params, std::string trailing);
 		void								join(int fd, std::vector<std::string>& params, std::string trailing);
+		void								part(int fd, std::vector<std::string>& params, std::string trailing);
 
 
 		int									getFdFromNick(std::string nick);
 		User								*findUserByNick(const std::string& nick);
 
+		void								broadcastToChannel(const Channel &channel, const std::string &message, std::set<int> &notified);
 		void								ircReply(int fd, int code, const std::string &command, const std::string &trailing) const;
 		void								ircReply(int fd, const std::string &command, const std::string &trailing) const;
-		void								sendUserList(const Channel &channel, const int &fd) const;
+		void								sendUserList(const Channel &channel, const int &fd);
 		void								ircReply(int fd, const std::string &msg) const;
 		std::string							getUserNick(int fd) const;
 		void								checkRegistration(int fd);
