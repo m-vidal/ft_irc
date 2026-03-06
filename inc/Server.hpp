@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/03 13:10:59 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/05 22:50:24 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,18 +30,16 @@
 class Server {
 
 	public:
-		bool is_running;
-
 		Server(unsigned short &port, std::string &password);
 		~Server();
 
 		void	listenMode();
+		void	turnOff();
 
 	private:
 		void	processMessage(int fd, std::string str);
 		void	sendToClient(int fd, std::string str);
 		void	parser(User &user, std::string &str);
-		bool	checkPassword(std::string password);
 		void	disconnectClient(int fd);
 		void	setknowscommands();
 
@@ -50,8 +48,10 @@ class Server {
 		void	msg(int fd, std::vector<std::string>& params, std::string trailing);
 		void	autUser(int fd, std::string str);
 
-		int	getFdFromNick(std::string nick);
-		
+		int		getFdFromNick(std::string nick);
+
+		bool								_received_sig;
+		bool								is_running;
 		std::map<std::string, CommandFunc>	_commands;
 		std::list<Channel>					_channels;
 		const std::string					_password;

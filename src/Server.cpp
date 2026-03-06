@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/03 13:17:25 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/06 12:14:28 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,8 @@ _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 
 	int	opt = 1;
 	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
-		throw std::runtime_error("Error: failure in the socket server config!");	
-	
+		throw std::runtime_error("Error: failure in the socket server config!");
+
 	_addr.sin_family = AF_INET;
 	_addr.sin_port = htons(port);
 	_addr.sin_addr.s_addr = INADDR_ANY;
@@ -31,8 +31,10 @@ _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 	if (bind(_socket, reinterpret_cast<struct sockaddr *>(&_addr), sizeof(_addr)))
 		throw std::runtime_error("Error: failure to associate the port.");
 	setknowscommands();
+	_received_sig = false;
 	is_running = false;
 }
+
 
 void	Server::setknowscommands()
 {
@@ -43,7 +45,7 @@ void Server::autUser(int fd, std::string str)
 {
 	std::stringstream ss(str);
 	std::string command[2];
-	
+
 	ss >> command[0] >> command[1];
 	if (command[0] == "PASS" && command[1] != _password)
 		sendToClient(fd, ":ircserv 464 * :Password incorrect\r\n");
@@ -65,52 +67,9 @@ void Server::autUser(int fd, std::string str)
 			sendToClient(fd, ":ircsRev 001 * :Welcome to the The Box IRC\r\n");
 			_users.at(fd).authenticate();
 		}
-	}	
+	}
 }
 
-/*
-
-void Server::handlePrivmsg(int fd, std::vector<std::string>& params)
-{
-    if (params.empty() || params.size() < 2)
-    {
-        sendToClient(fd, ":ircserv 461 PRIVMSG :Not enough parameters\r\n");
-        return ;
-    }
-
-    std::string destination = params[0];
-    std::string message = params[1];
-
-    std::string prefix = ":" + _users[fd].getNick() + "!"
-                       + _users[fd].getUsername() + "@"
-                       + _users[fd].getIpAddress();
-
-    if (destination[0] == '#') // é um canal
-    {
-        std::map<std::string, Channel>::iterator it = _channels.find(destination);
-        if (it == _channels.end())
-        {
-            sendToClient(fd, ":ircserv 403 " + destination + " :No such channel\r\n");
-            return ;
-        }
-        // broadcast para membros do canal
-    }
-    else // é um utilizador
-    {
-        std::map<int, User>::iterator it = _users.begin();
-        for (; it != _users.end(); it++)
-        {
-            if (it->second.getNick() == destination)
-            {
-                sendToClient(it->first, prefix + " PRIVMSG " + destination + " :" + message + "\r\n");
-                return ;
-            }
-        }
-        sendToClient(fd, ":ircserv 401 " + destination + " :No such nick\r\n");
-    }
-}
-
-*/
 
 void	Server::msg(int fd, std::vector<std::string>& params, std::string trailing)
 {
@@ -177,13 +136,13 @@ void Server::parser(User &user, std::string &str) {
 	if (commaPos != std::string::npos){
 		trailing = trimmed.substr(commaPos + 1); //verificar mais tarde
 	}
-	
+
 	std::string	strBeforeTrailing = trimmed.substr(0, commaPos); //COMMAND param1 param2 ....
 
 	std::string					command;
 
 	std::size_t spacePos = strBeforeTrailing.find(' ');
-	
+
 	command = strBeforeTrailing.substr(0, spacePos);
 	std::size_t commandLength = command.length();
 	for (std::size_t i = 0; i < commandLength; i++) {
@@ -247,10 +206,10 @@ void	Server::listenMode() {
 	while(is_running)
 	{
 		int poll_return = poll(_polls.data(), _polls.size(), 10000);
-		if (poll_return < 0)
-			throw std::runtime_error("Error: poll() sys call failed!");
-		else if (poll_return == 0)
+		if (_received_sig || poll_return == 0)
 			continue ;
+		else if (poll_return < 0)
+			throw std::runtime_error("Error: poll() sys call failed!");
 		if (_polls[0].revents & POLLIN)
 		{
 			int clientfd = accept(_socket, NULL, NULL);
@@ -268,7 +227,7 @@ void	Server::listenMode() {
 
 				_polls.push_back(client);
 				_users.insert(std::make_pair(static_cast<int>(clientfd), User(clientfd)));
-				
+			
 			}
 		}
 		for (size_t i = 1; i < _polls.size(); ++i)
@@ -309,6 +268,9 @@ void	Server::listenMode() {
 		}
 	}
 }
+
+
+void	Server::turnOff() { _received_sig = true; is_running = false; }
 
 Server::~Server(void) {
 	if (_socket)
