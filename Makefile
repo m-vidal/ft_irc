@@ -3,23 +3,23 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+         #
+#    By: atambo <atambo@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/30 19:00:19 by marcsilv          #+#    #+#              #
-#    Updated: 2026/02/27 19:33:18 by mvidal           ###   ########.fr        #
+#    Updated: 2026/03/06 14:25:15 by atambo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		= ircserv
 
 CXX			= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
+CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -I./inc
 
 SRC_DIR		= src/
 OBJ_DIR		= obj/
 INC_DIR		= inc/
 
-SRC_FILES	= main.cpp Channel.cpp Server.cpp User.cpp 
+SRC_FILES	= main.cpp Channel.cpp Server.cpp User.cpp Commands.cpp Reply.cpp
 HEADERS		= Server.hpp User.hpp Channel.hpp
 
 SRC			= $(addprefix $(SRC_DIR), $(SRC_FILES))
