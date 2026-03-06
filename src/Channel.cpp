@@ -15,7 +15,7 @@
 # include <string>
 # include <iostream>
 
-Channel::Channel(const std::string &name): _name(name), _nbUsers(0), _nbOperators(0) { }
+Channel::Channel(const std::string &name): _name(name), _topic(""), _nbUsers(0), _nbOperators(0) { }
 
 bool	Channel::isUser(const User &user) const {
 	std::map<int, User>::const_iterator it = _users.find(user.getFd());

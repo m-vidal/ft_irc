@@ -17,7 +17,7 @@
 
 //constructor destructor
 Server::~Server(void) {
-	if (_socket)
+	if (_socket != -1)
 		close(_socket);
 }
 Server::Server(unsigned short &port, std::string &password): _onlineUsers(0), _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
@@ -82,12 +82,11 @@ void Server::nick(int fd, std::vector<std::string>& params, std::string trailing
             oldNick + "!" +
             _users[fd].getUsername() + "@" +
             _users[fd].getHostname() +
-            " NICK :" + newNick + "\r\n";
-			ircReply(fd, message);
+            " NICK :" + newNick;
+		ircReply(fd, message);
 
 		std::set<int> notified;
-		notified.insert(fd); // seed with sender so self isn't double-notified
-		ircReply(fd, message); // send to self explicitly
+		notified.insert(fd);
 		
 		for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
 		    if (it->second.isUser(_users[fd]))
@@ -143,15 +142,9 @@ void	Server::list(int fd, std::vector<std::string> &params, std::string trailing
 }
 void	Server::names(int fd, std::vector<std::string>& params, std::string trailing) {
 	if (_users[fd].isAuthenticated() == false) {
-		ircReply(fd, ERR_NOTREGISTERED, "PRIVMSG", "User not registered!");
+		ircReply(fd, ERR_NOTREGISTERED, "NAMES", "User not registered!");
 		return ;
 	}		
-	    // canal não existe
-    if (_channels.find(params[0]) == _channels.end()) {
-        ircReply(fd, ERR_NOSUCHCHANNEL, "NAMES", "No such channel");
-        return ;
-    }
-
 	if (params.empty()) {
 		for (std::map<std::string, Channel>::iterator it = _channels.begin();
 			it != _channels.end(); ++it) {
@@ -163,7 +156,7 @@ void	Server::names(int fd, std::vector<std::string>& params, std::string trailin
 		return;
     } else {
 		if (_channels.find(params[0]) == _channels.end() || params[0][0] != '#') {
-			ircReply(fd, ERR_NOSUCHCHANNEL, "JOIN", "No such channel!");
+			ircReply(fd, ERR_NOSUCHCHANNEL, "NAMES", "No such channel!");
 			return ;
 		}
 		sendUserList(_channels[params[0]], "NAMES", fd);
@@ -192,29 +185,32 @@ void	Server::msg(int fd, std::vector<std::string>& params, std::string trailing)
 		return ;
 	}
 	if (params[0][0] == '#') {
-		if (_channels.find(params[0]) == _channels.end())
+		std::map<std::string, Channel>::iterator chanIt = _channels.find(params[0]);
+		if (chanIt == _channels.end())
 		{
 			ircReply(fd, ERR_NOSUCHCHANNEL, "PRIVMSG", "No such channel.");
 			return ;
 		}
-		if (_channels[params[0]].isUser(_users[fd]) == false) {
+		Channel &channel = chanIt->second;
+		if (channel.isUser(_users[fd]) == false) {
 			ircReply(fd, ERR_NOTONCHANNEL, "PRIVMSG", "Not on channel.");
 			return ;
 		}
-		User &user = _users[getFdFromNick(params[0])];
-		std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " PRIVMSG " + user.getNick() + " :" + trailing;
+		User &user = _users[fd];
+		std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " PRIVMSG " + params[0] + " :" + trailing;
 		std::set<int>	notified;
 		notified.insert(fd);
-		broadcastToChannel(_channels[params[0]], message, notified);
+		broadcastToChannel(channel, message, notified);
 	} else {
-		if (_users.find(getFdFromNick(params[0])) == _users.end())
+		int targetFd = getFdFromNick(params[0]);
+		if (targetFd == -1 || _users.find(targetFd) == _users.end())
 		{
 			ircReply(fd, ERR_NOSUCHNICK, "PRIVMSG", "This user does not exist.");
 			return;
 		}
-		User &user = _users[getFdFromNick(params[0])];
-		std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " PRIVMSG " + user.getNick() + " :" + trailing;
-		ircReply(user.getFd(), message);
+		User &target = _users[targetFd];
+		std::string message = ":" + _users[fd].getNick() + "!" + _users[fd].getUsername() + "@" + _users[fd].getHostname() + " PRIVMSG " + target.getNick() + " :" + trailing;
+		ircReply(target.getFd(), message);
 	}
 }
 void	Server::join(int fd, std::vector<std::string>& params, std::string trailing) {
@@ -232,11 +228,12 @@ void	Server::join(int fd, std::vector<std::string>& params, std::string trailing
 		ircReply(fd, ERR_NOSUCHCHANNEL, "JOIN", "No such channel!");
 		return ;
 	}
-	// Fix #1: use find() instead of operator[] to avoid inserting a default Channel
-	if (_channels.find(params[0]) != _channels.end() && _channels.find(params[0])->second.isUser(_users[fd])) {
+	// Single find to avoid multiple map lookups
+	std::map<std::string, Channel>::iterator chanIt = _channels.find(params[0]);
+	if (chanIt != _channels.end() && chanIt->second.isUser(_users[fd])) {
 		return;
 	}
-	if (_channels.find(params[0]) == _channels.end()) {
+	if (chanIt == _channels.end()) {
 		Channel channel(params[0]);
 		_channels.insert(std::make_pair(channel.getName(), channel));
 
@@ -268,18 +265,19 @@ void	Server::notice(int fd, std::vector<std::string>& params, std::string traili
 		if (_channels[params[0]].isUser(_users[fd]) == false) {
 			return ;
 		}
-		User &user = _users[getFdFromNick(params[0])];
-		std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " PRIVMSG " + user.getNick() + " :" + trailing;
+		User &user = _users[fd];
+		std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " NOTICE " + params[0] + " :" + trailing;
 		std::set<int>	notified;
 		notified.insert(fd);
 		broadcastToChannel(_channels[params[0]], message, notified);
 	} else {
-		if (_users.find(getFdFromNick(params[0])) == _users.end()) {
+		int targetFd = getFdFromNick(params[0]);
+		if (targetFd == -1 || _users.find(targetFd) == _users.end()) {
 			return;
 		}
-		User &user = _users[getFdFromNick(params[0])];
-		std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " PRIVMSG " + user.getNick() + " :" + trailing;
-		ircReply(user.getFd(), message);
+		User &target = _users[targetFd];
+		std::string message = ":" + _users[fd].getNick() + "!" + _users[fd].getUsername() + "@" + _users[fd].getHostname() + " NOTICE " + target.getNick() + " :" + trailing;
+		ircReply(target.getFd(), message);
 	}
 }
 void	Server::sendUserList(const Channel &channel, const std::string &command, const int &fd) {
@@ -316,14 +314,14 @@ void	Server::part(int fd, std::vector<std::string> &params, std::string trailing
 		ircReply(fd, ERR_NEEDMOREPARAMS, "PART", "Not enough params!");
 		return ;
 	}
+	if (_channels.find(params[0]) == _channels.end()) {
+		ircReply(fd, ERR_NOSUCHCHANNEL, params[0], "No such channel!");
+		return ;
+	}
 	Channel &channel = _channels[params[0]];
 	std::string channelName = channel.getName();
 
-	if (_channels.find(channelName) == _channels.end()) {
-		ircReply(fd, ERR_NOSUCHCHANNEL, channelName, "No such channel!");
-		return ;
-	}
-	if (channel.isUser(_users[fd])) {
+	if (!channel.isUser(_users[fd])) {
 		ircReply(fd, ERR_NOTONCHANNEL, channelName, "You're not on that channel.");
 		return;
 	}
@@ -340,8 +338,9 @@ void	Server::part(int fd, std::vector<std::string> &params, std::string trailing
 	std::set<int>	notified;
 	broadcastToChannel(channel, message, notified);
 
+	bool wasOp = channel.isOperator(user);
 	channel.removeUser(fd);
-	if (channel.isOperator(user))
+	if (wasOp)
 		channel.removeOperator(fd);
 	if (channel.getUserCount() == 0)
 		_channels.erase(channelName);
@@ -487,6 +486,8 @@ void Server::parser(User &user, std::string &str) {
 	std::map<std::string, CommandFunc>::iterator it = _commands.find(command);
 	if (it != _commands.end())
 		(this->*(it->second))(user.getFd(), args, trailing);
+	else if (!command.empty())
+		ircReply(user.getFd(), ERR_UNKNOWNCOMMAND, command, "Unknown command");
 }
 bool	Server::checkPassword(std::string password) {
 	bool	hasUpper = false;
@@ -530,8 +531,26 @@ void	Server::disconnectClient(int fd) {
 		}
 	}
 	close(fd);
+	// Remove from all channels before erasing the user
+	if (_users.find(fd) != _users.end()) {
+		User &user = _users[fd];
+		for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); ) {
+			Channel &channel = it->second;
+			if (channel.isUser(user)) {
+				bool wasOp = channel.isOperator(user);
+				channel.removeUser(fd);
+				if (wasOp)
+					channel.removeOperator(fd);
+			}
+			if (channel.getUserCount() == 0)
+				it = _channels.erase(it);
+			else
+				++it;
+		}
+		if (user.isAuthenticated())
+			decUsers();
+	}
 	_users.erase(fd);
-	decUsers();
 }
 void	Server::listenMode() {
 	if (listen(_socket, 5))
