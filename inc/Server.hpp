@@ -62,8 +62,9 @@ class Server {
 		void								user(int fd, std::vector<std::string>& params, std::string trailing);
 		void								ping(int fd, std::vector<std::string>& params, std::string trailing);
 		void								join(int fd, std::vector<std::string>& params, std::string trailing);
+		void								notice(int fd, std::vector<std::string>& params, std::string trailing);
+		void								names(int fd, std::vector<std::string>& params, std::string trailing);
 		void								part(int fd, std::vector<std::string>& params, std::string trailing);
-
 
 		int									getFdFromNick(std::string nick);
 		User								*findUserByNick(const std::string& nick);
@@ -71,7 +72,7 @@ class Server {
 		void								broadcastToChannel(const Channel &channel, const std::string &message, std::set<int> &notified);
 		void								ircReply(int fd, int code, const std::string &command, const std::string &trailing) const;
 		void								ircReply(int fd, const std::string &command, const std::string &trailing) const;
-		void								sendUserList(const Channel &channel, const int &fd);
+		void								sendUserList(const Channel &channel, const std::string &command, const int &fd);
 		void								ircReply(int fd, const std::string &msg) const;
 		std::string							getUserNick(int fd) const;
 		void								checkRegistration(int fd);

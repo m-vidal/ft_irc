@@ -12,10 +12,6 @@
 
 #include "../inc/Server.hpp"
 #include "../inc/Channel.hpp"
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
 
 //constructor destructor
 Server::~Server(void) {
@@ -112,6 +108,35 @@ void	Server::user(int fd, std::vector<std::string>& params, std::string trailing
 	_users[fd].setRealname(trailing);
 	checkRegistration(fd);
 }
+void	Server::names(int fd, std::vector<std::string>& params, std::string trailing) {
+	if (_users[fd].isAuthenticated() == false) {
+		ircReply(fd, ERR_NOTREGISTERED, "PRIVMSG", "User not registered!");
+		return ;
+	}		
+	    // canal não existe
+    if (_channels.find(params[0]) == _channels.end()) {
+        ircReply(fd, ERR_NOSUCHCHANNEL, "NAMES", "No such channel");
+        return ;
+    }
+
+	if (params.empty()) {
+		for (std::map<std::string, Channel>::iterator it = _channels.begin();
+			it != _channels.end(); ++it) {
+			if (it->second.isUser(_users[fd])) {
+				ircReply(fd, ":ircserv NAMES :" + it->second.getName());
+				sendUserList(it->second, "NAMES", fd);
+			}
+		}
+		return;
+    } else {
+		if (_channels.find(params[0]) == _channels.end() || params[0][0] != '#') {
+			ircReply(fd, ERR_NOSUCHCHANNEL, "JOIN", "No such channel!");
+			return ;
+		}
+		sendUserList(_channels[params[0]], "NAMES", fd);
+	}
+
+}
 void	Server::ping(int fd, std::vector<std::string>& params, std::string trailing) {
 	(void)trailing;
 	if (params.size() == 0) {
@@ -119,6 +144,45 @@ void	Server::ping(int fd, std::vector<std::string>& params, std::string trailing
 		return ;
 	}
 	ircReply(fd, ":ircserv PONG ircserv :ircserv");
+}
+void	Server::msg(int fd, std::vector<std::string>& params, std::string trailing) {
+	if (_users[fd].isAuthenticated() == false) {
+		ircReply(fd, ERR_NOTREGISTERED, "PRIVMSG", "User not registered!");
+		return ;
+	}
+	if (params.empty() || params[0].empty()) {
+		ircReply(fd, ERR_NORECIPIENT, "PRIVMSG","Empty target.");
+		return ;
+	}
+	if (trailing.empty() == true) {
+		ircReply(fd, ERR_NOTEXTTOSEND, "PRIVMSG", "No text to send");
+		return ;
+	}
+	if (params[0][0] == '#') {
+		if (_channels.find(params[0]) == _channels.end())
+		{
+			ircReply(fd, ERR_NOSUCHCHANNEL, "PRIVMSG", "No such channel.");
+			return ;
+		}
+		if (_channels[params[0]].isUser(_users[fd]) == false) {
+			ircReply(fd, ERR_NOTONCHANNEL, "PRIVMSG", "Not on channel.");
+			return ;
+		}
+		User &user = _users[getFdFromNick(params[0])];
+		std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " PRIVMSG " + user.getNick() + " :" + trailing;
+		std::set<int>	notified;
+		notified.insert(fd);
+		broadcastToChannel(_channels[params[0]], message, notified);
+	} else {
+		if (_users.find(getFdFromNick(params[0])) == _users.end())
+		{
+			ircReply(fd, ERR_NOSUCHNICK, "PRIVMSG", "This user does not exist.");
+			return;
+		}
+		User &user = _users[getFdFromNick(params[0])];
+		std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " PRIVMSG " + user.getNick() + " :" + trailing;
+		ircReply(user.getFd(), message);
+	}
 }
 void	Server::join(int fd, std::vector<std::string>& params, std::string trailing) {
 	(void)trailing;
@@ -147,13 +211,45 @@ void	Server::join(int fd, std::vector<std::string>& params, std::string trailing
 
 		_channels[params[0]].addUser(_users[fd]);
 		_channels[params[0]].addOperator(_users[fd]);
-		sendUserList(_channels[params[0]], fd);
+		sendUserList(_channels[params[0]], "JOIN", fd);
 	} else {
 		_channels[params[0]].addUser(_users[fd]);
-		sendUserList(_channels[params[0]], fd);
+		sendUserList(_channels[params[0]], "JOIN", fd);
 	}
 }
-void	Server::sendUserList(const Channel &channel, const int &fd) {
+void	Server::notice(int fd, std::vector<std::string>& params, std::string trailing) {
+	if (_users[fd].isAuthenticated() == false) {
+		return ;
+	}
+	if (params.empty() || params[0].empty()) {
+		return ;
+	}
+	if (trailing.empty() == true) {
+		return ;
+	}
+	if (params[0][0] == '#') {
+		if (_channels.find(params[0]) == _channels.end())
+		{
+			return ;
+		}
+		if (_channels[params[0]].isUser(_users[fd]) == false) {
+			return ;
+		}
+		User &user = _users[getFdFromNick(params[0])];
+		std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " PRIVMSG " + user.getNick() + " :" + trailing;
+		std::set<int>	notified;
+		notified.insert(fd);
+		broadcastToChannel(_channels[params[0]], message, notified);
+	} else {
+		if (_users.find(getFdFromNick(params[0])) == _users.end()) {
+			return;
+		}
+		User &user = _users[getFdFromNick(params[0])];
+		std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " PRIVMSG " + user.getNick() + " :" + trailing;
+		ircReply(user.getFd(), message);
+	}
+}
+void	Server::sendUserList(const Channel &channel, const std::string &command, const int &fd) {
     std::stringstream ss;
     std::stringstream ss1;
 
@@ -162,12 +258,13 @@ void	Server::sendUserList(const Channel &channel, const int &fd) {
 	std::string message = ":" + user.getNick() +
                       "!" + user.getUsername() +
                       "@" + user.getHostname() +
-                      " JOIN " + channel.getName();
+                      " " + command + " " + channel.getName();
 	std::set<int>	notified;
 	notified.insert(fd);
-	broadcastToChannel(channel, message, notified);
-	ircReply(fd, "JOIN", channel.getName());
-
+	if (command == "JOIN") {
+		broadcastToChannel(channel, message, notified);
+		ircReply(fd, "JOIN", channel.getName());
+	}
 
     ss << std::setw(3) << std::setfill('0') << RPL_NAMREPLY;
 	ircReply(fd, 
@@ -249,7 +346,9 @@ void Server::ircReply(int fd, const std::string &command, const std::string &tra
 
 //utilities
 void	Server::setknowncommands(void) {
-	// _commands["PRIVMSG"] = &Server::msg;
+	_commands["PRIVMSG"] = &Server::msg;
+	_commands["NOTICE"] = &Server::notice;
+	_commands["NAMES"] = &Server::names;
 	_commands["PASS"] = &Server::pass;
 	_commands["NICK"] = &Server::nick;
 	_commands["USER"] = &Server::user;
