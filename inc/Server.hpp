@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/06 15:16:26 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/07 00:03:45 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,18 @@
 
 class User;
 class Channel;
+class Server;
+
+typedef void (Server::*CommandFunc)(int fd, std::vector<std::string> &params, std::string trailing);
+struct Command
+{
+	CommandFunc handler;
+	int minArgs;
+	bool needTrail;
+
+	Command();
+	Command(CommandFunc h, int args, bool trail);
+};
 
 class Server
 {
@@ -47,8 +59,24 @@ public:
 	~Server();
 
 	void listenMode();
+	void ircReply(int fd, int code, const std::string &command, const std::string &trailing) const;
+	void ircReply(int fd, const std::string &command, const std::string &trailing) const;
+	void ircReply(int fd, const std::string &msg) const;
+	void sendToClient(int fd, std::string str);
 
 private:
+	// data ---------------------------
+	size_t _onlineUsers;
+	std::map<std::string, Command> _commands;
+	std::map<std::string, Channel> _channels;
+	const std::string _password;
+	const short _socket;
+	std::map<int, User> _users; // um mapa porque assim conseguimos identificar cada user pelo seu fd
+	std::vector<pollfd> _polls; // para controlar os eventos de cada cliente
+	struct sockaddr_in _addr;
+	const short _port;
+
+	// methods ------------------------
 	void initPoll();
 	void acceptNewClient();
 
@@ -56,15 +84,12 @@ private:
 	void consumeBuffer(int fd);
 
 	void processMessage(int fd, std::string str);
-	void sendToClient(int fd, std::string str);
 	void parseLine(int fd, std::string line);
 	void executeCommand(int fd, std::string &cmd, std::vector<std::string> &args, std::string &trailing);
 
 	bool checkPassword(std::string password);
 	void disconnectClient(int fd);
 	void setknowncommands();
-
-	typedef void (Server::*CommandFunc)(int fd, std::vector<std::string> &params, std::string trailing);
 
 	void msg(int fd, std::vector<std::string> &params, std::string trailing);
 	void pass(int fd, std::vector<std::string> &params, std::string trailing);
@@ -77,25 +102,14 @@ private:
 	int getFdFromNick(std::string nick);
 	User *findUserByNick(const std::string &nick);
 
-	void broadcastToChannel(const Channel &channel, const std::string &message, std::set<int> &notified);
-	void ircReply(int fd, int code, const std::string &command, const std::string &trailing) const;
-	void ircReply(int fd, const std::string &command, const std::string &trailing) const;
+	void sendToMembers(const Channel &chan, const std::string &msg, std::set<int> &notified);
+	void sendToChannels(const User &user, const std::string &msg);
+
 	void sendUserList(const Channel &channel, const int &fd);
-	void ircReply(int fd, const std::string &msg) const;
 	std::string getUserNick(int fd) const;
 	void checkRegistration(int fd);
 	void incUsers(void);
 	void decUsers(void);
-
-	size_t _onlineUsers;
-	std::map<std::string, CommandFunc> _commands;
-	std::map<std::string, Channel> _channels;
-	const std::string _password;
-	const short _socket;
-	std::map<int, User> _users; // um mapa porque assim conseguimos identificar cada user pelo seu fd
-	std::vector<pollfd> _polls; // para controlar os eventos de cada cliente
-	struct sockaddr_in _addr;
-	const short _port;
 };
 
 #endif

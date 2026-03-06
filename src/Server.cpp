@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/06 15:47:46 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/07 00:12:55 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,10 @@
 #include "Server.hpp"
 
 // constructor destructor
+
+Command::Command() : handler(NULL), minArgs(0) {}
+Command::Command(CommandFunc h, int args, bool trail) : handler(h), minArgs(args), needTrail(trail) {}
+
 Server::~Server(void)
 {
     if (_socket)
@@ -54,12 +58,13 @@ void Server::sendUserList(const Channel &channel, const int &fd)
                           " JOIN " + channel.getName();
     std::set<int> notified;
     notified.insert(fd);
-    broadcastToChannel(channel, message, notified);
+    // broadcastToChannel(channel, message, notified);
+    sendToMembers(channel, message, notified);
     ircReply(fd, "JOIN", channel.getName());
 
     ss << std::setw(3) << std::setfill('0') << RPL_NAMREPLY;
     ircReply(fd,
-             ":ircserv " + ss.str() + " " + getUserNick(fd) + " = " + channel.getName() + " :" + channel.getUserNickList());
+             ":ircserv " + ss.str() + " " + getUserNick(fd) + " = " + channel.getName() + " :" + channel.getMemberNickList());
     ss1 << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES;
     ircReply(fd, ":ircserv " + ss1.str() + " " + getUserNick(fd) + " " + channel.getName() + " :End of /NAMES list");
 }
@@ -68,12 +73,12 @@ void Server::sendUserList(const Channel &channel, const int &fd)
 void Server::setknowncommands(void)
 {
     // _commands["PRIVMSG"] = &Server::msg;
-    _commands["/PASS"] = &Server::pass;
-    _commands["/NICK"] = &Server::nick;
-    _commands["/USER"] = &Server::user;
-    _commands["/PING"] = &Server::ping;
-    _commands["/JOIN"] = &Server::join;
-    _commands["/PART"] = &Server::part;
+    _commands["/PASS"] = Command(&Server::pass, 0, false);
+    _commands["/NICK"] = Command(&Server::nick, 0, false);
+    _commands["/USER"] = Command(&Server::user, 0, false);
+    _commands["/PING"] = Command(&Server::ping, 0, false);
+    _commands["/JOIN"] = Command(&Server::join, 0, false);
+    _commands["/PART"] = Command(&Server::part, 1, false);
 }
 
 void Server::checkRegistration(int fd)
@@ -185,6 +190,7 @@ void Server::sendToClient(int fd, std::string str)
 {
     send(fd, str.c_str(), str.size(), 0);
 }
+
 void Server::disconnectClient(int fd)
 {
     for (size_t i = 0; i < _polls.size(); i++)
@@ -308,24 +314,21 @@ void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &
     User &user = _users[fd];
 
     // 1. Check if command exists
-    std::map<std::string, CommandFunc>::iterator it = _commands.find(cmd);
+    std::map<std::string, Command>::iterator it = _commands.find(cmd);
     if (it == _commands.end())
-    {
-        ircReply(fd, ERR_UNKNOWNCOMMAND, cmd, "Unknown command");
-        return;
-    }
+        return ircReply(fd, ERR_UNKNOWNCOMMAND, cmd, "Unknown command");
+
     if (!user.checkIsPassAccepted() && cmd != "/PASS")
-    {
-        ircReply(fd, ERR_PASSWDMISMATCH, "*", "passowrd");
-        return;
-    }
+        return ircReply(fd, ERR_PASSWDMISMATCH, "*", "passowrd");
+
     if (!user.isAuthenticated() && cmd != "/PASS" && cmd != "/NICK" && cmd != "/USER")
-    {
-        ircReply(fd, ERR_NOTREGISTERED, "*", "You have not registered");
-        return;
-    }
-    // 3. Final Execution
-    (this->*(it->second))(fd, args, trailing);
+        return ircReply(fd, ERR_NOTREGISTERED, "*", "You have not registered");
+
+    std::size_t params_needed = it->second.minArgs;
+    if ((args.size() < params_needed) || (it->second.needTrail && trailing.empty()))
+        return ircReply(fd, ERR_NEEDMOREPARAMS, cmd, "Need more params");
+
+    (this->*(it->second.handler))(fd, args, trailing);
 }
 
 void Server::incUsers(void)
@@ -341,16 +344,36 @@ void Server::decUsers(void)
         std::cerr << "Number of users already at zero!" << std::endl;
     std::cout << "Online users: " << _onlineUsers << "." << std::endl;
 }
-// Server.cpp
-void Server::broadcastToChannel(const Channel &channel, const std::string &message, std::set<int> &notified)
+
+void Server::sendToMembers(const Channel &chan, const std::string &msg, std::set<int> &notified)
 {
-    const std::map<int, User> &users = channel.getUsers();
-    for (std::map<int, User>::const_iterator it = users.begin(); it != users.end(); ++it)
+    std::map<int, Member> members = chan.getMembers();
+    std::map<int, Member>::const_iterator it;
+
+    for (it = members.begin(); it != members.end(); ++it)
     {
-        if (notified.find(it->first) == notified.end())
+        int fd = it->first;
+        if (notified.find(fd) == notified.end())
         {
-            ircReply(it->first, message);
-            notified.insert(it->first);
+            this->sendToClient(fd, msg);
+            notified.insert(fd);
+        }
+    }
+}
+
+void Server::sendToChannels(const User &user, const std::string &msg)
+{
+    std::set<int> notified;
+    // Usually, we don't want the sender to get their own NICK/QUIT message
+    notified.insert(user.getFd());
+
+    std::map<std::string, Channel>::iterator it;
+    for (it = _channels.begin(); it != _channels.end(); ++it)
+    {
+        if (it->second.isMember(user.getFd()))
+        {
+            // Delegate to our helper method
+            this->sendToMembers(it->second, msg, notified);
         }
     }
 }

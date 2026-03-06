@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/06 14:22:50 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/07 00:06:42 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,18 @@
 
 #include <map>
 #include <string>
-#include <string>
+#include <set>
 #include <iostream>
 
 class User;
+struct Member
+{
+	bool is_operator;
+	User user;
+
+	Member();
+	Member(bool op, User user);
+};
 
 class Channel
 {
@@ -29,34 +37,31 @@ public:
 	Channel(const std::string &name);
 
 	std::string getName(void) const;
-	std::string getUserNickList(void) const;
-	size_t getUserCount(void) const;
-	std::map<int, User> getUsers(void) const;
+	std::string getMemberNickList(void) const;
+	std::map<int, Member> getMembers(void) const;
+	size_t getMemberCount(void) const;
 
 	void setName(const std::string &newName);
 
-	void addUser(const User &user);
-	void addOperator(const User &user);
+	void addMember(const User &user);
+	void addOperator(const User &member);
 
-	void removeUser(const int &fd);
-	void removeOperator(const int &fd);
+	void removeMember(const int &fd);
 
-	bool isUser(const User &user) const;
+	bool isMember(const int fd) const;
+	bool isMember(const User &user) const;
+	bool isOperator(const int fd) const;
 	bool isOperator(const User &user) const;
 
-	void incUsers(void);
-	void decUsers(void);
-	void incOperators(void);
-	void decOperators(void);
+	void setOperator(const int fd);
+	void setOperator(const User &user);
+	void unsetOperator(const int fd);
+	void unsetOperator(const User &user);
 
 private:
 	std::string _name;
-	std::map<int, User> _users;
 	std::string _topic;
-	size_t _nbUsers;
-	std::map<int, User> _operators;
-	size_t _nbOperators;
-	// modes
+	std::map<int, Member> _members;
 };
 
 #endif

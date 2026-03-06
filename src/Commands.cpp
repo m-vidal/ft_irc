@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/06 14:19:07 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/07 00:12:29 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,19 +73,19 @@ void Server::nick(int fd, std::vector<std::string> &params, std::string trailing
 
         for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)
         {
-            if (it->second.isUser(_users[fd]))
-                broadcastToChannel(it->second, message, notified);
+            if (it->second.isMember(_users[fd]))
+            {
+                // broadcastToChannel(it->second, message, notified);
+                sendToMembers(it->second, message, notified);
+            }
         }
     }
     checkRegistration(fd);
 }
+
 void Server::user(int fd, std::vector<std::string> &params, std::string trailing)
 {
-    if (_users[fd].isAuthenticated() == true)
-    {
-        ircReply(fd, ERR_ALREADYREGISTERED, "USER", "User already registered!");
-        return;
-    }
+
     if (params.size() < 3 || trailing.empty() == true)
     {
         ircReply(fd, ERR_NEEDMOREPARAMS, "USER", "Not enough parameters!");
@@ -115,51 +115,32 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
         ircReply(fd, ERR_NEEDMOREPARAMS, "JOIN", "Not enough parameters!");
         return;
     }
-    if (_users[fd].isAuthenticated() == false)
-    {
-        ircReply(fd, ERR_NOTREGISTERED, "JOIN", "User not registered!");
-        return;
-    }
     if (params[0][0] != '#')
     {
         ircReply(fd, ERR_NOSUCHCHANNEL, "JOIN", "No such channel!");
         return;
     }
+    std::map<std::string, Channel>::iterator it = _channels.find(params[0]);
     // Fix #1: use find() instead of operator[] to avoid inserting a default Channel
-    if (_channels.find(params[0]) != _channels.end() && _channels.find(params[0])->second.isUser(_users[fd]))
-    {
+    if (it != _channels.end() && it->second.isMember(_users[fd]))
         return;
-    }
-    if (_channels.find(params[0]) == _channels.end())
+    if (it == _channels.end()) // channel dosent exits, create channel
     {
-        Channel channel(params[0]);
-        _channels.insert(std::make_pair(channel.getName(), channel));
-
+        _channels.insert(std::make_pair(params[0], Channel(params[0])));
         std::cout << "Channel " << params[0] << " created." << std::endl;
-
-        _channels[params[0]].addUser(_users[fd]);
         _channels[params[0]].addOperator(_users[fd]);
         sendUserList(_channels[params[0]], fd);
     }
-    else
+    else // channel exists add user to channel
     {
-        _channels[params[0]].addUser(_users[fd]);
+        _channels[params[0]].addMember(_users[fd]);
         sendUserList(_channels[params[0]], fd);
     }
 }
 
 void Server::part(int fd, std::vector<std::string> &params, std::string trailing)
 {
-    if (_users[fd].isAuthenticated() == false)
-    {
-        ircReply(fd, ERR_NOTREGISTERED, "PART", "User not registered!");
-        return;
-    }
-    if (params.size() == 0)
-    {
-        ircReply(fd, ERR_NEEDMOREPARAMS, "PART", "Not enough params!");
-        return;
-    }
+
     Channel &channel = _channels[params[0]];
     std::string channelName = channel.getName();
 
@@ -168,7 +149,7 @@ void Server::part(int fd, std::vector<std::string> &params, std::string trailing
         ircReply(fd, ERR_NOSUCHCHANNEL, channelName, "No such channel!");
         return;
     }
-    if (channel.isUser(_users[fd]))
+    if (channel.isMember(_users[fd]))
     {
         ircReply(fd, ERR_NOTONCHANNEL, channelName, "You're not on that channel.");
         return;
@@ -185,11 +166,9 @@ void Server::part(int fd, std::vector<std::string> &params, std::string trailing
     }
 
     std::set<int> notified;
-    broadcastToChannel(channel, message, notified);
-
-    channel.removeUser(fd);
-    if (channel.isOperator(user))
-        channel.removeOperator(fd);
-    if (channel.getUserCount() == 0)
+    // broadcastToChannel(channel, message, notified);
+    sendToMembers(channel, message, notified);
+    channel.removeMember(fd);
+    if (channel.getMemberCount() == 0)
         _channels.erase(channelName);
 }

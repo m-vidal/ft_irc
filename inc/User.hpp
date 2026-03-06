@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/06 15:33:27 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/06 21:03:03 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,10 +56,9 @@ public:
 
 	// checks
 	bool checkIsPassAccepted(void) const;
-	bool isAuthenticated(void) const;
 	bool checkIsNickSet(void) const;
 	bool checkIsUserSet(void) const;
-	bool isOperator(void) const;
+	bool isAuthenticated(void) const;
 
 	// regular methods
 	void authenticate();
