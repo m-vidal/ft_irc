@@ -3,21 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   User.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 21:15:07 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/03/06 15:13:07 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/User.hpp"
 
 User::User(int fd):
-			_isAuthenticated(false), _isPassAccepted(false), _isOperator(false), _isNickSet(false),
+			_isAuthenticated(false), _isPassAccepted(false), _isNickSet(false),
 			_isUserSet(false), _fd(fd) { }
 
 User::User(void):
-			_isAuthenticated(false), _isPassAccepted(false), _isOperator(false), _isNickSet(false),
+			_isAuthenticated(false), _isPassAccepted(false), _isNickSet(false),
 			_isUserSet(false), _fd(-1) { }
 
 void		User::setPassAccepted(void) { _isPassAccepted = true; }
@@ -41,7 +41,6 @@ std::string	User::getUsername(void) const { return (this->_username); }
 std::string User::getRealname(void) const { return (this->_realName); }
 std::string	User::getHostname(void) const { return (this->_hostname); }
 
-bool		User::isOperator(void) const { return (this->_isOperator); }
 void		User::appendToBuffer(std::string data) { _buffer += data; }
 void		User::clearBuffer( size_t pos ) { _buffer.erase(0, pos); }
 

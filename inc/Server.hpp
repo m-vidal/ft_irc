@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/06 14:19:38 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/06 15:16:26 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,11 +53,13 @@ private:
 	void acceptNewClient();
 
 	void handleClientData(size_t &idx);
-	void processCommands(int fd);
+	void consumeBuffer(int fd);
 
 	void processMessage(int fd, std::string str);
 	void sendToClient(int fd, std::string str);
-	void parser(User &user, std::string &str);
+	void parseLine(int fd, std::string line);
+	void executeCommand(int fd, std::string &cmd, std::vector<std::string> &args, std::string &trailing);
+
 	bool checkPassword(std::string password);
 	void disconnectClient(int fd);
 	void setknowncommands();

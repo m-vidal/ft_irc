@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/06 14:24:52 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/06 15:25:07 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,12 +68,12 @@ void Server::sendUserList(const Channel &channel, const int &fd)
 void Server::setknowncommands(void)
 {
 	// _commands["PRIVMSG"] = &Server::msg;
-	_commands["PASS"] = &Server::pass;
-	_commands["NICK"] = &Server::nick;
-	_commands["USER"] = &Server::user;
-	_commands["PING"] = &Server::ping;
-	_commands["JOIN"] = &Server::join;
-	_commands["PART"] = &Server::part;
+	_commands["/PASS"] = &Server::pass;
+	_commands["/NICK"] = &Server::nick;
+	_commands["/USER"] = &Server::user;
+	_commands["/PING"] = &Server::ping;
+	_commands["/JOIN"] = &Server::join;
+	_commands["/PART"] = &Server::part;
 }
 
 void Server::checkRegistration(int fd)
@@ -152,44 +152,7 @@ std::vector<std::string> split(const std::string &input)
 	}
 	return (result);
 }
-void Server::parser(User &user, std::string &str)
-{
-	// no caso de faltar args ou trailing, mandar args vazios
-	std::string trimmed;
-	std::size_t crlf = str.find("\r\n");
-	trimmed = (crlf != std::string::npos) ? str.substr(0, crlf) : str;
 
-	std::size_t commaPos = trimmed.find(" :");
-	std::string trailing;
-
-	if (commaPos != std::string::npos)
-	{
-		trailing = trimmed.substr(commaPos + 2); // skip " :"
-	}
-
-	std::string strBeforeTrailing = trimmed.substr(0, commaPos); // COMMAND param1 param2 ....
-
-	std::string command;
-
-	std::size_t spacePos = strBeforeTrailing.find(' ');
-
-	command = strBeforeTrailing.substr(0, spacePos);
-	std::size_t commandLength = command.length();
-	for (std::size_t i = 0; i < commandLength; i++)
-	{
-		command[i] = std::toupper(command[i]);
-	}
-	std::string tempArgs;
-	if (spacePos != std::string::npos)
-		tempArgs = strBeforeTrailing.substr(spacePos + 1);
-	std::vector<std::string> args = split(tempArgs);
-
-	std::map<std::string, CommandFunc>::iterator it = _commands.find(command);
-	if (it != _commands.end())
-		(this->*(it->second))(user.getFd(), args, trailing);
-	else
-		ircReply(user.getFd(), ERR_UNKNOWNCOMMAND, command, "Unkown command");
-}
 bool Server::checkPassword(std::string password)
 {
 	// bool hasUpper = false;
@@ -217,15 +180,7 @@ bool Server::checkPassword(std::string password)
 	(void)password;
 	return true;
 }
-void Server::processMessage(int fd, std::string str)
-{
-	// if (!_users.at(fd).isAuthenticated()) {
-	// 	authUser(fd, str);
-	// }
-	// else
-	std::cout << str << std::endl;
-	this->parser(_users[fd], str);
-}
+
 void Server::sendToClient(int fd, std::string str)
 {
 	send(fd, str.c_str(), str.size(), 0);
@@ -302,20 +257,74 @@ void Server::handleClientData(size_t &idx)
 	}
 	buffer[n] = '\0';
 	_users[fd].appendToBuffer(buffer);
-	processCommands(fd);
+	consumeBuffer(fd);
 }
 
-void Server::processCommands(int fd)
+void Server::consumeBuffer(int fd)
 {
-	std::string raw = _users[fd].getBuffer();
+	std::string buf = _users[fd].getBuffer();
 	size_t pos;
 
-	while ((pos = raw.find("\r\n")) != std::string::npos)
+	while ((pos = buf.find("\r\n")) != std::string::npos)
 	{
-		std::string cmd = raw.substr(0, pos);
-		processMessage(fd, cmd);
-		raw.erase(0, pos + 2);
+		std::cout << "buffer[" << fd << "]" << buf << "\n";
+		std::string line = buf.substr(0, pos);
+		buf.erase(0, pos + 2);
+
+		if (!line.empty())
+			this->parseLine(fd, line);
+		std::cout << "buffer[" << fd << "]" << buf << "\n";
 	}
+}
+
+void Server::parseLine(int fd, std::string line)
+{
+	std::string command, trailing;
+	std::vector<std::string> args;
+
+	// Split trailing first to protect spaces inside messages
+	size_t colonPos = line.find(" :");
+	if (colonPos != std::string::npos)
+	{
+		trailing = line.substr(colonPos + 2);
+		line = line.substr(0, colonPos);
+	}
+
+	std::stringstream ss(line);
+	ss >> command;
+	// for (size_t i = 0; i < command.length(); ++i)
+	// 	command[i] = std::toupper(command[i]);
+
+	std::string temp;
+	while (ss >> temp)
+		args.push_back(temp);
+
+	this->executeCommand(fd, command, args, trailing);
+}
+
+void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &args, std::string &trailing)
+{
+	User &user = _users[fd];
+
+	// 1. Check if command exists
+	std::map<std::string, CommandFunc>::iterator it = _commands.find(cmd);
+	if (it == _commands.end())
+	{
+		ircReply(fd, ERR_UNKNOWNCOMMAND, cmd, "Unknown command");
+		return;
+	}
+	if (!user.checkIsPassAccepted() && cmd != "/PASS")
+	{
+		ircReply(fd, ERR_PASSWDMISMATCH, "*", "passowrd");
+		return;
+	}
+	if (!user.isAuthenticated() && cmd != "/PASS" && cmd != "/NICK" && cmd != "/USER")
+	{
+		ircReply(fd, ERR_NOTREGISTERED, "*", "You have not registered");
+		return;
+	}
+	// 3. Final Execution
+	(this->*(it->second))(fd, args, trailing);
 }
 
 void Server::incUsers(void)
