@@ -32,7 +32,6 @@ bool	Channel::isOperator(const User &user) const {
 	return (false);
 }
 
-
 void		Channel::addUser(const User &user) {
 	_users.insert(std::make_pair(user.getFd(), user));
 	std::cout << "User " << user.getNick() << " is now a member of " << getName() << "." << std::endl;
@@ -62,6 +61,9 @@ void		Channel::removeOperator(const int &fd) {
 	}
 }
 
+std::string Channel::getTopic(void) const {
+	return (_topic);
+}
 std::string	Channel::getName(void) const {
 	return (_name);
 }

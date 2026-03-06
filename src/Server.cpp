@@ -12,6 +12,8 @@
 
 #include "../inc/Server.hpp"
 #include "../inc/Channel.hpp"
+#include <string>
+#include <vector>
 
 //constructor destructor
 Server::~Server(void) {
@@ -107,6 +109,37 @@ void	Server::user(int fd, std::vector<std::string>& params, std::string trailing
 	_users[fd].setHostname(params[1]);
 	_users[fd].setRealname(trailing);
 	checkRegistration(fd);
+}
+void	Server::list(int fd, std::vector<std::string> &params, std::string trailing) {
+	(void)params;
+	(void)trailing;
+		if (_users[fd].isAuthenticated() == false) {
+		ircReply(fd, ERR_NOTREGISTERED, "LIST", "User not registered");
+		return;
+	}
+
+	std::map<std::string, Channel>::iterator it;
+
+	for (it = _channels.begin(); it != _channels.end(); ++it) {
+
+		Channel &channel = it->second;
+
+		std::stringstream ss;
+		ss << ":ircserv 322 "
+		   << getUserNick(fd) << " "
+		   << channel.getName() << " "
+		   << channel.getUserCount() << " :"
+		   << channel.getTopic();
+
+		ircReply(fd, ss.str());
+	}
+
+	std::stringstream end;
+	end << ":ircserv 323 "
+		<< getUserNick(fd)
+		<< " :End of /LIST";
+
+	ircReply(fd, end.str());
 }
 void	Server::names(int fd, std::vector<std::string>& params, std::string trailing) {
 	if (_users[fd].isAuthenticated() == false) {
@@ -349,6 +382,7 @@ void	Server::setknowncommands(void) {
 	_commands["PRIVMSG"] = &Server::msg;
 	_commands["NOTICE"] = &Server::notice;
 	_commands["NAMES"] = &Server::names;
+	_commands["LIST"] = &Server::list;
 	_commands["PASS"] = &Server::pass;
 	_commands["NICK"] = &Server::nick;
 	_commands["USER"] = &Server::user;

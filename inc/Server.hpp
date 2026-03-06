@@ -64,6 +64,7 @@ class Server {
 		void								join(int fd, std::vector<std::string>& params, std::string trailing);
 		void								notice(int fd, std::vector<std::string>& params, std::string trailing);
 		void								names(int fd, std::vector<std::string>& params, std::string trailing);
+		void								list(int fd, std::vector<std::string>& params, std::string trailing);
 		void								part(int fd, std::vector<std::string>& params, std::string trailing);
 
 		int									getFdFromNick(std::string nick);

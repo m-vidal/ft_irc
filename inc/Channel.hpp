@@ -25,6 +25,7 @@ class Channel {
 		Channel(const std::string &name);
 			
 		std::string			getName(void) const;
+		std::string			getTopic(void) const;
 		std::string			getUserNickList(void) const;
 		size_t				getUserCount(void) const;
 		std::map<int, User>	getUsers(void) const;
