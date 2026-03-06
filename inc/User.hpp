@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/06 15:11:46 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/06 15:33:27 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,9 @@ private:
 	// std::vector<Channel>	_channels;	//acho que se vai apagar depois
 	std::string _nickname;
 	std::string _username;
-	std::string _buffer;
+	std::string _inbuffer;
+	std::string _outbuffer;
+
 	const short _fd;
 
 public:
