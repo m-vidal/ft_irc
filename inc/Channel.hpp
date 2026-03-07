@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/07 00:06:42 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/07 03:31:13 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,15 @@ public:
 	void unsetOperator(const int fd);
 	void unsetOperator(const User &user);
 
+	void setMode(const char c);
+	void unsetMode(const char c);
+	unsigned long getMode() const;
+	bool hasMode(const char c) const;
+	std::string getModeStr() const;
+	void applyModeString(const std::string &modes);
+
 private:
+	unsigned long _mode;
 	std::string _name;
 	std::string _topic;
 	std::map<int, Member> _members;

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/07 01:45:05 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/07 03:38:21 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,7 @@ void Server::setknowncommands(void)
     _commands["PING"] = Command(&Server::ping, 0, false);
     _commands["JOIN"] = Command(&Server::join, 0, false);
     _commands["PART"] = Command(&Server::part, 1, false);
+    _commands["MODE"] = Command(&Server::mode, 1, false);
 }
 
 void Server::checkRegistration(int fd)
@@ -217,10 +218,30 @@ void Server::disconnectClient(int fd)
     decUsers();
 }
 
+void Server::printBanner()
+{
+    std::string cyan = "\033[36m";
+    std::string green = "\033[32m";
+    std::string reset = "\033[0m";
+
+    std::cout << cyan;
+    std::cout << "  _____ _____   _____  _____ ______ _______      __" << std::endl;
+    std::cout << " |_   _|  __ \\ / ____|/ ____|  ____|  __ \\ \\    / /" << std::endl;
+    std::cout << "   | | | |__) | |    | (___ | |__  | |__) \\ \\  / / " << std::endl;
+    std::cout << "   | | |  _  /| |     \\___ \\|  __| |  _  / \\ \\/ /  " << std::endl;
+    std::cout << "  _| |_| | \\ \\| |____ ____) | |____| | \\ \\  \\  /   " << std::endl;
+    std::cout << " |_____|_|  \\_\\\\_____|_____/|______|_| _\\_\\  \\/    " << std::endl;
+    std::cout << reset << std::endl;
+
+    std::cout << green << " [SYSTEM] " << reset << "ft_irc server started" << std::endl;
+    std::cout << green << " [INFO]   " << reset << "Listening on port: " << _port << std::endl;
+    std::cout << " --------------------------------------------------" << std::endl;
+}
+
 void Server::listenMode()
 {
     initPoll();
-    std::cout << "Server listening on port " << _port << std::endl;
+    printBanner();
 
     while (is_running)
     {

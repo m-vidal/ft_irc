@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/07 00:42:45 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/07 03:35:51 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,7 @@ private:
 	void disconnectClient(int fd);
 	void setknowncommands();
 
+	// command functions ------------------------------------------------------
 	void msg(int fd, std::vector<std::string> &params, std::string trailing);
 	void pass(int fd, std::vector<std::string> &params, std::string trailing);
 	void nick(int fd, std::vector<std::string> &params, std::string trailing);
@@ -99,6 +100,10 @@ private:
 	void ping(int fd, std::vector<std::string> &params, std::string trailing);
 	void join(int fd, std::vector<std::string> &params, std::string trailing);
 	void part(int fd, std::vector<std::string> &params, std::string trailing);
+	void mode(int fd, std::vector<std::string> &params, std::string trailing);
+	// void mode_user(int fd, std::vector<std::string> &params);
+	void mode_channel(int fd, std::vector<std::string> &params);
+	// ------------------------------------------------------------------------
 
 	int getFdFromNick(std::string nick);
 	User *findUserByNick(const std::string &nick);
@@ -111,6 +116,7 @@ private:
 	void checkRegistration(int fd);
 	void incUsers(void);
 	void decUsers(void);
+	void printBanner();
 };
 
 #endif

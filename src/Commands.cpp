@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/07 01:22:27 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/07 03:33:07 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,7 +135,7 @@ void Server::part(int fd, std::vector<std::string> &params, std::string trailing
         ircReply(fd, ERR_NOSUCHCHANNEL, channelName, "No such channel!");
         return;
     }
-    if (channel.isMember(_users[fd]))
+    if (!channel.isMember(fd))
     {
         ircReply(fd, ERR_NOTONCHANNEL, channelName, "You're not on that channel.");
         return;
@@ -150,11 +150,36 @@ void Server::part(int fd, std::vector<std::string> &params, std::string trailing
     {
         message += " :" + trailing;
     }
-
     std::set<int> notified;
     // broadcastToChannel(channel, message, notified);
     sendToMembers(channel, message, notified);
     channel.removeMember(fd);
     if (channel.getMemberCount() == 0)
         _channels.erase(channelName);
+}
+
+void Server::mode(int fd, std::vector<std::string> &params, std::string trailing)
+{
+    (void)trailing;
+    if (params.size() < 1)
+        throw std::runtime_error("error in mode command");
+    if (params[0][0] == '#')
+        mode_channel(fd, params);
+}
+
+void Server::mode_channel(int fd, std::vector<std::string> &params)
+{
+    std::string name = params[0];
+    std::map<std::string, Channel>::iterator it = _channels.find(name);
+    if (it == _channels.end())
+        return ircReply(fd, ERR_NOSUCHCHANNEL, "MODE", "No such channel");
+    Channel chan = it->second;
+    if (!chan.isMember(fd))
+        return ircReply(fd, ERR_NOTONCHANNEL, "MODE", "You're not on that channel.");
+    if (params.size() == 1)
+        return ircReply(fd, RPL_CHANNELMODEIS, "MODE", chan.getModeStr());
+    if (chan.isOperator(fd))
+        chan.applyModeString(params[1]);
+    else
+        return ircReply(fd, ERR_CHANOPRIVSNEEDED, "MODE", "You're not channel operator");
 }
