@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/07 00:12:55 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/07 01:45:05 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,24 +24,34 @@ Server::~Server(void)
     if (_socket)
         close(_socket);
 }
-Server::Server(unsigned short &port, std::string &password) : _onlineUsers(0), _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port)
+
+Server::Server(unsigned short &port, std::string &password)
+    : _onlineUsers(0), _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port)
 {
-    (void)_port;
     if (!checkPassword(password))
         throw std::runtime_error("Error: password too weak!");
+
     if (_socket < 0)
         throw std::runtime_error("Error: failure in the socket server creation!");
 
+    // 1. Set options IMMEDIATELY after creating the socket
     int opt = 1;
-    if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
-        throw std::runtime_error("Error: failure in the socket server config!");
+    if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+        throw std::runtime_error("Error: failure in setsockopt!");
 
+    // 2. Clear the struct and set address
+    memset(&_addr, 0, sizeof(_addr));
     _addr.sin_family = AF_INET;
     _addr.sin_port = htons(port);
     _addr.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(_socket, reinterpret_cast<struct sockaddr *>(&_addr), sizeof(_addr)))
+    // 3. Now bind (The OS now knows REUSEADDR is allowed)
+    if (bind(_socket, reinterpret_cast<struct sockaddr *>(&_addr), sizeof(_addr)) < 0)
+    {
+        std::cerr << "Bind error: " << strerror(errno) << " " << port << std::endl;
         throw std::runtime_error("Error: failure to associate the port.");
+    }
+
     setknowncommands();
     is_running = false;
 }
@@ -73,12 +83,12 @@ void Server::sendUserList(const Channel &channel, const int &fd)
 void Server::setknowncommands(void)
 {
     // _commands["PRIVMSG"] = &Server::msg;
-    _commands["/PASS"] = Command(&Server::pass, 0, false);
-    _commands["/NICK"] = Command(&Server::nick, 0, false);
-    _commands["/USER"] = Command(&Server::user, 0, false);
-    _commands["/PING"] = Command(&Server::ping, 0, false);
-    _commands["/JOIN"] = Command(&Server::join, 0, false);
-    _commands["/PART"] = Command(&Server::part, 1, false);
+    _commands["PASS"] = Command(&Server::pass, 1, false);
+    _commands["NICK"] = Command(&Server::nick, 0, false);
+    _commands["USER"] = Command(&Server::user, 4, false);
+    _commands["PING"] = Command(&Server::ping, 0, false);
+    _commands["JOIN"] = Command(&Server::join, 0, false);
+    _commands["PART"] = Command(&Server::part, 1, false);
 }
 
 void Server::checkRegistration(int fd)
@@ -188,6 +198,7 @@ bool Server::checkPassword(std::string password)
 
 void Server::sendToClient(int fd, std::string str)
 {
+    str += "\r\n";
     send(fd, str.c_str(), str.size(), 0);
 }
 
@@ -213,6 +224,7 @@ void Server::listenMode()
 
     while (is_running)
     {
+        std::cout << "- - - - - - - - - - - - - - - - - - \n";
         if (poll(_polls.data(), _polls.size(), -1) < 0)
             break;
 
@@ -273,14 +285,12 @@ void Server::consumeBuffer(int fd)
 
     while ((pos = buf.find("\r\n")) != std::string::npos)
     {
-        std::cout << "buffer[" << fd << "]" << buf << "\n";
         std::string line = buf.substr(0, pos);
         buf.erase(0, pos + 2);
         _users[fd].clearBuffer(pos + 2);
 
         if (!line.empty())
             this->parseLine(fd, line);
-        std::cout << "buffer[" << fd << "]" << buf << "\n";
     }
 }
 
@@ -299,34 +309,41 @@ void Server::parseLine(int fd, std::string line)
 
     std::stringstream ss(line);
     ss >> command;
-    // for (size_t i = 0; i < command.length(); ++i)
-    // 	command[i] = std::toupper(command[i]);
+    for (size_t i = 0; i < command.length(); ++i)
+        command[i] = std::toupper(command[i]);
 
     std::string temp;
     while (ss >> temp)
         args.push_back(temp);
 
+    std::cout << "cmd = " << command << "\n";
+    for (size_t i = 0; i < args.size(); i++)
+        std::cout << "param[" << i << "] = " << args[i] << "\n";
+    std::cout << "trailing = " << trailing << "\n";
     this->executeCommand(fd, command, args, trailing);
 }
 
 void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &args, std::string &trailing)
 {
-    User &user = _users[fd];
+    // User &user = _users[fd];
 
     // 1. Check if command exists
     std::map<std::string, Command>::iterator it = _commands.find(cmd);
     if (it == _commands.end())
         return ircReply(fd, ERR_UNKNOWNCOMMAND, cmd, "Unknown command");
 
-    if (!user.checkIsPassAccepted() && cmd != "/PASS")
-        return ircReply(fd, ERR_PASSWDMISMATCH, "*", "passowrd");
+    // if (!user.checkIsPassAccepted() && cmd != "/PASS")
+    //     return ircReply(fd, ERR_PASSWDMISMATCH, "*", "password not provided yet");
 
-    if (!user.isAuthenticated() && cmd != "/PASS" && cmd != "/NICK" && cmd != "/USER")
-        return ircReply(fd, ERR_NOTREGISTERED, "*", "You have not registered");
+    // if (!user.isAuthenticated() && cmd != "/PASS" && cmd != "/NICK" && cmd != "/USER")
+    //     return ircReply(fd, ERR_NOTREGISTERED, "*", "You have not registered");
 
     std::size_t params_needed = it->second.minArgs;
+    std::cout << "params given " << args.size() << "\n";
+    std::cout << "params needed " << params_needed << "\n";
+
     if ((args.size() < params_needed) || (it->second.needTrail && trailing.empty()))
-        return ircReply(fd, ERR_NEEDMOREPARAMS, cmd, "Need more params");
+        return ircReply(fd, ERR_NEEDMOREPARAMS, cmd, "Need more params nigga");
 
     (this->*(it->second.handler))(fd, args, trailing);
 }

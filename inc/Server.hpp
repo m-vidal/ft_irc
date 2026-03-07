@@ -6,14 +6,13 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/07 00:03:45 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/07 00:42:45 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "replyCodes.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -22,8 +21,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <unistd.h>
-#include "User.hpp"
 #include <cstdlib>
+#include <cstring>
 #include <iomanip>
 #include <sstream>
 #include <fcntl.h>
@@ -33,6 +32,8 @@
 #include <list>
 #include <set>
 #include <map>
+
+#include "replyCodes.hpp"
 
 class User;
 class Channel;

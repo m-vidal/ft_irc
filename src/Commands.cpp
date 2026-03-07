@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/07 00:12:29 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/07 01:22:27 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,12 +85,6 @@ void Server::nick(int fd, std::vector<std::string> &params, std::string trailing
 
 void Server::user(int fd, std::vector<std::string> &params, std::string trailing)
 {
-
-    if (params.size() < 3 || trailing.empty() == true)
-    {
-        ircReply(fd, ERR_NEEDMOREPARAMS, "USER", "Not enough parameters!");
-        return;
-    }
     _users[fd].setUser(params[0]);
     _users[fd].setHostname(params[1]);
     _users[fd].setRealname(trailing);
@@ -99,22 +93,14 @@ void Server::user(int fd, std::vector<std::string> &params, std::string trailing
 void Server::ping(int fd, std::vector<std::string> &params, std::string trailing)
 {
     (void)trailing;
-    if (params.size() == 0)
-    {
-        ircReply(fd, ERR_NEEDMOREPARAMS, "PING", "Not enough parameters!");
-        return;
-    }
+    (void)params;
     ircReply(fd, ":ircserv PONG ircserv :ircserv");
 }
+
 void Server::join(int fd, std::vector<std::string> &params, std::string trailing)
 {
     (void)trailing;
     // Fix #2: check params is non-empty before any access
-    if (params.empty() || params[0].empty())
-    {
-        ircReply(fd, ERR_NEEDMOREPARAMS, "JOIN", "Not enough parameters!");
-        return;
-    }
     if (params[0][0] != '#')
     {
         ircReply(fd, ERR_NOSUCHCHANNEL, "JOIN", "No such channel!");
