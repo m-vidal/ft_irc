@@ -531,3 +531,25 @@ NAMES #test
 
 Se quiser, posso também te passar **10 testes que os avaliadores da 42 costumam fazer manualmente no ft_irc** (alguns quebram implementações aparentemente corretas).
 
+std::string message = ":" + oldNick + "!" + _users[fd].getUsername() + "@" + _users[fd].getHostname() + " NICK :" + newNick;
+
+ss << ":ircserv 322 " << getUserNick(fd) << " " << channel.getName() << " " << channel.getUserCount() << " :" << channel.getTopic();
+
+end << ":ircserv 323 " << getUserNick(fd) << " :End of /LIST";
+
+std::string message = ":" + sender.getNick() + "!" + sender.getUsername() + "@" + sender.getHostname() +" PRIVMSG " + target + " :" + trailing;
+
+std::string message = ":" + sender.getNick() + "!" + sender.getUsername() + "@" + sender.getHostname() + " PRIVMSG " + receiver.getNick() + " :" + trailing;
+
+std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " " + command + " " + channel.getName();
+
+std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " NOTICE " + params[0] + " :" + trailing;
+
+std::string message = ":" + _users[fd].getNick() + "!" + _users[fd].getUsername() + "@" + _users[fd].getHostname() + " NOTICE " + target.getNick() + " :" + trailing;
+
+std::string message = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHostname() + " PART " + channelName;
+
+
+
+
+
