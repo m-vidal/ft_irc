@@ -13,4 +13,521 @@
 	432 ERR_ERRONEUSNICKNAME
 }
 
-check 
+Boa ideia testar com **irssi + nc ao mesmo tempo** — isso encontra muitos bugs em ft_irc. Vou organizar os testes por comando e indicar **como executar**.
+
+Assumindo:
+
+```text
+server port: 6667
+password: pass123!
+```
+
+---
+
+# 1. PASS
+
+### PASS correto
+
+nc:
+
+```
+PASS pass123!
+```
+
+esperado: **nenhuma resposta** (IRC padrão não responde PASS)
+
+---
+
+### PASS errado
+
+```
+PASS wrongpass
+```
+
+esperado:
+
+```
+464 * PASS :Wrong password!
+```
+
+---
+
+### PASS duas vezes
+
+```
+PASS pass123!
+PASS pass123!
+```
+
+esperado:
+
+```
+462 * PASS :User already registered!
+```
+
+---
+
+# 2. NICK
+
+### nick válido
+
+```
+NICK marc
+```
+
+esperado: sem resposta (até USER completar registro)
+
+---
+
+### nick começando com número
+
+```
+NICK 123abc
+```
+
+esperado:
+
+```
+432 * NICK :Erroneous nickname
+```
+
+---
+
+### nick com caractere proibido
+
+```
+NICK mar:c
+```
+
+esperado:
+
+```
+432 * NICK :Erroneous nickname
+```
+
+---
+
+### nick já em uso (2 clientes)
+
+cliente 1:
+
+```
+NICK marc
+```
+
+cliente 2:
+
+```
+NICK marc
+```
+
+esperado no cliente 2:
+
+```
+433 marc :Nickname is already in use
+```
+
+---
+
+# 3. USER
+
+### USER correto
+
+```
+USER marc localhost server :Marc Silva
+```
+
+esperado após PASS + NICK:
+
+```
+001 marc :Welcome to ircserv
+002 marc :Your host is ircserv
+003 marc :This server was created
+004 marc :ircserv version
+```
+
+---
+
+### USER com poucos argumentos
+
+```
+USER marc localhost
+```
+
+esperado:
+
+```
+461 USER :Not enough parameters!
+```
+
+---
+
+# 4. PING
+
+nc:
+
+```
+PING 12345
+```
+
+esperado:
+
+```
+:ircserv PONG ircserv :12345
+```
+
+---
+
+irssi automaticamente manda PING.
+
+verifique se responde com:
+
+```
+PONG
+```
+
+senão irssi desconecta.
+
+---
+
+# 5. JOIN
+
+### criar canal
+
+```
+JOIN #test
+```
+
+esperado:
+
+```
+:nick!user@host JOIN #test
+353 nick = #test :nick
+366 nick #test :End of /NAMES list
+```
+
+---
+
+### entrar em canal existente
+
+cliente 1:
+
+```
+JOIN #test
+```
+
+cliente 2:
+
+```
+JOIN #test
+```
+
+cliente 1 deve receber:
+
+```
+:nick2!user@host JOIN #test
+```
+
+---
+
+### JOIN sem
+
+```
+JOIN test
+```
+
+esperado:
+
+```
+403 JOIN :No such channel
+```
+
+---
+
+# 6. PART
+
+### sair do canal
+
+```
+PART #test
+```
+
+esperado:
+
+```
+:nick!user@host PART #test
+```
+
+todos no canal recebem.
+
+---
+
+### PART canal inexistente
+
+```
+PART #fake
+```
+
+esperado:
+
+```
+403 #fake :No such channel
+```
+
+---
+
+### PART sem estar no canal
+
+```
+PART #test
+```
+
+esperado:
+
+```
+442 #test :You're not on that channel
+```
+
+---
+
+# 7. PRIVMSG
+
+### usuário → usuário
+
+cliente1:
+
+```
+PRIVMSG marc2 :hello
+```
+
+cliente2 recebe:
+
+```
+:marc!user@host PRIVMSG marc2 :hello
+```
+
+---
+
+### canal
+
+```
+PRIVMSG #test :hello everyone
+```
+
+todos no canal recebem.
+
+---
+
+### usuário inexistente
+
+```
+PRIVMSG fake :hello
+```
+
+esperado:
+
+```
+401 fake :No such nick
+```
+
+---
+
+### sem mensagem
+
+```
+PRIVMSG marc
+```
+
+esperado:
+
+```
+412 PRIVMSG :No text to send
+```
+
+---
+
+# 8. NOTICE
+
+igual PRIVMSG mas **sem erros**.
+
+### notice para usuário
+
+```
+NOTICE marc :hello
+```
+
+cliente recebe:
+
+```
+:nick!user@host NOTICE marc :hello
+```
+
+---
+
+### NOTICE para usuário inexistente
+
+```
+NOTICE fake :hello
+```
+
+esperado:
+
+**nenhuma resposta**
+
+---
+
+# 9. NAMES
+
+### listar usuários
+
+```
+NAMES #test
+```
+
+esperado:
+
+```
+353 marc = #test :marc marc2
+366 marc #test :End of /NAMES list
+```
+
+---
+
+### NAMES sem argumento
+
+```
+NAMES
+```
+
+esperado: lista todos canais onde está.
+
+---
+
+# 10. LIST
+
+```
+LIST
+```
+
+esperado:
+
+```
+322 marc #test 2 :
+322 marc #random 3 :
+323 marc :End of /LIST
+```
+
+---
+
+# Teste importante (irssi + nc)
+
+cliente irssi:
+
+```
+/join #test
+```
+
+cliente nc:
+
+```
+JOIN #test
+```
+
+verifique se irssi recebe:
+
+```
+:nick!user@host JOIN #test
+```
+
+---
+
+# Teste de broadcast
+
+cliente1:
+
+```
+JOIN #test
+```
+
+cliente2:
+
+```
+JOIN #test
+```
+
+cliente3:
+
+```
+JOIN #test
+```
+
+cliente1 manda:
+
+```
+PRIVMSG #test :hello
+```
+
+cliente2 e cliente3 recebem.
+
+cliente1 **não recebe eco**.
+
+---
+
+# Teste de desconexão (muito importante)
+
+cliente1:
+
+```
+JOIN #test
+```
+
+feche nc (CTRL+D)
+
+cliente2:
+
+```
+NAMES #test
+```
+
+cliente1 **não deve aparecer**.
+
+---
+
+# Teste final (stress simples)
+
+abra **3 nc**:
+
+```
+nc localhost 6667
+nc localhost 6667
+nc localhost 6667
+```
+
+todos:
+
+```
+PASS pass123!
+NICK a
+USER a a a :a
+```
+
+join:
+
+```
+JOIN #test
+```
+
+todos devem aparecer no:
+
+```
+NAMES #test
+```
+
+---
+
+✅ Se **todos esses testes passarem**, seu ft_irc está **muito perto de perfeito**.
+
+---
+
+Se quiser, posso também te passar **10 testes que os avaliadores da 42 costumam fazer manualmente no ft_irc** (alguns quebram implementações aparentemente corretas).
+
