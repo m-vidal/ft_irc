@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 16:50:22 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 17:33:54 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ public:
 
 	void setName(const std::string &newName);
 
-	void addMember(const User &user);
+	void addMember(User &user);
 	void addOperator(const User &member);
 
 	void removeMember(const int &fd);
@@ -80,6 +80,7 @@ private:
 	std::string _name;
 	std::string _topic;
 	std::map<int, Member> _members;
+	std::map<std::string, User> _invited_users;
 	time_t _creationTime;
 	std::string _key;
 };

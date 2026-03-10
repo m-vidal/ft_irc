@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/03 17:48:29 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 12:01:17 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 17:34:06 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,10 +65,11 @@ bool Channel::isOperator(const User &user) const
 	return (isOperator(user.getFd()));
 }
 
-void Channel::addMember(const User &user)
+void Channel::addMember(User &user)
 {
 	_members.insert(std::make_pair(user.getFd(), Member(false, user)));
 	std::cout << "User " << user.getNick() << " joined " << _name << "." << std::endl;
+	user.addChannel(this->getName());
 }
 
 void Channel::addOperator(const User &user)

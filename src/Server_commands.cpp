@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 16:51:45 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 17:36:25 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,6 +138,10 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
             if (!channel.verifyKey(key))
                 return ircReply(fd, ERR_BADCHANNELKEY, "JOIN", "Cannot join channel (+k)");
         }
+        if (channel.hasMode('i'))
+        {
+            
+        }
         _channels[name].addMember(_users[fd]);
     }
     sendUserList(_channels[name], fd);
@@ -200,6 +204,32 @@ void Server::mode(int fd, std::vector<std::string> &params, std::string trailing
     ircReply(fd, RPL_CHANNELMODEIS, channel_name, channel.getModeStr());
 }
 
+bool Server::mode_k(int fd, std::vector<std::string> &params, Channel &channel, size_t j)
+{
+
+    if (params.size() <= j)
+    {
+        ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k missing key parameter");
+        return 1;
+    }
+    if (params[j].find_first_of(" ") != params[j].npos)
+    {
+
+        ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k '" + params[j] + "' key must not have spaces");
+        return 1;
+    }
+    if (params[j].size() > channel.MAX_KEY_LEN)
+    {
+        std::stringstream ss;
+        ss << " +k '" << params[j] << "' key must not exceed "
+           << channel.MAX_KEY_LEN << " characters";
+
+        ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), ss.str());
+    }
+    channel.setKey(params[j]);
+    return 0;
+}
+
 void Server::applyModeString(int fd, std::vector<std::string> &params, std::string trailing, Channel &channel)
 {
     (void)trailing;
@@ -225,19 +255,14 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, std::stri
             std::cout << "agora\n";
             if (c == 'k')
             {
-                if (params.size() <= j)
-                    return ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k missing key parameter");
-                if (params[j].find_first_of(" ") != params[j].npos)
-                    return ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k '" + params[j] + "' key must not have spaces");
-                if (params[j].size() > channel.MAX_KEY_LEN)
-                {
-                    std::stringstream ss;
-                    ss << "+k '" << params[j] << "' key must not exceed "
-                       << channel.MAX_KEY_LEN << " characters";
-
-                    return ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), ss.str());
-                }
-                channel.setKey(params[j]);
+                if (mode_k(fd, params, channel, j))
+                    return;
+                j++;
+            }
+            if (c == 'i')
+            {
+                if (mode_k(fd, params, channel, j))
+                    return;
                 j++;
             }
             channel.setMode(c);

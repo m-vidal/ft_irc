@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 13:27:06 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 17:32:58 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,3 +60,5 @@ void User::appendToBuffer(std::string data) { _inbuffer += data; }
 void User::clearBuffer(size_t pos) { _inbuffer.erase(0, pos); }
 
 User::~User(void) {}
+
+void User::addChannel(std::string channel_name) { _channels.push_back(channel_name); }

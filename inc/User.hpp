@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 12:50:12 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 17:32:00 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,8 @@ private:
 	bool _isNickSet;
 	bool _isUserSet;
 	std::string _realName;
-	// std::vector<Channel>	_channels;	//acho que se vai apagar depois
+	std::vector<std::string> _channels;
+	std::vector<std::string> _invitations;
 	std::string _nickname;
 	std::string _username;
 	std::string _inbuffer;
@@ -63,6 +64,8 @@ public:
 	void authenticate();
 	void clearBuffer(size_t pos);
 	void appendToBuffer(std::string data);
+
+	void addChannel(std::string channel_name);
 };
 
 #endif
