@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 12:50:38 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 16:39:50 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,13 +111,10 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
 {
     (void)trailing;
     // Fix #2: check params is non-empty before any access
-    if (params[0][0] != '#')
-    {
-        // check channel name and send error if bad
-        return;
-    }
+    if (!valid_server_name(params[0]))
+        return ircReply(fd, ERR_BADCHANMASK, params[0], "Bad Channel Mask");
+
     std::map<std::string, Channel>::iterator it = _channels.find(params[0]);
-    // Fix #1: use find() instead of operator[] to avoid inserting a default Channel
     if (it != _channels.end() && it->second.isMember(_users[fd]))
         return;
     std::string name = params[0];
@@ -127,8 +124,20 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
         std::cout << "Channel " << name << " created." << std::endl;
         _channels[name].addOperator(_users[fd]);
     }
-    else // channel exists add user to channel
+    else if (it != _channels.end() && !(it->second.isMember(_users[fd])))
     {
+        Channel &channel = it->second;
+        if (channel.hasMode('k'))
+        {
+            std::string key = "";
+            if (params.size() > 1)
+                key = params[1];
+            else
+                return ircReply(fd, ERR_INVALIDMODEPARAM, "JOIN", "channel requires a key");
+
+            if (!channel.verifyKey(key))
+                return ircReply(fd, ERR_BADCHANNELKEY, "JOIN", "Cannot join channel (+k)");
+        }
         _channels[name].addMember(_users[fd]);
     }
     sendUserList(_channels[name], fd);
@@ -181,7 +190,7 @@ void Server::mode(int fd, std::vector<std::string> &params, std::string trailing
         ircReply(fd, RPL_CHANNELMODEIS, channel_name, channel.getModeStr());
         return ircReply(fd, RPL_CREATIONTIME, channel_name, channel.getCreationTimeStr());
     }
-    if (params.size() == 2)
+    if (params.size() > 1)
     {
         if (!channel.isOperator(fd))
             return ircReply(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
@@ -195,11 +204,10 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, std::stri
 {
     (void)trailing;
     bool adding = true;
-
-    std::string modes = params[0];
+    std::string modes = params[1];
     for (size_t i = 0; i < modes.length(); ++i)
     {
-        size_t j = 1;
+        size_t j = 2;
         char c = modes[i];
         if (c == '+')
         {
@@ -214,6 +222,7 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, std::stri
 
         if (adding)
         {
+            std::cout << "agora\n";
             if (c == 'k')
             {
                 if (params.size() <= j)
@@ -229,6 +238,7 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, std::stri
                     return ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), ss.str());
                 }
                 channel.setKey(params[j]);
+                j++;
             }
             channel.setMode(c);
         }
