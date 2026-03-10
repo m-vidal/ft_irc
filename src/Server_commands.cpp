@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 16:39:50 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 16:51:45 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,7 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
 {
     (void)trailing;
     // Fix #2: check params is non-empty before any access
-    if (!valid_server_name(params[0]))
+    if (!valid_channel_name(params[0]))
         return ircReply(fd, ERR_BADCHANMASK, params[0], "Bad Channel Mask");
 
     std::map<std::string, Channel>::iterator it = _channels.find(params[0]);

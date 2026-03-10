@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 11:51:39 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 16:50:22 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,7 @@ public:
 	void setKey(std::string &new_key);
 	void unsetKey();
 	void initMode();
+	bool verifyKey(const std::string user_key) const;
 
 private:
 	std::map<char, bool> _mode;

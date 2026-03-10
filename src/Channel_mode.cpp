@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 08:26:11 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 11:59:36 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 16:50:14 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,3 +68,5 @@ void Channel::unsetKey()
 {
     _key = "";
 }
+
+bool Channel::verifyKey(const std::string user_key) const { return _key == user_key; }

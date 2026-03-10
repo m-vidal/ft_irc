@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 12:37:24 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 12:39:46 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 16:54:06 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,4 +121,11 @@ void Server::printBanner()
     std::cout << green << " [SYSTEM] " << reset << "ft_irc server started" << std::endl;
     std::cout << green << " [INFO]   " << reset << "Listening on port: " << _port << std::endl;
     std::cout << " --------------------------------------------------" << std::endl;
+}
+
+bool valid_channel_name(const std::string &name)
+{
+    if (name.size() > 4 && name[0] == '#' && name.find_first_of(" ") == name.npos)
+        return true;
+    return false;
 }

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 12:47:05 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 16:55:27 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,5 +120,7 @@ private:
 	void decUsers(void);
 	void printBanner();
 };
+
+bool valid_channel_name(const std::string &name);
 
 #endif

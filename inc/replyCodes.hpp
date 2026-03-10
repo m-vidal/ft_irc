@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/28 19:07:44 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 11:32:11 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 16:51:13 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,7 @@ enum NumericReply
     ERR_INVITEONLYCHAN = 473,
     ERR_BANNEDFROMCHAN = 474,
     ERR_BADCHANNELKEY = 475,
+    ERR_BADCHANMASK = 476,
 
     ERR_NOPRIVILEGES = 481,
     ERR_CHANOPRIVSNEEDED = 482,
