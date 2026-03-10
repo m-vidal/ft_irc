@@ -1,12 +1,12 @@
 /* ************************************************************************** */
-/*                                                                            */
+/*	                                                                        */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/06 12:14:28 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/07 03:16:18 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port) {
 void	Server::setknowscommands()
 {
 	_commands["PRIVMSG"] = &Server::msg;
+    _commands["QUIT"] = &Server::quit;
 }
 
 void Server::autUser(int fd, std::string str)
@@ -71,6 +72,21 @@ void Server::autUser(int fd, std::string str)
 }
 
 
+
+void	Server::quit(int fd, std::vector<std::string>& params, std::string trailing)
+{
+	(void)params;
+	if (trailing.size())
+	{
+		std::string msg = ":" + _users[fd].getNick() + "!" + _users[fd].getUsername();
+		msg += "@127.0.0.1 QUIT : " + trailing + "\r\n";
+		sendToClient(fd, msg);
+	}
+	else
+		std::cout << "User: " + _users[fd].getNick() + " disconnected" << std::endl;
+	disconnectClient(fd);
+}
+
 void	Server::msg(int fd, std::vector<std::string>& params, std::string trailing)
 {
 	std::string prefix = ":" + _users[fd].getNick() + "!" + _users[fd].getUsername() + "@" + "127.0.0.1";
@@ -78,7 +94,7 @@ void	Server::msg(int fd, std::vector<std::string>& params, std::string trailing)
 	if (!params.size() || !trailing.size())
 	{
 		sendToClient(fd, ":ircserv 461 PRIVMSG :Not enough parameters\r\n");
-        return ;
+		return ;
 	}
 
 	int destin = getFdFromNick(params[0]);

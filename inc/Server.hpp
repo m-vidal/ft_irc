@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/05 22:50:24 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/10 12:55:09 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ class Server {
 
 		typedef void (Server::*CommandFunc)(int fd, std::vector<std::string>& params, std::string trailing);
 
+		void	quit(int fd, std::vector<std::string>& Params, std::string trailing);
 		void	msg(int fd, std::vector<std::string>& params, std::string trailing);
 		void	autUser(int fd, std::string str);
 
