@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 09:25:37 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 12:46:21 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,134 +56,6 @@ Server::Server(unsigned short &port, std::string &password)
     is_running = false;
 }
 
-void Server::sendUserList(const Channel &channel, const int &fd)
-{
-    std::stringstream ss;
-    std::stringstream ss1;
-
-    User &user = _users[fd];
-    std::string message = ":" + user.getNick() +
-                          "!" + user.getUsername() +
-                          "@" + user.getHostname() +
-                          " JOIN " + channel.getName();
-    std::set<int> notified;
-    notified.insert(fd);
-    // broadcastToChannel(channel, message, notified);
-    sendToMembers(channel, message, notified);
-    ircReply(fd, "JOIN", channel.getName());
-
-    ss << std::setw(3) << std::setfill('0') << RPL_NAMREPLY;
-    ircReply(fd,
-             ":ircserv " + ss.str() + " " + getUserNick(fd) + " = " + channel.getName() + " :" + channel.getMemberNickList());
-    ss1 << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES;
-    ircReply(fd, ":ircserv " + ss1.str() + " " + getUserNick(fd) + " " + channel.getName() + " :End of /NAMES list");
-}
-
-void Server::checkRegistration(int fd)
-{
-    if (_users[fd].isAuthenticated() == true)
-        return;
-    if ((_users[fd].checkIsPassAccepted() == true) && (_users[fd].checkIsUserSet() == true) && (_users[fd].checkIsNickSet() == true))
-    {
-        _users[fd].setIsAuthenticated();
-        std::cout << "User: " << _users[fd].getNick() << " is authenticated." << std::endl;
-        ircReply(fd, RPL_WELCOME, "", "Welcome to ircserv.");
-        ircReply(fd, RPL_YOURHOST, "", "Your host is ircserv, running version 1.0"); // make version and date macros.
-        ircReply(fd, RPL_CREATED, "", "This server was created <date>.");
-        ircReply(fd, RPL_MYINFO, "", "ircserv 1.0 <user modes> <chan modes> ");
-        incUsers();
-    }
-}
-
-User *Server::findUserByNick(const std::string &nick)
-{
-    for (size_t i = 1; i < _polls.size(); ++i)
-    {
-        int fd = _polls[i].fd;
-
-        // opcional: ignorar o fd do próprio servidor se estiver no índice 0
-        if (_users.find(fd) == _users.end())
-            continue;
-
-        if (_users[fd].getNick() == nick)
-            return (&_users[fd]);
-    }
-    return (NULL);
-}
-std::string Server::getUserNick(int fd) const
-{
-    std::map<int, User>::const_iterator it = _users.find(fd);
-    if (it == _users.end() || it->second.isAuthenticated() == false || it->second.getNick() == "*")
-    {
-        return "*";
-    }
-    return (it->second.getNick());
-}
-int Server::getFdFromNick(std::string nick)
-{
-    for (size_t i = 1; i < _polls.size(); i++)
-    {
-        if (_users[_polls[i].fd].getNick() != nick)
-            continue;
-        return (_users[_polls[i].fd].getFd());
-    }
-    return (-1);
-}
-std::vector<std::string> split(const std::string &input)
-{
-    std::vector<std::string> result;
-    std::string token;
-    std::string::size_type i = 0;
-    const std::string::size_type n = input.size();
-
-    while (i < n && (input[i] == ' ' || input[i] == '\t'))
-        ++i;
-
-    while (i < n)
-    {
-        token.clear();
-        while (i < n && input[i] != ' ' && input[i] != '\t')
-        {
-            token += input[i];
-            ++i;
-        }
-
-        if (!token.empty())
-            result.push_back(token);
-        while (i < n && (input[i] == ' ' || input[i] == '\t'))
-            ++i;
-    }
-    return (result);
-}
-
-bool Server::checkPassword(std::string password)
-{
-    // bool hasUpper = false;
-    // bool hasLower = false;
-    // bool hasNumbr = false;
-    // bool hasSmbl = false;
-
-    // if (password.size() < 8)
-    // 	return (false);
-    // for (size_t i = 0; i < password.size(); i++)
-    // {
-    // 	if (std::isupper(password[i]))
-    // 		hasUpper = true;
-
-    // 	else if (std::islower(password[i]))
-    // 		hasLower = true;
-    // 	else if (std::isdigit(password[i]))
-    // 		hasNumbr = true;
-    // 	else
-    // 		hasSmbl = true;
-    // }
-    // if (hasUpper && hasLower && hasNumbr && hasSmbl)
-    // 	return (true);
-    // return (false);
-    (void)password;
-    return true;
-}
-
 void Server::sendToClient(int fd, std::string str)
 {
     str += "\r\n";
@@ -203,26 +75,6 @@ void Server::disconnectClient(int fd)
     close(fd);
     _users.erase(fd);
     decUsers();
-}
-
-void Server::printBanner()
-{
-    std::string cyan = "\033[36m";
-    std::string green = "\033[32m";
-    std::string reset = "\033[0m";
-
-    std::cout << cyan;
-    std::cout << "  _____ _____   _____  _____ ______ _______      __" << std::endl;
-    std::cout << " |_   _|  __ \\ / ____|/ ____|  ____|  __ \\ \\    / /" << std::endl;
-    std::cout << "   | | | |__) | |    | (___ | |__  | |__) \\ \\  / / " << std::endl;
-    std::cout << "   | | |  _  /| |     \\___ \\|  __| |  _  / \\ \\/ /  " << std::endl;
-    std::cout << "  _| |_| | \\ \\| |____ ____) | |____| | \\ \\  \\  /   " << std::endl;
-    std::cout << " |_____|_|  \\_\\\\_____|_____/|______|_| _\\_\\  \\/    " << std::endl;
-    std::cout << reset << std::endl;
-
-    std::cout << green << " [SYSTEM] " << reset << "ft_irc server started" << std::endl;
-    std::cout << green << " [INFO]   " << reset << "Listening on port: " << _port << std::endl;
-    std::cout << " --------------------------------------------------" << std::endl;
 }
 
 void Server::listenMode()
@@ -259,15 +111,32 @@ void Server::initPoll()
 
 void Server::acceptNewClient()
 {
-    int fd = accept(_socket, NULL, NULL);
+    struct sockaddr_in clientAddr;
+    socklen_t clientLen = sizeof(clientAddr);
+
+    // Pass the address structure to accept
+    int fd = accept(_socket, (struct sockaddr *)&clientAddr, &clientLen);
     if (fd == -1)
         return;
 
+    char hostname[NI_MAXHOST];
+    // getnameinfo converts the raw address into a human-readable hostname or IP
+    int res = getnameinfo((struct sockaddr *)&clientAddr, clientLen, 
+                          hostname, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+    
+    std::string finalHost;
+    if (res == 0)
+        finalHost = hostname;
+    else
+        finalHost = inet_ntoa(clientAddr.sin_addr); // Fallback to raw IP string
+
     fcntl(fd, F_SETFL, O_NONBLOCK);
     _polls.push_back((struct pollfd){fd, POLLIN, 0});
-    _users.insert(std::make_pair(fd, User(fd)));
+    
+    // Pass the hostname to your User constructor
+    _users.insert(std::make_pair(fd, User(fd, finalHost)));
 
-    std::cout << "New connection: FD " << fd << std::endl;
+    std::cout << "New connection: FD " << fd << " from " << finalHost << std::endl;
 }
 
 void Server::handleClientData(size_t &idx)
@@ -361,6 +230,7 @@ void Server::incUsers(void)
     _onlineUsers++;
     std::cout << "Online users: " << _onlineUsers << "." << std::endl;
 }
+
 void Server::decUsers(void)
 {
     if (_onlineUsers > 0)
