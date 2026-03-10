@@ -6,22 +6,31 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/06 15:42:00 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 13:27:06 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/User.hpp"
 
-User::User(int fd) : _isAuthenticated(false), _isPassAccepted(false), _isNickSet(false),
-					 _isUserSet(false), _fd(fd) {}
+User::User(int fd, const std::string &ip) : _isAuthenticated(false), _isPassAccepted(false), _isNickSet(false),
+											_isUserSet(false), _fd(fd), _hostname(ip)
+{
+	_nickname = "~NA";
+	_username = "~NA";
+	_realName = "~NA";
+}
 
 User::User(void) : _isAuthenticated(false), _isPassAccepted(false), _isNickSet(false),
-				   _isUserSet(false), _fd(-1) {}
+				   _isUserSet(false), _fd(-1), _hostname(0)
+{
+	_nickname = "~NA";
+	_username = "~NA";
+	_realName = "~NA";
+}
 
 void User::setPassAccepted(void) { _isPassAccepted = true; }
 void User::setIsAuthenticated(void) { _isAuthenticated = true; }
 void User::setRealname(const std::string &name) { this->_realName = name; }
-void User::setHostname(const std::string &user) { this->_hostname = user; }
 void User::setUser(const std::string &user)
 {
 	this->_username = user;

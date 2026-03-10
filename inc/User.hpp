@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/06 21:03:03 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 12:50:12 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ private:
 	bool _isPassAccepted;
 	bool _isNickSet;
 	bool _isUserSet;
-	std::string _hostname;
 	std::string _realName;
 	// std::vector<Channel>	_channels;	//acho que se vai apagar depois
 	std::string _nickname;
@@ -32,9 +31,10 @@ private:
 	std::string _outbuffer;
 
 	const short _fd;
+	const std::string _hostname;
 
 public:
-	User(int fd);
+	User(int fd, const std::string &ip);
 	User(void);
 	~User(void);
 
@@ -49,7 +49,6 @@ public:
 	// setters
 	void setNick(const std::string &nick);
 	void setUser(const std::string &user);
-	void setHostname(const std::string &name);
 	void setRealname(const std::string &name);
 	void setIsAuthenticated(void);
 	void setPassAccepted(void);
