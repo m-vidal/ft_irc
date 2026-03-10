@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 17:32:00 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 19:28:31 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,10 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include <algorithm>
 
+class Channel;
 class User
 {
 private:
@@ -25,7 +28,7 @@ private:
 	bool _isUserSet;
 	std::string _realName;
 	std::vector<std::string> _channels;
-	std::vector<std::string> _invitations;
+	std::map<std::string, time_t> _invitations;
 	std::string _nickname;
 	std::string _username;
 	std::string _inbuffer;
@@ -66,6 +69,11 @@ public:
 	void appendToBuffer(std::string data);
 
 	void addChannel(std::string channel_name);
+
+	void addInvite(const std::string &channelName, time_t time);
+	void removeInvite(const std::string &channelName);
+	bool isInvited(const std::string &channelName);
+	std::map<std::string, time_t> &getInvites();
 };
 
 #endif

@@ -6,11 +6,12 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 17:32:58 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 19:28:39 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/User.hpp"
+#include "User.hpp"
+#include "Channel.hpp"
 
 User::User(int fd, const std::string &ip) : _isAuthenticated(false), _isPassAccepted(false), _isNickSet(false),
 											_isUserSet(false), _fd(fd), _hostname(ip)
@@ -62,3 +63,25 @@ void User::clearBuffer(size_t pos) { _inbuffer.erase(0, pos); }
 User::~User(void) {}
 
 void User::addChannel(std::string channel_name) { _channels.push_back(channel_name); }
+
+void User::addInvite(const std::string &channelName, time_t time)
+{
+	// If they are already invited, this just updates the time
+	_invitations[channelName] = time;
+	;
+}
+
+void User::removeInvite(const std::string &channelName)
+{
+	_invitations.erase(channelName);
+}
+
+bool User::isInvited(const std::string &channelName)
+{
+	return _invitations.find(channelName) != _invitations.end();
+}
+
+std::map<std::string, time_t> &User::getInvites()
+{
+	return _invitations;
+}

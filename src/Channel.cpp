@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/03 17:48:29 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 17:34:06 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 19:27:12 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,11 +157,29 @@ std::map<int, Member> Channel::getMembers(void) const
 	return _members;
 }
 
-#include <sstream>
-
 std::string Channel::getCreationTimeStr()
 {
 	std::stringstream ss;
 	ss << _creationTime;
 	return ss.str();
+}
+
+void Channel::addInvite(User &user)
+{
+	time_t now = std::time(NULL);
+
+	// 1. Update Channel's list
+	_invited_users[user.getNick()] = now;
+
+	// 2. Update User's list (Calling the User's method)
+	user.addInvite(this->getName(), now);
+}
+
+void Channel::removeInvite(User &user)
+{
+	// 1. Update Channel's list
+	_invited_users.erase(user.getNick());
+
+	// 2. Update User's list
+	user.removeInvite(this->getName());
 }

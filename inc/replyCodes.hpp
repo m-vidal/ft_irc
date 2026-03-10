@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/28 19:07:44 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 16:51:13 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 18:35:53 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,8 @@ enum NumericReply
     RPL_TOPIC = 332,
     RPL_TOPICWHOTIME = 333,
 
+    RPL_INVITELIST = 336,
+    RPL_ENDOFINVITELIST = 337,
     RPL_INVITING = 341,
     RPL_SUMMONING = 342,
 

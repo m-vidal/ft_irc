@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 17:36:25 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 19:37:37 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ void Server::setknowncommands(void)
     _commands["JOIN"] = Command(&Server::join, 1, false);
     _commands["PART"] = Command(&Server::part, 1, false);
     _commands["MODE"] = Command(&Server::mode, 1, false);
+    _commands["INVITE"] = Command(&Server::invite, 0, false);
 }
 // commands
 void Server::pass(int fd, std::vector<std::string> &params, std::string trailing)
@@ -140,7 +141,6 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
         }
         if (channel.hasMode('i'))
         {
-            
         }
         _channels[name].addMember(_users[fd]);
     }
@@ -174,6 +174,46 @@ void Server::part(int fd, std::vector<std::string> &params, std::string trailing
     channel.removeMember(fd);
     if (channel.getMemberCount() == 0)
         _channels.erase(channel_name);
+}
+
+void Server::invite(int fd, std::vector<std::string> &params, std::string trailing)
+{
+    (void)trailing;
+    std::string username = _users[fd].getUsername();
+    User user = _users[fd];
+    if (params.size() == 0)
+    {
+        const std::map<std::string, time_t> &invites = user.getInvites();
+        std::map<std::string, time_t>::const_iterator it;
+        for (it = invites.begin(); it != invites.end(); ++it)
+        {
+            std::string channelName = it->first;
+            std::stringstream ss;
+            ss << it->second;
+            std::string timeStr = ss.str();
+            ircReply(fd, RPL_INVITELIST, channelName, timeStr);
+        }
+        ircReply(fd, RPL_ENDOFINVITELIST, username, "End of /INVITE list");
+    }
+    else if (params.size() == 2)
+    {
+        User *target = findUserByNick(params[0]);
+        if (!target)
+            return ircReply(fd, ERR_NOSUCHNICK, params[0], "User doesnt exist");
+        std::map<std::string, Channel>::iterator it = _channels.find(params[1]);
+        std::cout << "channel name = " << params[1] << "\n";
+        if (it == _channels.end())
+            return ircReply(fd, ERR_NOSUCHCHANNEL, params[1], "No such channel!");
+        Channel &channel = it->second;
+        if (!channel.isMember(fd))
+            return ircReply(fd, ERR_NOTONCHANNEL, params[1], "You're not on that channel.");
+        if (!channel.isOperator(fd))
+            return ircReply(fd, ERR_CHANOPRIVSNEEDED, params[1], "You're not channel operator");
+        channel.addInvite(*target);
+        return ircReply(fd, RPL_INVITING, target->getNick(), channel.getName());
+    }
+    else
+        return ircReply(fd, ERR_NEEDMOREPARAMS, "INVITE", "Need more params nigga");
 }
 
 void Server::mode(int fd, std::vector<std::string> &params, std::string trailing)

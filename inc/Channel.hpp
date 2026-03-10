@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 17:33:54 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 19:22:46 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <set>
 #include <ctime>
 #include <string>
+#include <sstream>
 #include <iostream>
 
 class User;
@@ -75,12 +76,15 @@ public:
 	void initMode();
 	bool verifyKey(const std::string user_key) const;
 
+	void addInvite(User &user);
+	void removeInvite(User &user);
+
 private:
 	std::map<char, bool> _mode;
 	std::string _name;
 	std::string _topic;
 	std::map<int, Member> _members;
-	std::map<std::string, User> _invited_users;
+	std::map<std::string, time_t> _invited_users;
 	time_t _creationTime;
 	std::string _key;
 };

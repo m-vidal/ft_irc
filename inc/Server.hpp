@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 17:36:39 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 18:38:24 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,6 +102,8 @@ private:
 	void ping(int fd, std::vector<std::string> &params, std::string trailing);
 	void join(int fd, std::vector<std::string> &params, std::string trailing);
 	void part(int fd, std::vector<std::string> &params, std::string trailing);
+	void invite(int fd, std::vector<std::string> &params, std::string trailing);
+
 	// mode command -----------------------------------------------------------
 	void mode(int fd, std::vector<std::string> &params, std::string trailing);
 	void applyModeString(int fd, std::vector<std::string> &params, std::string trailing, Channel &channel);
