@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Channel_commands.cpp                               :+:      :+:    :+:   */
+/*   Server_commands.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 08:26:15 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 09:53:59 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,17 @@
 #include "Channel.hpp"
 #include "Server.hpp"
 
+void Server::setknowncommands(void)
+{
+    // _commands["PRIVMSG"] = &Server::msg;
+    _commands["PASS"] = Command(&Server::pass, 1, false);
+    _commands["NICK"] = Command(&Server::nick, 0, false);
+    _commands["USER"] = Command(&Server::user, 4, false);
+    _commands["PING"] = Command(&Server::ping, 0, false);
+    _commands["JOIN"] = Command(&Server::join, 1, false);
+    _commands["PART"] = Command(&Server::part, 1, false);
+    _commands["MODE"] = Command(&Server::mode, 1, false);
+}
 // commands
 void Server::pass(int fd, std::vector<std::string> &params, std::string trailing)
 {
@@ -94,7 +105,7 @@ void Server::ping(int fd, std::vector<std::string> &params, std::string trailing
 {
     (void)trailing;
     (void)params;
-    ircReply(fd, ":ircserv PONG ircserv :ircserv");
+    return ircReply(fd, ":ircserv PONG ircserv :ircserv");
 }
 
 void Server::join(int fd, std::vector<std::string> &params, std::string trailing)
@@ -103,7 +114,7 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
     // Fix #2: check params is non-empty before any access
     if (params[0][0] != '#')
     {
-        ircReply(fd, ERR_NOSUCHCHANNEL, "JOIN", "No such channel!");
+        // check channel name and send error if bad
         return;
     }
     std::map<std::string, Channel>::iterator it = _channels.find(params[0]);
@@ -126,25 +137,20 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
 
 void Server::part(int fd, std::vector<std::string> &params, std::string trailing)
 {
+    std::string channel_name = params[0];
+    std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+    if (it == _channels.end())
+        return ircReply(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
 
-    Channel &channel = _channels[params[0]];
-    std::string channelName = channel.getName();
-
-    if (_channels.find(channelName) == _channels.end())
-    {
-        ircReply(fd, ERR_NOSUCHCHANNEL, channelName, "No such channel!");
-        return;
-    }
+    Channel channel = it->second;
     if (!channel.isMember(fd))
-    {
-        ircReply(fd, ERR_NOTONCHANNEL, channelName, "You're not on that channel.");
-        return;
-    }
+        return ircReply(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
+
     User &user = _users[fd];
     std::string message = ":" + user.getNick() +
                           "!" + user.getUsername() +
                           "@" + user.getHostname() +
-                          " PART " + channelName;
+                          " PART " + channel_name;
 
     if (trailing.empty() == false)
     {
@@ -155,31 +161,35 @@ void Server::part(int fd, std::vector<std::string> &params, std::string trailing
     sendToMembers(channel, message, notified);
     channel.removeMember(fd);
     if (channel.getMemberCount() == 0)
-        _channels.erase(channelName);
+        _channels.erase(channel_name);
 }
 
 void Server::mode(int fd, std::vector<std::string> &params, std::string trailing)
 {
+    (void)fd;
+    (void)params;
     (void)trailing;
-    if (params.size() < 1)
-        throw std::runtime_error("error in mode command");
-    if (params[0][0] == '#')
-        mode_channel(fd, params);
-}
-
-void Server::mode_channel(int fd, std::vector<std::string> &params)
-{
-    std::string name = params[0];
-    std::map<std::string, Channel>::iterator it = _channels.find(name);
+    std::string channel_name = params[0];
+    std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it == _channels.end())
-        return ircReply(fd, ERR_NOSUCHCHANNEL, "MODE", "No such channel");
-    Channel chan = it->second;
-    if (!chan.isMember(fd))
-        return ircReply(fd, ERR_NOTONCHANNEL, "MODE", "You're not on that channel.");
+        return ircReply(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
+
+    Channel &channel = (it->second);
+    if (!channel.isMember(fd))
+        return ircReply(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
     if (params.size() == 1)
-        return ircReply(fd, RPL_CHANNELMODEIS, "MODE", chan.getModeStr());
-    if (chan.isOperator(fd))
-        chan.applyModeString(params[1]);
-    else
-        return ircReply(fd, ERR_CHANOPRIVSNEEDED, "MODE", "You're not channel operator");
+    {
+        std::string mode_str = channel.getModeStr();
+        std::cout << channel.getModeStr() << "\n";
+
+        return ircReply(fd, RPL_CHANNELMODEIS, channel_name, mode_str);
+    }
+    if (params.size() == 2)
+    {
+        if (!channel.isOperator(fd))
+            return ircReply(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
+
+        channel.applyModeString(params[1]);
+        std::cout << channel.getModeStr() << "\n";
+    }
 }

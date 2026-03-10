@@ -6,7 +6,7 @@
 #    By: atambo <atambo@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/30 19:00:19 by marcsilv          #+#    #+#              #
-#    Updated: 2026/03/10 08:26:04 by atambo           ###   ########.fr        #
+#    Updated: 2026/03/10 09:14:51 by atambo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,9 +19,11 @@ SRC_DIR		= src/
 OBJ_DIR		= obj/
 INC_DIR		= inc/
 
-SRC_FILES	=	main.cpp Server.cpp User.cpp Reply.cpp\
-				Channel.cpp Channel_commands.cpp Channel_commands.cpp
-HEADERS		= Server.hpp User.hpp Channel.hpp
+SRC_FILES	=	main.cpp User.cpp Reply.cpp\
+				Server.cpp Server_commands.cpp\
+				Channel.cpp Channel_mode.cpp
+				
+HEADERS		=	Server.hpp User.hpp Channel.hpp
 
 SRC			= $(addprefix $(SRC_DIR), $(SRC_FILES))
 OBJ			= $(addprefix $(OBJ_DIR), $(SRC_FILES:.cpp=.o))

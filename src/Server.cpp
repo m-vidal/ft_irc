@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/07 03:38:21 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 09:25:37 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,19 +77,6 @@ void Server::sendUserList(const Channel &channel, const int &fd)
              ":ircserv " + ss.str() + " " + getUserNick(fd) + " = " + channel.getName() + " :" + channel.getMemberNickList());
     ss1 << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES;
     ircReply(fd, ":ircserv " + ss1.str() + " " + getUserNick(fd) + " " + channel.getName() + " :End of /NAMES list");
-}
-
-// utilities
-void Server::setknowncommands(void)
-{
-    // _commands["PRIVMSG"] = &Server::msg;
-    _commands["PASS"] = Command(&Server::pass, 1, false);
-    _commands["NICK"] = Command(&Server::nick, 0, false);
-    _commands["USER"] = Command(&Server::user, 4, false);
-    _commands["PING"] = Command(&Server::ping, 0, false);
-    _commands["JOIN"] = Command(&Server::join, 0, false);
-    _commands["PART"] = Command(&Server::part, 1, false);
-    _commands["MODE"] = Command(&Server::mode, 1, false);
 }
 
 void Server::checkRegistration(int fd)
@@ -245,7 +232,6 @@ void Server::listenMode()
 
     while (is_running)
     {
-        std::cout << "- - - - - - - - - - - - - - - - - - \n";
         if (poll(_polls.data(), _polls.size(), -1) < 0)
             break;
 
@@ -259,6 +245,7 @@ void Server::listenMode()
             else
                 handleClientData(i);
         }
+        std::cout << "- - - - - - - - - - - - - - - - - - \n";
     }
 }
 
