@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 08:28:35 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 11:51:39 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,9 @@
 #define CHANNEL_HPP
 
 #include <map>
-#include <string>
 #include <set>
+#include <ctime>
+#include <string>
 #include <iostream>
 
 class User;
@@ -32,10 +33,11 @@ class Channel
 {
 
 public:
-	Channel() {};
-	~Channel() {};
-	Channel(const std::string &name);
+	static const int MAX_KEY_LEN = 23;
 
+	~Channel();
+	Channel();
+	Channel(const std::string &name);
 	std::string getName(void) const;
 	std::string getMemberNickList(void) const;
 	std::map<int, Member> getMembers(void) const;
@@ -65,13 +67,20 @@ public:
 	std::map<char, bool> getMode() const;
 	bool hasMode(const char c) const;
 	std::string getModeStr() const;
-	void applyModeString(const std::string &modes);
+
+	std::string getCreationTimeStr();
+
+	void setKey(std::string &new_key);
+	void unsetKey();
+	void initMode();
 
 private:
 	std::map<char, bool> _mode;
 	std::string _name;
 	std::string _topic;
 	std::map<int, Member> _members;
+	time_t _creationTime;
+	std::string _key;
 };
 
 #endif

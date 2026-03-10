@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 09:53:59 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 12:50:38 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,6 @@ void Server::nick(int fd, std::vector<std::string> &params, std::string trailing
 void Server::user(int fd, std::vector<std::string> &params, std::string trailing)
 {
     _users[fd].setUser(params[0]);
-    _users[fd].setHostname(params[1]);
     _users[fd].setRealname(trailing);
     checkRegistration(fd);
 }
@@ -121,18 +120,18 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
     // Fix #1: use find() instead of operator[] to avoid inserting a default Channel
     if (it != _channels.end() && it->second.isMember(_users[fd]))
         return;
+    std::string name = params[0];
     if (it == _channels.end()) // channel dosent exits, create channel
     {
-        _channels.insert(std::make_pair(params[0], Channel(params[0])));
-        std::cout << "Channel " << params[0] << " created." << std::endl;
-        _channels[params[0]].addOperator(_users[fd]);
-        sendUserList(_channels[params[0]], fd);
+        _channels.insert(std::make_pair(name, Channel(name)));
+        std::cout << "Channel " << name << " created." << std::endl;
+        _channels[name].addOperator(_users[fd]);
     }
     else // channel exists add user to channel
     {
-        _channels[params[0]].addMember(_users[fd]);
-        sendUserList(_channels[params[0]], fd);
+        _channels[name].addMember(_users[fd]);
     }
+    sendUserList(_channels[name], fd);
 }
 
 void Server::part(int fd, std::vector<std::string> &params, std::string trailing)
@@ -179,17 +178,61 @@ void Server::mode(int fd, std::vector<std::string> &params, std::string trailing
         return ircReply(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
     if (params.size() == 1)
     {
-        std::string mode_str = channel.getModeStr();
-        std::cout << channel.getModeStr() << "\n";
-
-        return ircReply(fd, RPL_CHANNELMODEIS, channel_name, mode_str);
+        ircReply(fd, RPL_CHANNELMODEIS, channel_name, channel.getModeStr());
+        return ircReply(fd, RPL_CREATIONTIME, channel_name, channel.getCreationTimeStr());
     }
     if (params.size() == 2)
     {
         if (!channel.isOperator(fd))
             return ircReply(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
 
-        channel.applyModeString(params[1]);
-        std::cout << channel.getModeStr() << "\n";
+        applyModeString(fd, params, trailing, channel);
+    }
+    ircReply(fd, RPL_CHANNELMODEIS, channel_name, channel.getModeStr());
+}
+
+void Server::applyModeString(int fd, std::vector<std::string> &params, std::string trailing, Channel &channel)
+{
+    (void)trailing;
+    bool adding = true;
+
+    std::string modes = params[0];
+    for (size_t i = 0; i < modes.length(); ++i)
+    {
+        size_t j = 1;
+        char c = modes[i];
+        if (c == '+')
+        {
+            adding = true;
+            continue;
+        }
+        if (c == '-')
+        {
+            adding = false;
+            continue;
+        }
+
+        if (adding)
+        {
+            if (c == 'k')
+            {
+                if (params.size() <= j)
+                    return ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k missing key parameter");
+                if (params[j].find_first_of(" ") != params[j].npos)
+                    return ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k '" + params[j] + "' key must not have spaces");
+                if (params[j].size() > channel.MAX_KEY_LEN)
+                {
+                    std::stringstream ss;
+                    ss << "+k '" << params[j] << "' key must not exceed "
+                       << channel.MAX_KEY_LEN << " characters";
+
+                    return ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), ss.str());
+                }
+                channel.setKey(params[j]);
+            }
+            channel.setMode(c);
+        }
+        else
+            channel.unsetMode(c);
     }
 }

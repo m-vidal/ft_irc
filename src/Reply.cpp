@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/06 14:24:33 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 12:37:55 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,4 +45,46 @@ void Server::ircReply(int fd, const std::string &command, const std::string &tra
     std::cout << reply << std::endl;
 
     send(fd, reply.c_str(), reply.size(), 0);
+}
+
+void Server::sendUserList(const Channel &channel, const int &fd)
+{
+    std::stringstream ss;
+    std::stringstream ss1;
+
+    User &user = _users[fd];
+    std::string message = ":" + user.getNick() +
+                          "!" + user.getUsername() +
+                          "@" + user.getHostname() +
+                          " JOIN " + channel.getName();
+    std::set<int> notified;
+    notified.insert(fd);
+    // broadcastToChannel(channel, message, notified);
+    sendToMembers(channel, message, notified);
+    ircReply(fd, "JOIN", channel.getName());
+
+    std::string mode_msg = " MODE " + channel.getName() + channel.getModeStr();
+    ircReply(fd, RPL_CHANNELMODEIS, mode_msg, "");
+
+    ss << std::setw(3) << std::setfill('0') << RPL_NAMREPLY;
+    ircReply(fd,
+             ":ircserv " + ss.str() + " " + getUserNick(fd) + " = " + channel.getName() + " :" + channel.getMemberNickList());
+    ss1 << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES;
+    ircReply(fd, ":ircserv " + ss1.str() + " " + getUserNick(fd) + " " + channel.getName() + " :End of /NAMES list");
+}
+
+void Server::checkRegistration(int fd)
+{
+    if (_users[fd].isAuthenticated() == true)
+        return;
+    if ((_users[fd].checkIsPassAccepted() == true) && (_users[fd].checkIsUserSet() == true) && (_users[fd].checkIsNickSet() == true))
+    {
+        _users[fd].setIsAuthenticated();
+        std::cout << "User: " << _users[fd].getNick() << " is authenticated." << std::endl;
+        ircReply(fd, RPL_WELCOME, "", "Welcome to ircserv.");
+        ircReply(fd, RPL_YOURHOST, "", "Your host is ircserv, running version 1.0"); // make version and date macros.
+        ircReply(fd, RPL_CREATED, "", "This server was created <date>.");
+        ircReply(fd, RPL_MYINFO, "", "ircserv 1.0 <user modes> <chan modes> ");
+        incUsers();
+    }
 }

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 08:26:11 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 09:11:03 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 11:59:36 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,37 +51,20 @@ std::string Channel::getModeStr() const
     std::string modeStr = "+";
     std::map<char, bool>::const_iterator it;
 
-    // Iterate through the map and add only the keys that are true
     for (it = _mode.begin(); it != _mode.end(); ++it)
     {
         if (it->second)
             modeStr += it->first;
     }
 
-    return (modeStr == "+" ? "" : modeStr);
+    return modeStr;
 }
 
-void Channel::applyModeString(const std::string &modes)
+void Channel::setKey(std::string &new_key)
 {
-    bool adding = true;
-
-    for (size_t i = 0; i < modes.length(); ++i)
-    {
-        char c = modes[i];
-        if (c == '+')
-        {
-            adding = true;
-            continue;
-        }
-        if (c == '-')
-        {
-            adding = false;
-            continue;
-        }
-
-        if (adding)
-            this->setMode(c);
-        else
-            this->unsetMode(c);
-    }
+    _key = new_key;
+}
+void Channel::unsetKey()
+{
+    _key = "";
 }

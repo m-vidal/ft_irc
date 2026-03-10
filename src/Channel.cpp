@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/03 17:48:29 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 09:07:49 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 12:01:17 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,26 @@
 Member::Member() : is_operator(false) {}
 Member::Member(bool op, const User user) : is_operator(op), user(user) {}
 
-Channel::Channel(const std::string &name) : _name(name)
+Channel::~Channel()
 {
-	applyModeString("+t-ikol");
+}
+
+void Channel::initMode()
+{
+	_mode['i'] = false; // Invite only
+	_mode['t'] = true;	// Topic restricted
+	_mode['k'] = false; // Key protected
+	_mode['l'] = false; // Limit protected
+}
+
+Channel::Channel() : _name("**"), _creationTime(std::time(NULL))
+{
+	initMode();
+}
+
+Channel::Channel(const std::string &name) : _name(name), _creationTime(std::time(NULL))
+{
+	initMode();
 }
 
 bool Channel::isMember(const int fd) const
@@ -137,4 +154,13 @@ void Channel::unsetOperator(const User &user)
 std::map<int, Member> Channel::getMembers(void) const
 {
 	return _members;
+}
+
+#include <sstream>
+
+std::string Channel::getCreationTimeStr()
+{
+	std::stringstream ss;
+	ss << _creationTime;
+	return ss.str();
 }

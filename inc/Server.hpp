@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/07 03:35:51 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/10 12:47:05 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,9 @@
 
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <sys/types.h>
+#include <arpa/inet.h>
+#include <arpa/inet.h>
 #include <sys/poll.h>
 #include <stdexcept>
 #include <iostream>
@@ -25,6 +26,7 @@
 #include <cstring>
 #include <iomanip>
 #include <sstream>
+#include <netdb.h>
 #include <fcntl.h>
 #include <string>
 #include <cctype>
@@ -101,8 +103,8 @@ private:
 	void join(int fd, std::vector<std::string> &params, std::string trailing);
 	void part(int fd, std::vector<std::string> &params, std::string trailing);
 	void mode(int fd, std::vector<std::string> &params, std::string trailing);
-	// void mode_user(int fd, std::vector<std::string> &params);
-	void mode_channel(int fd, std::vector<std::string> &params);
+	void applyModeString(int fd, std::vector<std::string> &params, std::string trailing, Channel &channel);
+
 	// ------------------------------------------------------------------------
 
 	int getFdFromNick(std::string nick);
