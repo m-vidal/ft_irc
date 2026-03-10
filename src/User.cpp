@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/02/28 17:27:17 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/10 14:15:24 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,3 +54,6 @@ int	User::getFd(void) { return (_fd); }
 
 bool	User::getStepOne() { return(_stepOne); }
 void	User::setStepOne() { _stepOne = true; }
+
+void    User::setHostname(std::string hostname) { _hostname = hostname; }
+std::string User::getHostname( void ) { return (_hostname); }

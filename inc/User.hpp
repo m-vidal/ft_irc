@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/03 13:11:48 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/10 14:13:25 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ class User {
 		//std::vector<Channel>	_channels;	//acho que se vai apagar depois
 		std::string				_nickname;
 		std::string 			_username;
+		std::string				_hostname;
 		bool					_stepOne;
 		std::string				_buffer;
 		const int				_fd;
@@ -41,6 +42,7 @@ class User {
 		const					std::string &getNick(void) const;
 		void					clearBuffer( size_t pos );
 		bool					isOperator(void) const;
+		std::string				getHostname( void );
 		std::string				getBuffer( void );
 		size_t					getInteractions();
 		bool					isAuthenticated();
@@ -48,6 +50,7 @@ class User {
 		int						getFd(void) ;
 
 		// setters
+		void					setHostname(std::string hostname);
 		void					setNick(const std::string &nick);
 		void					setUser(const std::string &user);
 		void					appendToBuffer(std::string data);
