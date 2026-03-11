@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 12:18:32 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 15:18:01 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,12 @@ struct Member
 	Member(bool op, User user);
 };
 
+struct TopicData
+{
+	std::string content; // The actual topic text
+	std::string setBy;	 // Nickname of the user who set it
+	time_t creationTime; // Unix timestamp
+};
 class Channel
 {
 
@@ -37,7 +43,7 @@ public:
 	static const int MAX_KEY_LEN = 23;
 
 	~Channel();
-	Channel();
+	// do not add default constructor use find istead
 	Channel(const std::string &name);
 	std::string getName(void) const;
 	std::string getMemberNickList(void) const;
@@ -80,10 +86,13 @@ public:
 	void removeInvite(User &user);
 	bool isInvited(const std::string &user_nick) const;
 
+	void setTopic(const std::string &new_topic, const std::string &setter);
+	const TopicData &getTopic() const;
+
 private:
 	std::map<char, bool> _mode;
 	std::string _name;
-	std::string _topic;
+	TopicData _topic;
 	std::map<int, Member> _members;
 	std::map<std::string, time_t> _invited_users;
 	time_t _creationTime;

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/11 13:30:30 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 15:31:44 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ void Server::sendUserList(const Channel &channel, const int &fd)
     sendToChannel(channel, message, notified);
     ircReply(fd, "JOIN", channel.getName());
 
-    std::string mode_msg = " MODE " + channel.getName() + channel.getModeStr();
+    std::string mode_msg = " MODE " + channel.getName() + " " + channel.getModeStr();
     ircReply(fd, RPL_CHANNELMODEIS, mode_msg, "");
 
     ss << std::setw(3) << std::setfill('0') << RPL_NAMREPLY;

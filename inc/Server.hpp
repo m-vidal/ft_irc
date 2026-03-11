@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 13:25:43 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 15:02:51 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,6 +104,7 @@ private:
 	void join(int fd, std::vector<std::string> &params, std::string trailing);
 	void part(int fd, std::vector<std::string> &params, std::string trailing);
 	void invite(int fd, std::vector<std::string> &params, std::string trailing);
+	void topic(int fd, std::vector<std::string> &params, std::string trailing);
 
 	// mode command -----------------------------------------------------------
 	void mode(int fd, std::vector<std::string> &params, std::string trailing);
@@ -127,5 +128,7 @@ private:
 };
 
 bool valid_channel_name(const std::string &name);
+std::string timeToStr(time_t time);
+std::string ircToLower(std::string str);
 
 #endif

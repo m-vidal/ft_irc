@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 13:21:41 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 15:21:43 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,7 +176,7 @@ void Server::parseLine(int fd, std::string line)
     std::string command, trailing;
     std::vector<std::string> args;
 
-    // Split trailing first to protect spaces inside messages
+    // 1. Look for the explicit trailing marked by " :"
     size_t colonPos = line.find(" :");
     if (colonPos != std::string::npos)
     {
@@ -184,6 +184,7 @@ void Server::parseLine(int fd, std::string line)
         line = line.substr(0, colonPos);
     }
 
+    // 2. Parse the command and regular arguments
     std::stringstream ss(line);
     ss >> command;
     for (size_t i = 0; i < command.length(); ++i)
@@ -193,10 +194,19 @@ void Server::parseLine(int fd, std::string line)
     while (ss >> temp)
         args.push_back(temp);
 
+    // 3. Logic Shift: If no colon was used, make the last word the trailing
+    if (trailing.empty() && args.size() > 1)
+    {
+        trailing = args.back(); // Take the last word
+        // args.pop_back();        // Remove it from the arguments vector
+    }
+
+    // Debug output
     std::cout << "cmd = " << command << "\n";
     for (size_t i = 0; i < args.size(); i++)
         std::cout << "param[" << i << "] = " << args[i] << "\n";
     std::cout << "trailing = " << trailing << "\n";
+
     this->executeCommand(fd, command, args, trailing);
 }
 
@@ -240,7 +250,7 @@ void Server::decUsers(void)
     std::cout << "Online users: " << _onlineUsers << "." << std::endl;
 }
 
-void Server::sendToChannel(const Channel &chan, const std::string &msg, std::set<int> &notified) 
+void Server::sendToChannel(const Channel &chan, const std::string &msg, std::set<int> &notified)
 {
     std::map<int, Member> members = chan.getMembers();
     std::map<int, Member>::const_iterator it;
@@ -284,3 +294,5 @@ void Server::sendToUserChannels(const User &user, const std::string &msg)
         }
     }
 }
+
+std::string ircToLower(std::string str);

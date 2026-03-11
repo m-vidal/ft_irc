@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 12:37:24 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 16:54:06 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 14:59:02 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,4 +128,22 @@ bool valid_channel_name(const std::string &name)
     if (name.size() > 4 && name[0] == '#' && name.find_first_of(" ") == name.npos)
         return true;
     return false;
+}
+
+std::string timeToStr(time_t time)
+{
+    std::stringstream ss;
+    ss << time;
+    return ss.str();
+}
+
+std::string ircToLower(std::string str) {
+    for (size_t i = 0; i < str.length(); ++i) {
+        if (str[i] >= 'A' && str[i] <= 'Z') str[i] += 32;
+        else if (str[i] == '[') str[i] = '{';
+        else if (str[i] == ']') str[i] = '}';
+        else if (str[i] == '\\') str[i] = '|';
+        else if (str[i] == '~') str[i] = '^';
+    }
+    return str;
 }

@@ -6,12 +6,13 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/03 17:48:29 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 12:19:11 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 15:04:03 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "User.hpp"
 #include "Channel.hpp"
+#include "Server.hpp"
 
 Member::Member() : is_operator(false) {}
 Member::Member(bool op, const User user) : is_operator(op), user(user) {}
@@ -27,12 +28,6 @@ void Channel::initMode()
 	_mode['k'] = false; // Key protected
 	_mode['l'] = false; // Limit protected
 }
-
-Channel::Channel() : _name("**"), _creationTime(std::time(NULL))
-{
-	initMode();
-}
-
 Channel::Channel(const std::string &name) : _name(name), _creationTime(std::time(NULL))
 {
 	initMode();
@@ -159,9 +154,8 @@ std::map<int, Member> Channel::getMembers(void) const
 
 std::string Channel::getCreationTimeStr()
 {
-	std::stringstream ss;
-	ss << _creationTime;
-	return ss.str();
+
+	return timeToStr(_creationTime);
 }
 
 void Channel::addInvite(User &user)
@@ -188,3 +182,13 @@ bool Channel::isInvited(const std::string &user_nick) const
 {
 	return _invited_users.find(user_nick) != _invited_users.end();
 }
+
+void Channel::setTopic(const std::string &new_topic, const std::string &setter)
+{
+	_topic.content = new_topic;
+	_topic.setBy = setter;
+	_topic.creationTime = time(NULL);
+	std::cout << "new topic = " << _topic.content << "\n";
+}
+
+const TopicData &Channel::getTopic() const { return _topic; };

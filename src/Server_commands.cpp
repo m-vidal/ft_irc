@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/11 13:03:10 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 15:17:15 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ void Server::setknowncommands(void)
     _commands["PART"] = Command(&Server::part, 1, false);
     _commands["MODE"] = Command(&Server::mode, 1, false);
     _commands["INVITE"] = Command(&Server::invite, 0, false);
+    _commands["TOPIC"] = Command(&Server::topic, 1, false);
 }
 // commands
 void Server::pass(int fd, std::vector<std::string> &params, std::string trailing)
@@ -112,18 +113,20 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
 {
     (void)trailing;
     // Fix #2: check params is non-empty before any access
-    if (!valid_channel_name(params[0]))
-        return ircReply(fd, ERR_BADCHANMASK, params[0], "Bad Channel Mask");
+    std::string name = params[0];
+    if (!valid_channel_name(name))
+        return ircReply(fd, ERR_BADCHANMASK, name, "Bad Channel Mask");
 
-    std::map<std::string, Channel>::iterator it = _channels.find(params[0]);
+    std::map<std::string, Channel>::iterator it = _channels.find(name);
     if (it != _channels.end() && it->second.isMember(_users[fd]))
         return;
-    std::string name = params[0];
     if (it == _channels.end()) // channel dosent exits, create channel
     {
         _channels.insert(std::make_pair(name, Channel(name)));
         std::cout << "Channel " << name << " created." << std::endl;
-        _channels[name].addOperator(_users[fd]);
+        std::map<std::string, Channel>::iterator it = _channels.find(name);
+        if (it != _channels.end())
+            it->second.addOperator(_users[fd]);
     }
     else if (it != _channels.end() && !(it->second.isMember(_users[fd])))
     {
@@ -142,9 +145,10 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
         if (channel.hasMode('i') && !channel.isInvited(_users[fd].getNick()))
             return ircReply(fd, ERR_INVITEONLYCHAN, "JOIN", "Cannot join channel (+i) - you must be invited");
 
-        _channels[name].addMember(_users[fd]);
+        it->second.addMember(_users[fd]);
     }
-    sendUserList(_channels[name], fd);
+    if (it != _channels.end())
+        sendUserList(it->first, fd);
 }
 
 void Server::part(int fd, std::vector<std::string> &params, std::string trailing)
@@ -214,4 +218,29 @@ void Server::invite(int fd, std::vector<std::string> &params, std::string traili
     }
     else
         return ircReply(fd, ERR_NEEDMOREPARAMS, "INVITE", "Need more params nigga");
+}
+
+void Server::topic(int fd, std::vector<std::string> &params, std::string trailing)
+{
+    if (params.size() < 1)
+        throw std::runtime_error("error in Server::topic");
+    std::string channel_name = params[0];
+    std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+    if (it == _channels.end())
+        return ircReply(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
+    Channel &channel = it->second;
+    if (!channel.isMember(fd))
+        return ircReply(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
+
+    if (params.size() == 1)
+    {
+        if (channel.getTopic().content.empty())
+            return ircReply(fd, RPL_NOTOPIC, channel_name, "No topic is set");
+        ircReply(fd, RPL_TOPIC, channel_name, channel.getTopic().content);
+        std::string time_str = timeToStr(channel.getTopic().creationTime);
+        return ircReply(fd, RPL_TOPICWHOTIME, channel_name, channel.getTopic().setBy + " " + time_str);
+    }
+    if (!channel.isOperator(fd) && channel.hasMode('t'))
+        return ircReply(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
+    channel.setTopic(trailing, _users[fd].getNick());
 }
