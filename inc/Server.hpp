@@ -70,7 +70,7 @@ class Server {
 		int									getFdFromNick(std::string nick);
 		User								*findUserByNick(const std::string& nick);
 
-		void								broadcastToChannel(const Channel &channel, const std::string &message, std::set<int> &notified);
+		void								broadcastToChannel(const Channel &channel, const std::string &message, std::set<int> &notified, bool excludeSender = false, int senderFd = -1);
 		void								ircReply(int fd, int code, const std::string &command, const std::string &trailing) const;
 		void								ircReply(int fd, const std::string &command, const std::string &trailing) const;
 		void								sendUserList(const Channel &channel, const std::string &command, const int &fd);

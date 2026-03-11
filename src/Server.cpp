@@ -89,7 +89,7 @@ void Server::nick(int fd, std::vector<std::string>& params, std::string trailing
 		notified.insert(fd);
 		
 		for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
-		    if (it->second.isUser(_users[fd]))
+		    if (it->second.isUser(fd))
 		        broadcastToChannel(it->second, message, notified);
 		}
     }
@@ -149,7 +149,7 @@ void	Server::names(int fd, std::vector<std::string>& params, std::string trailin
 	if (params.empty()) {
 		for (std::map<std::string, Channel>::iterator it = _channels.begin();
 			it != _channels.end(); ++it) {
-			if (it->second.isUser(_users[fd])) {
+			if (it->second.isUser(fd)) {
 				ircReply(fd, ":ircserv NAMES :" + it->second.getName());
 				sendUserList(it->second, "NAMES", fd);
 			}
@@ -204,7 +204,7 @@ void Server::msg(int fd, std::vector<std::string>& params, std::string trailing)
 
         Channel &channel = chanIt->second;
 
-        if (!channel.isUser(sender)) {
+        if (!channel.isUser(fd)) {
             ircReply(fd, ERR_NOTONCHANNEL, "PRIVMSG", "Not on channel");
             return;
         }
@@ -266,11 +266,11 @@ void	Server::join(int fd, std::vector<std::string>& params, std::string trailing
 
 		std::cout << "Channel " << params[0] << " created." << std::endl;
 
-		_channels[params[0]].addUser(_users[fd]);
-		_channels[params[0]].addOperator(_users[fd]);
+		_channels[params[0]].addUser(fd);
+		_channels[params[0]].addOperator(fd);
 		sendUserList(_channels[params[0]], "JOIN", fd);
 	} else {
-		_channels[params[0]].addUser(_users[fd]);
+		_channels[params[0]].addUser(fd);
 		sendUserList(_channels[params[0]], "JOIN", fd);
 	}
 }
@@ -289,7 +289,7 @@ void	Server::notice(int fd, std::vector<std::string>& params, std::string traili
 		{
 			return ;
 		}
-		if (_channels[params[0]].isUser(_users[fd]) == false) {
+		if (_channels[params[0]].isUser(fd) == false) {
 			return ;
 		}
 		User &user = _users[fd];
@@ -326,7 +326,7 @@ void	Server::sendUserList(const Channel &channel, const std::string &command, co
 
     ss << std::setw(3) << std::setfill('0') << RPL_NAMREPLY;
 	ircReply(fd, 
-		":ircserv " + ss.str() + " " + getUserNick(fd) + " = " + channel.getName() + " :" + channel.getUserNickList()
+		":ircserv " + ss.str() + " " + getUserNick(fd) + " = " + channel.getName() + " :" + channel.getUserNickList(_users)
 	);
     ss1 << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES;
 	ircReply(fd, ":ircserv " + ss1.str() + " " + getUserNick(fd) + " " + channel.getName() + " :End of /NAMES list");
@@ -348,7 +348,7 @@ void	Server::part(int fd, std::vector<std::string> &params, std::string trailing
 	Channel &channel = _channels[params[0]];
 	std::string channelName = channel.getName();
 
-	if (!channel.isUser(_users[fd])) {
+	if (!channel.isUser(fd)) {
 		ircReply(fd, ERR_NOTONCHANNEL, channelName, "You're not on that channel.");
 		return;
 	}
@@ -365,7 +365,7 @@ void	Server::part(int fd, std::vector<std::string> &params, std::string trailing
 	std::set<int>	notified;
 	broadcastToChannel(channel, message, notified);
 
-	bool wasOp = channel.isOperator(user);
+	bool wasOp = channel.isOperator(fd);
 	channel.removeUser(fd);
 	if (wasOp)
 		channel.removeOperator(fd);
@@ -563,15 +563,17 @@ void	Server::disconnectClient(int fd) {
 		User &user = _users[fd];
 		for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); ) {
 			Channel &channel = it->second;
-			if (channel.isUser(user)) {
-				bool wasOp = channel.isOperator(user);
+			if (channel.isUser(fd)) {
+				bool wasOp = channel.isOperator(fd);
 				channel.removeUser(fd);
 				if (wasOp)
 					channel.removeOperator(fd);
 			}
-			if (channel.getUserCount() == 0)
-				_channels.erase(it);
-			else
+			if (channel.getUserCount() == 0) {
+				std::map<std::string, Channel>::iterator toErase = it;
+				++it;
+				_channels.erase(toErase);
+			} else
 				++it;
 		}
 		if (user.isAuthenticated())
@@ -665,12 +667,17 @@ void	Server::decUsers(void) {
 	std::cout << "Online users: " << _onlineUsers << "." << std::endl;
 }
 // Server.cpp
-void Server::broadcastToChannel(const Channel &channel, const std::string &message, std::set<int> &notified) {
-	const std::map<int, User> &users = channel.getUsers();
-	for (std::map<int, User>::const_iterator it = users.begin(); it != users.end(); ++it) {
-		if (notified.find(it->first) == notified.end()) {
-			ircReply(it->first, message);
-			notified.insert(it->first);
+void Server::broadcastToChannel(const Channel &channel, const std::string &message, std::set<int> &notified, bool excludeSender, int senderFd) {
+	const std::set<int> &fds = channel.getUserFds();
+	for (std::set<int>::const_iterator it = fds.begin(); it != fds.end(); ++it) {
+		int targetFd = *it;
+		if (excludeSender && targetFd == senderFd)
+			continue;
+		if (notified.find(targetFd) == notified.end()) {
+			if (_users.find(targetFd) != _users.end()) {
+				ircReply(targetFd, message);
+				notified.insert(targetFd);
+			}
 		}
 	}
 }

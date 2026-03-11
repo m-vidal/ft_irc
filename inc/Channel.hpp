@@ -13,7 +13,8 @@
 #ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
-#include <map>
+# include <set>
+# include <map>
 # include <string>
 # include "User.hpp"
 
@@ -26,32 +27,30 @@ class Channel {
 			
 		std::string			getName(void) const;
 		std::string			getTopic(void) const;
-		std::string			getUserNickList(void) const;
+		// getUserNickList now needs live user map to build accurate nick list
+		std::string			getUserNickList(const std::map<int, User> &allUsers) const;
 		size_t				getUserCount(void) const;
-		std::map<int, User>	getUsers(void) const;
+		const std::set<int>	&getUserFds(void) const;
 
 		void				setName(const std::string &newName);
 
-		void				addUser(const User &user);
-		void				addOperator(const User &user);
+		void				addUser(int fd);
+		void				addOperator(int fd);
 
-		void				removeUser(const int &fd);
-		void				removeOperator(const int &fd);
+		void				removeUser(int fd);
+		void				removeOperator(int fd);
 
-		bool				isUser(const User &user) const ;
-		bool				isOperator(const User &user) const ;
+		bool				isUser(int fd) const;
+		bool				isOperator(int fd) const;
+		// Convenience overloads that accept a User object
+		bool				isUser(const User &user) const;
+		bool				isOperator(const User &user) const;
 
-		void				incUsers(void);
-		void				decUsers(void);
-		void				incOperators(void);
-		void				decOperators(void);
 	private:
 		std::string			_name;
-		std::map<int, User>	_users;
+		std::set<int>		_userFds;
 		std::string			_topic;
-		size_t				_nbUsers;
-		std::map<int, User>	_operators;
-		size_t				_nbOperators;
+		std::set<int>		_operatorFds;
 		//modes
 };
 

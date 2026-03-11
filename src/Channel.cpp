@@ -6,7 +6,7 @@
 /*   By: marcsilv <marcsilv@42.student.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/03 17:48:29 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/03 19:25:30 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/03/09 00:00:00 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,97 +15,72 @@
 # include <string>
 # include <iostream>
 
-Channel::Channel(const std::string &name): _name(name), _topic(""), _nbUsers(0), _nbOperators(0) { }
+Channel::Channel(const std::string &name): _name(name), _topic("") { }
+
+bool	Channel::isUser(int fd) const {
+	return (_userFds.find(fd) != _userFds.end());
+}
+
+bool	Channel::isOperator(int fd) const {
+	return (_operatorFds.find(fd) != _operatorFds.end());
+}
 
 bool	Channel::isUser(const User &user) const {
-	std::map<int, User>::const_iterator it = _users.find(user.getFd());
-	if (it != _users.end()) {
-		return (true);
-	}
-	return (false);
+	return (isUser(user.getFd()));
 }
+
 bool	Channel::isOperator(const User &user) const {
-	std::map<int, User>::const_iterator it = _operators.find(user.getFd());
-	if (it != _operators.end()) {
-		return (true);
-	}
-	return (false);
+	return (isOperator(user.getFd()));
 }
 
-void		Channel::addUser(const User &user) {
-	_users.insert(std::make_pair(user.getFd(), user));
-	std::cout << "User " << user.getNick() << " is now a member of " << getName() << "." << std::endl;
-	incUsers();
+void	Channel::addUser(int fd) {
+	_userFds.insert(fd);
+	std::cout << "fd " << fd << " is now a member of " << getName() << "." << std::endl;
 }
 
-void		Channel::addOperator(const User &user) {
-	_operators.insert(std::make_pair(user.getFd(), user));
-	std::cout << "User " << user.getNick() << " is now an operator  of " << getName() << "." << std::endl;
-	incOperators();
+void	Channel::addOperator(int fd) {
+	_operatorFds.insert(fd);
+	std::cout << "fd " << fd << " is now an operator of " << getName() << "." << std::endl;
 }
 
-void		Channel::removeUser(const int &fd) {
-	std::map<int, User>::iterator it = _users.find(fd);
-	if (it != _users.end()) {
-		std::cout << "User " << it->second.getNick() << " just left " << getName() << "." << std::endl;
-		_users.erase(it);
-		decUsers();
-	}
-}
-void		Channel::removeOperator(const int &fd) {
-	std::map<int, User>::iterator it = _operators.find(fd);
-	if (it != _operators.end()) {
-		std::cout << "User " << it->second.getNick() << " is not an operator of " << getName() << " anymore." << std::endl;
-		_operators.erase(it);
-		decOperators();
-	}
+void	Channel::removeUser(int fd) {
+	if (_userFds.erase(fd))
+		std::cout << "fd " << fd << " just left " << getName() << "." << std::endl;
 }
 
-std::string Channel::getTopic(void) const {
+void	Channel::removeOperator(int fd) {
+	if (_operatorFds.erase(fd))
+		std::cout << "fd " << fd << " is not an operator of " << getName() << " anymore." << std::endl;
+}
+
+std::string	Channel::getTopic(void) const {
 	return (_topic);
 }
+
 std::string	Channel::getName(void) const {
 	return (_name);
 }
-std::string	Channel::getUserNickList(void) const {
-	std::string	nickList;
-	std::map<int, User>::const_iterator it;
 
-    // 3. The Loop
-    for (it = _users.begin(); it != _users.end(); ++it) {
-		if (isOperator(it->second) == true) {
+// Builds nick list using the server's live _users map to avoid stale data
+std::string	Channel::getUserNickList(const std::map<int, User> &allUsers) const {
+	std::string	nickList;
+
+	for (std::set<int>::const_iterator it = _userFds.begin(); it != _userFds.end(); ++it) {
+		std::map<int, User>::const_iterator uit = allUsers.find(*it);
+		if (uit == allUsers.end())
+			continue;
+		if (isOperator(*it))
 			nickList += "@";
-		}
-		nickList += it->second.getNick() + " ";
-    }
+		nickList += uit->second.getNick() + " ";
+	}
 	return (nickList);
 }
+
 size_t	Channel::getUserCount(void) const {
-	return (_nbUsers);
-}
-std::map<int, User>	Channel::getUsers(void) const {
-	return (_users);
+	return (_userFds.size());
 }
 
-void	Channel::incUsers(void) {
-	_nbUsers++;
-	std::cout << "Numbers of members of " << getName() << ": " << _nbUsers << "." << std::endl;
+const std::set<int>	&Channel::getUserFds(void) const {
+	return (_userFds);
 }
-void	Channel::decUsers(void) {
-	if (_nbUsers > 0) 
-		_nbUsers--;
-	else 
-		std::cerr << "Number of users already at zero!" << "Channel name: " << getName() << std::endl;
-	std::cout << "Numbers of members of " << getName() << ": " << _nbUsers << "." << std::endl;
-}
-void	Channel::incOperators(void) {
-	_nbOperators++;
-	std::cout << "Numbers of members of " << getName() << ": " << _nbUsers << "." << std::endl;
-}
-void	Channel::decOperators(void) {
-	if (_nbOperators > 0)
-		_nbOperators--;
-	else 
-		std::cerr << "Number of users operators at zero!" << "Channel name: " << getName() << std::endl;
-	std::cout << "Numbers of members of " << getName() << ": " << _nbUsers << "." << std::endl;
-}
+
