@@ -79,7 +79,7 @@ void	Server::quit(int fd, std::vector<std::string>& params, std::string trailing
 	if (trailing.size())
 	{
 		std::string msg = ":" + _users[fd].getNick() + "!" + _users[fd].getUsername();
-		msg += "@127.0.0.1 QUIT : " + trailing + "\r\n";
+		msg += "@" + _users[fd].getHostname() + "QUIT : " + trailing + "\r\n";
 		sendToClient(fd, msg);
 	}
 	else
@@ -89,7 +89,8 @@ void	Server::quit(int fd, std::vector<std::string>& params, std::string trailing
 
 void	Server::msg(int fd, std::vector<std::string>& params, std::string trailing)
 {
-	std::string prefix = ":" + _users[fd].getNick() + "!" + _users[fd].getUsername() + "@" + "127.0.0.1";
+	std::string prefix = ":" + _users[fd].getNick() + "!" + _users[fd].getUsername();
+	prefix += "@" + _users[fd].getHostname();
 	std::string forward = prefix + " PRIVMSG " + params[0] + " " + trailing + "\r\n";
 	if (!params.size() || !trailing.size())
 	{
@@ -228,13 +229,18 @@ void	Server::listenMode() {
 			throw std::runtime_error("Error: poll() sys call failed!");
 		if (_polls[0].revents & POLLIN)
 		{
-			int clientfd = accept(_socket, NULL, NULL);
+			struct sockaddr_in	client_addr;
+			socklen_t	len = sizeof(client_addr);
+			int	clientfd = accept(_socket, (struct sockaddr*)&client_addr, &len);
 
 			if (clientfd > -1)
 			{
-				std::cout << clientfd << " Conected" << std::endl;
-				int client_flag = fcntl(clientfd, F_GETFL);
-				fcntl(clientfd, F_SETFL, client_flag | O_NONBLOCK);
+				char	client_ip[INET_ADDRSTRLEN];
+				inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, INET_ADDRSTRLEN);
+				
+				
+				//std::cout << clientfd << " Conected" << std::endl;
+				fcntl(clientfd, F_SETFL, O_NONBLOCK);
 
 				struct pollfd client;
 				client.fd = clientfd;
@@ -242,8 +248,8 @@ void	Server::listenMode() {
 				client.revents = 0;
 
 				_polls.push_back(client);
-				_users.insert(std::make_pair(static_cast<int>(clientfd), User(clientfd)));
-			
+				_users.insert(std::make_pair(clientfd, User(clientfd)));
+				_users[clientfd].setHostname(client_ip);
 			}
 		}
 		for (size_t i = 1; i < _polls.size(); ++i)
@@ -251,7 +257,7 @@ void	Server::listenMode() {
 			if (_polls[i].revents & POLLIN)
 			{
 				char	buff[1024] = {0};
-				size_t bytes_received = recv(_polls[i].fd, buff, sizeof(buff) - 1, 0);
+				ssize_t bytes_received = recv(_polls[i].fd, buff, sizeof(buff) - 1, 0);
 				if (bytes_received > 0)
 				{
 					buff[bytes_received] = '\0';
@@ -289,6 +295,10 @@ void	Server::listenMode() {
 void	Server::turnOff() { _received_sig = true; is_running = false; }
 
 Server::~Server(void) {
-	if (_socket)
+	for (size_t i = 0; i < _polls.size(); ++i)
+		close(_polls[i].fd);
+	_polls.clear();
+	_users.clear();
+	if (_socket >= 0)
 		close(_socket);
 }
