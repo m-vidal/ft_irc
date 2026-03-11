@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 17:09:56 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:38:22 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ User::User(int fd, const std::string &ip) : _isAuthenticated(false), _isPassAcce
 User::User(void) : _isAuthenticated(false), _isPassAccepted(false), _isNickSet(false),
 				   _isUserSet(false), _fd(-1), _hostname(0)
 {
-	_nickname = "~NA";
+	_nickname = "*";
 	_username = "~NA";
 	_realName = "~NA";
 }

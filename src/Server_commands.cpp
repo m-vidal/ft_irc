@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/11 17:23:14 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:43:47 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void Server::setknowncommands(void)
     _commands["PASS"] = Command(&Server::pass, 1, false);
     _commands["NICK"] = Command(&Server::nick, 0, false);
     _commands["USER"] = Command(&Server::user, 4, false);
-    _commands["PING"] = Command(&Server::ping, 0, false);
+    _commands["PING"] = Command(&Server::ping, 1, false);
     _commands["JOIN"] = Command(&Server::join, 1, false);
     _commands["PART"] = Command(&Server::part, 1, false);
     _commands["MODE"] = Command(&Server::mode, 1, false);
@@ -38,7 +38,7 @@ void Server::pass(int fd, std::vector<std::string> &params, std::string trailing
     }
     if (params.size() == 0)
     {
-        sendNumeric(fd, ERR_NEEDMOREPARAMS, "PASS", "Not enough parameters");
+        sendNumeric(fd, ERR_NEEDMOREPARAMS, "INVITE", "Not enough parameters");
         return;
     }
     if (params[0] != _password)
@@ -119,17 +119,7 @@ void Server::ping(int fd, std::vector<std::string> &params, std::string trailing
 {
     // The token is usually in params[0] or trailing (depending on the client)
     std::string token = params.empty() ? trailing : params[0];
-
-    if (token.empty())
-    {
-        // RFC 2812 says ERR_NEEDMOREPARAMS (461) should be sent if no token
-        sendNumeric(fd, 461, "PING", "Not enough parameters");
-        return;
-    }
-
-    // Format: :servername PONG servername :token
     std::string pongMsg = ":" + _serverName + " PONG " + _serverName + " :" + token + "\r\n";
-
     sendToClient(fd, pongMsg);
 }
 
@@ -215,33 +205,47 @@ void Server::invite(int fd, std::vector<std::string> &params, std::string traili
         std::map<std::string, time_t>::const_iterator it;
         for (it = invites.begin(); it != invites.end(); ++it)
         {
-            std::string channelName = it->first;
+            std::string username = it->first;
             std::stringstream ss;
             ss << it->second;
             std::string timeStr = ss.str();
-            sendNumeric(fd, RPL_INVITELIST, channelName, timeStr);
+            sendNumeric(fd, RPL_INVITELIST, username, timeStr);
         }
-        sendNumeric(fd, RPL_ENDOFINVITELIST, username, "End of /INVITE list");
+        return sendNumeric(fd, RPL_ENDOFINVITELIST, username, "End of /INVITE list");
     }
     else if (params.size() == 2)
     {
         User *target = findUserByNick(params[0]);
         if (!target)
-            return sendNumeric(fd, ERR_NOSUCHNICK, params[0], "User doesnt exist");
+            return sendNumeric(fd, ERR_NOSUCHNICK, params[0], "User doesn't exist");
+
         std::map<std::string, Channel>::iterator it = _channels.find(params[1]);
-        std::cout << "channel name = " << params[1] << "\n";
         if (it == _channels.end())
             return sendNumeric(fd, ERR_NOSUCHCHANNEL, params[1], "No such channel!");
+
         Channel &channel = it->second;
+
         if (!channel.isMember(fd))
             return sendNumeric(fd, ERR_NOTONCHANNEL, params[1], "You're not on that channel.");
-        if (!channel.isOperator(fd))
+
+        if (channel.hasMode('i') && !channel.isOperator(fd))
             return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, params[1], "You're not channel operator");
+
+        if (channel.isMember(target->getFd()))
+            return sendNumeric(fd, ERR_USERONCHANNEL, target->getNick() + " " + params[1], "is already on channel");
+
+        // 1. Add to the channel's internal invite list
         channel.addInvite(*target);
-        return sendNumeric(fd, RPL_INVITING, target->getNick(), channel.getName());
+
+        // 2. Notify the INVITER (Standard Numeric)
+        sendNumeric(fd, RPL_INVITING, target->getNick(), channel.getName());
+
+        // 3. Notify the INVITED User (Raw Command)
+        // Format: :InviterNick!InviterUser@InviterHost INVITE TargetNick :ChannelName
+        std::string inviteMsg = ":" + _users[fd].getPrefix() + " INVITE " + target->getNick() + " :" + channel.getName() + "\r\n";
+        return sendToClient(target->getFd(), inviteMsg);
     }
-    else
-        return sendNumeric(fd, ERR_NEEDMOREPARAMS, "INVITE", "Need more params nigga");
+    return sendNumeric(fd, ERR_NEEDMOREPARAMS, "INVITE", "Not enough parameters");
 }
 
 void Server::topic(int fd, std::vector<std::string> &params, std::string trailing)

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 17:01:53 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:28:46 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,7 +224,7 @@ void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &
     std::cout << "params needed " << params_needed << "\n";
 
     if ((args.size() < params_needed) || (it->second.needTrail && trailing.empty()))
-        return sendNumeric(fd, ERR_NEEDMOREPARAMS, cmd, "Need more params nigga");
+        return sendNumeric(fd, ERR_NEEDMOREPARAMS, cmd, "Not enough parameters");
 
     (this->*(it->second.handler))(fd, args, trailing);
 }

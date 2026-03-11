@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/11 17:24:26 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:38:05 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,9 +61,6 @@ void Server::sendUserList(const Channel &channel, int fd)
 void Server::sendNumeric(int fd, int code, const std::string &params, const std::string &trailing)
 {
     std::string nick = _users[fd].getNick();
-    if (nick.empty())
-        nick = "*"; // RFC standard for users not yet fully registered
-
     std::string msg = formatNumeric(code, nick, params, trailing);
     send(fd, msg.c_str(), msg.size(), 0);
 }
