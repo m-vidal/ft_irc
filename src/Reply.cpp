@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/11 17:21:15 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:24:26 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,4 +81,20 @@ void Server::sendNumeric(Channel &channel, int fd, int code, const std::string &
 
     // 3. Broadcast to the channel, skipping the person who triggered it
     this->sendToChannel(channel, msg, fd);
+}
+
+void Server::checkRegistration(int fd)
+{
+    if (_users[fd].isAuthenticated() == true)
+        return;
+    if ((_users[fd].checkIsPassAccepted() == true) && (_users[fd].checkIsUserSet() == true) && (_users[fd].checkIsNickSet() == true))
+    {
+        _users[fd].setIsAuthenticated();
+        std::cout << "User: " << _users[fd].getNick() << " is authenticated." << std::endl;
+        sendNumeric(fd, RPL_WELCOME, "", "Welcome to ircserv.");
+        sendNumeric(fd, RPL_YOURHOST, "", "Your host is ircserv, running version 1.0"); // make version and date macros.
+        sendNumeric(fd, RPL_CREATED, "", "This server was created <date>.");
+        sendNumeric(fd, RPL_MYINFO, "", "ircserv 1.0 <user modes> <chan modes> ");
+        incUsers();
+    }
 }
