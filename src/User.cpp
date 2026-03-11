@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 15:24:16 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:09:56 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,11 +51,11 @@ void User::authenticate() { _isAuthenticated = true; }
 bool User::isAuthenticated() const { return (_isAuthenticated); }
 
 int User::getFd(void) const { return (_fd); }
-std::string User::getBuffer(void) const { return (_inbuffer); }
-std::string User::getNick(void) const { return (this->_nickname); }
-std::string User::getUsername(void) const { return (this->_username); }
-std::string User::getRealname(void) const { return (this->_realName); }
-std::string User::getHostname(void) const { return (this->_hostname); }
+const std::string &User::getBuffer(void) const { return (_inbuffer); }
+const std::string &User::getNick(void) const { return (this->_nickname); }
+const std::string &User::getUsername(void) const { return (this->_username); }
+const std::string &User::getRealname(void) const { return (this->_realName); }
+const std::string &User::getHostname(void) const { return (this->_hostname); }
 
 void User::appendToBuffer(std::string data) { _inbuffer += data; }
 void User::clearBuffer(size_t pos) { _inbuffer.erase(0, pos); }
@@ -84,4 +84,9 @@ bool User::isInvited(const std::string &channelName)
 std::map<std::string, time_t> &User::getInvites()
 {
 	return _invitations;
+}
+
+std::string User::getPrefix() const
+{
+	return _nickname + "!" + _username + "@" + _hostname;
 }

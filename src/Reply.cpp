@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/11 15:31:44 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:21:15 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,86 +14,71 @@
 #include "Channel.hpp"
 #include "Server.hpp"
 
-void Server::ircReply(const Channel &channel, int fd, int code, const std::string &command, const std::string &trailing)
+// For Numerics (e.g., :ircserv 001 target :Welcome)
+std::string Server::formatNumeric(int code, const std::string &nick, const std::string &params, const std::string &trailing)
 {
     std::stringstream ss;
-
-    ss << std::setw(3) << std::setfill('0') << code;
-    std::string reply = ":ircserv " + ss.str() + " " + getUserNick(fd) + " " + command + " :" + trailing + "\r\n";
-    sendToChannel(channel, reply);
+    ss << ":" << _serverName << " " << std::setw(3) << std::setfill('0') << code << " " << nick;
+    if (!params.empty())
+        ss << " " << params;
+    if (!trailing.empty())
+        ss << " :" << trailing;
+    return ss.str() + "\r\n";
 }
 
-void Server::ircReply(int fd, int code, const std::string &command, const std::string &trailing)
+// For Commands (e.g., :nick!user@host JOIN #channel)
+std::string Server::formatMessage(const User &source, const std::string &command, const std::string &params, const std::string &trailing)
 {
-    std::stringstream ss;
-
-    ss << std::setw(3) << std::setfill('0') << code;
-    std::string reply = ":ircserv " + ss.str() + " " + getUserNick(fd) + " " + command + " :" + trailing + "\r\n";
-    send(fd, reply.c_str(), reply.size(), 0);
-}
-void Server::ircReply(int fd, const std::string &msg)
-{
-    std::string reply = msg + "\r\n";
-    send(fd, reply.c_str(), reply.size(), 0);
-}
-void Server::ircReply(int fd, const std::string &command, const std::string &trailing)
-{
-    std::map<int, User>::const_iterator it = _users.find(fd);
-
-    if (it == _users.end())
-    {
-        return; // Or handle error
-    }
-
-    const User &user = it->second;
-
-    std::string reply = ":" + user.getNick() +
-                        "!" + user.getUsername() +
-                        "@" + user.getHostname() +
-                        " " + command + " " + trailing + "\r\n";
-    std::cout << reply << std::endl;
-
-    send(fd, reply.c_str(), reply.size(), 0);
+    std::string msg = ":" + source.getPrefix() + " " + command;
+    if (!params.empty())
+        msg += " " + params;
+    if (!trailing.empty())
+        msg += " :" + trailing;
+    return msg + "\r\n";
 }
 
-void Server::sendUserList(const Channel &channel, const int &fd)
+void Server::sendUserList(const Channel &channel, int fd)
 {
-    std::stringstream ss;
-    std::stringstream ss1;
-
     User &user = _users[fd];
-    std::string message = ":" + user.getNick() +
-                          "!" + user.getUsername() +
-                          "@" + user.getHostname() +
-                          " JOIN " + channel.getName();
-    std::set<int> notified;
-    notified.insert(fd);
-    // broadcastToChannel(channel, message, notified);
-    sendToChannel(channel, message, notified);
-    ircReply(fd, "JOIN", channel.getName());
+    std::string nick = user.getNick();
+    std::string chanName = channel.getName();
 
-    std::string mode_msg = " MODE " + channel.getName() + " " + channel.getModeStr();
-    ircReply(fd, RPL_CHANNELMODEIS, mode_msg, "");
+    // 1. Tell everyone (including joining user) about the JOIN
+    std::string joinMsg = formatMessage(user, "JOIN", chanName, "");
+    sendToChannel(channel, joinMsg, -1);
 
-    ss << std::setw(3) << std::setfill('0') << RPL_NAMREPLY;
-    ircReply(fd,
-             ":ircserv " + ss.str() + " " + getUserNick(fd) + " = " + channel.getName() + " :" + channel.getMemberNickList());
-    ss1 << std::setw(3) << std::setfill('0') << RPL_ENDOFNAMES;
-    ircReply(fd, ":ircserv " + ss1.str() + " " + getUserNick(fd) + " " + channel.getName() + " :End of /NAMES list");
+    // 2. Send Topic (if exists) - Good addition here!
+    if (!channel.getTopic().content.empty())
+    {
+        sendToClient(fd, formatNumeric(RPL_TOPIC, nick, chanName, channel.getTopic().content));
+    }
+
+    // 3. Send Name List (353) and End of Names (366)
+    sendToClient(fd, formatNumeric(RPL_NAMREPLY, nick, "= " + chanName, channel.getMemberNickList()));
+    sendToClient(fd, formatNumeric(RPL_ENDOFNAMES, nick, chanName, "End of /NAMES list"));
 }
 
-void Server::checkRegistration(int fd)
+void Server::sendNumeric(int fd, int code, const std::string &params, const std::string &trailing)
 {
-    if (_users[fd].isAuthenticated() == true)
-        return;
-    if ((_users[fd].checkIsPassAccepted() == true) && (_users[fd].checkIsUserSet() == true) && (_users[fd].checkIsNickSet() == true))
-    {
-        _users[fd].setIsAuthenticated();
-        std::cout << "User: " << _users[fd].getNick() << " is authenticated." << std::endl;
-        ircReply(fd, RPL_WELCOME, "", "Welcome to ircserv.");
-        ircReply(fd, RPL_YOURHOST, "", "Your host is ircserv, running version 1.0"); // make version and date macros.
-        ircReply(fd, RPL_CREATED, "", "This server was created <date>.");
-        ircReply(fd, RPL_MYINFO, "", "ircserv 1.0 <user modes> <chan modes> ");
-        incUsers();
-    }
+    std::string nick = _users[fd].getNick();
+    if (nick.empty())
+        nick = "*"; // RFC standard for users not yet fully registered
+
+    std::string msg = formatNumeric(code, nick, params, trailing);
+    send(fd, msg.c_str(), msg.size(), 0);
+}
+
+void Server::sendNumeric(Channel &channel, int fd, int code, const std::string &params, const std::string &trailing)
+{
+    // 1. Get the nick of the user who triggered this (or "*" if not set)
+    std::string nick = _users[fd].getNick();
+    if (nick.empty())
+        nick = "*";
+
+    // 2. Generate the formatted numeric string using your helper
+    // Format: :ircserv <CODE> <target_nick> <params> :<trailing>
+    std::string msg = formatNumeric(code, nick, params, trailing);
+
+    // 3. Broadcast to the channel, skipping the person who triggered it
+    this->sendToChannel(channel, msg, fd);
 }

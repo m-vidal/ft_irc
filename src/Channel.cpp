@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/03 17:48:29 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 15:04:03 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:17:03 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ void Channel::removeMember(const int &fd)
 	}
 }
 
-std::string Channel::getName(void) const
+const std::string &Channel::getName(void) const
 {
 	return (_name);
 }
@@ -147,12 +147,12 @@ void Channel::unsetOperator(const User &user)
 	this->unsetOperator(user.getFd());
 }
 
-std::map<int, Member> Channel::getMembers(void) const
+const std::map<int, Member> &Channel::getMembers(void) const
 {
 	return _members;
 }
 
-std::string Channel::getCreationTimeStr()
+std::string Channel::getCreationTimeStr() const
 {
 
 	return timeToStr(_creationTime);

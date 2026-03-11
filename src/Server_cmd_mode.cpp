@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/11 12:29:57 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/11 14:33:56 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:17:25 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,20 +22,20 @@ void Server::mode(int fd, std::vector<std::string> &params, std::string trailing
     std::string channel_name = params[0];
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it == _channels.end())
-        return ircReply(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
+        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
 
     Channel &channel = (it->second);
     if (!channel.isMember(fd))
-        return ircReply(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
+        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
     if (params.size() == 1)
     {
-        ircReply(fd, RPL_CHANNELMODEIS, channel_name, channel.getModeStr());
-        return ircReply(fd, RPL_CREATIONTIME, channel_name, channel.getCreationTimeStr());
+        sendNumeric(fd, RPL_CHANNELMODEIS, channel_name, channel.getModeStr());
+        return sendNumeric(fd, RPL_CREATIONTIME, channel_name, channel.getCreationTimeStr());
     }
     if (params.size() > 1)
     {
         if (!channel.isOperator(fd))
-            return ircReply(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
+            return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
 
         applyModeString(fd, params, trailing, channel);
     }
@@ -46,13 +46,13 @@ bool Server::mode_k(int fd, std::vector<std::string> &params, Channel &channel, 
 
     if (params.size() <= j)
     {
-        ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k missing key parameter");
+        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k missing key parameter");
         return 1;
     }
     if (params[j].find_first_of(" ") != params[j].npos)
     {
 
-        ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k '" + params[j] + "' key must not have spaces");
+        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k '" + params[j] + "' key must not have spaces");
         return 1;
     }
     if (params[j].size() > channel.MAX_KEY_LEN)
@@ -61,7 +61,7 @@ bool Server::mode_k(int fd, std::vector<std::string> &params, Channel &channel, 
         ss << " +k '" << params[j] << "' key must not exceed "
            << channel.MAX_KEY_LEN << " characters";
 
-        ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), ss.str());
+        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName(), ss.str());
     }
     channel.setKey(params[j]);
     return 0;
@@ -98,7 +98,7 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, std::stri
             if (!channel.hasMode(c))
             {
                 channel.setMode(c);
-                ircReply(channel, fd, RPL_CHANNELMODEIS, channel.getName(), channel.getModeStr());
+                sendNumeric(channel, fd, RPL_CHANNELMODEIS, channel.getName(), channel.getModeStr());
             }
         }
         else
@@ -106,7 +106,7 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, std::stri
             if (channel.hasMode(c))
             {
                 channel.unsetMode(c);
-                ircReply(channel, fd, RPL_CHANNELMODEIS, channel.getName(), channel.getModeStr());
+                sendNumeric(channel, fd, RPL_CHANNELMODEIS, channel.getName(), channel.getModeStr());
             }
         }
     }

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 15:02:51 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:20:50 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,15 +58,16 @@ class Server
 public:
 	bool is_running;
 
-	Server(unsigned short &port, std::string &password);
+	Server(unsigned short &port, std::string &password, std::string name);
 	~Server();
 
 	void listenMode();
-	void ircReply(int fd, int code, const std::string &command, const std::string &trailing);
-	void ircReply(int fd, const std::string &command, const std::string &trailing);
-	void ircReply(int fd, const std::string &msg);
-	void sendToClient(int fd, std::string str);
-	void ircReply(const Channel &channel, int fd, int code, const std::string &command, const std::string &trailing);
+	std::string formatNumeric(int code, const std::string &nick, const std::string &params, const std::string &trailing);
+	std::string formatMessage(const User &source, const std::string &command, const std::string &params, const std::string &trailing);
+	void sendToClient(int fd, const std::string &rawMsg);
+	void sendUserList(const Channel &channel, int fd);
+	void sendNumeric(int fd, int code, const std::string &params, const std::string &trailing);
+	void sendNumeric(Channel &channel, int fd, int code, const std::string &params, const std::string &trailing);
 
 private:
 	// data ---------------------------
@@ -79,6 +80,7 @@ private:
 	std::vector<pollfd> _polls;
 	struct sockaddr_in _addr;
 	const short _port;
+	const std::string _serverName;
 
 	// methods ------------------------
 	void initPoll();
@@ -116,10 +118,9 @@ private:
 	User *findUserByNick(const std::string &nick);
 
 	void sendToChannel(const Channel &chan, const std::string &msg, std::set<int> &notified);
-	void sendToChannel(const Channel &chan, const std::string &msg);
+	void sendToChannel(const Channel &chan, const std::string &msg, int skipFd);
 	void sendToUserChannels(const User &user, const std::string &msg);
 
-	void sendUserList(const Channel &channel, const int &fd);
 	std::string getUserNick(int fd) const;
 	void checkRegistration(int fd);
 	void incUsers(void);

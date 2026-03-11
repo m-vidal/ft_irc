@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/03/06 14:19:15 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 16:38:36 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ int main(int ac, char **av)
 	password = av[2];
 	try
 	{
-		Server server(port, password);
+		Server server(port, password, "ircserv");
 		server.listenMode();
 	}
 	catch (std::exception &e)

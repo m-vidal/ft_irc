@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/11 15:17:15 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:23:14 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,66 +33,79 @@ void Server::pass(int fd, std::vector<std::string> &params, std::string trailing
     (void)trailing;
     if (_users[fd].isAuthenticated() == true)
     {
-        ircReply(fd, ERR_ALREADYREGISTERED, "PASS", "User already registered!");
+        sendNumeric(fd, ERR_ALREADYREGISTERED, "PASS", "User already registered!");
         return;
     }
     if (params.size() == 0)
     {
-        ircReply(fd, ERR_NEEDMOREPARAMS, "PASS", "Not enough parameters");
+        sendNumeric(fd, ERR_NEEDMOREPARAMS, "PASS", "Not enough parameters");
         return;
     }
     if (params[0] != _password)
     {
-        ircReply(fd, ERR_PASSWDMISMATCH, "PASS", "Wrong password!");
+        sendNumeric(fd, ERR_PASSWDMISMATCH, "PASS", "Wrong password!");
         return;
     }
     _users[fd].setPassAccepted(); // sets passAccepted to true
 }
+
 void Server::nick(int fd, std::vector<std::string> &params, std::string trailing)
 {
-    (void)trailing;
-    if (params.empty())
+    // If your parser puts the nick in trailing when no colon is used,
+    // or if it's the only param, we check both.
+    std::string newNick = (params.empty()) ? trailing : params[0];
+
+    if (newNick.empty())
     {
-        ircReply(fd, ERR_NONICKNAMEGIVEN, "NICK", "No nickname given");
+        sendNumeric(fd, ERR_NONICKNAMEGIVEN, "", "No nickname given");
         return;
     }
-    const std::string &newNick = params[0];
-    if (std::isdigit(newNick[0]) ||
-        newNick.find_first_of(" ,*!@:#\n") != std::string::npos)
+
+    // IRC Nick Rules: No leading digits, no forbidden chars
+    if (std::isdigit(newNick[0]) || newNick.find_first_of(" ,*!@:#\n") != std::string::npos)
     {
-        ircReply(fd, ERR_ERRONEUSNICKNAME, "NICK", "Erroneous nickname");
+        sendNumeric(fd, ERR_ERRONEUSNICKNAME, newNick, "Erroneous nickname");
         return;
     }
+
+    // Case-insensitive check (assuming findUserByNick handles it)
     User *existing = findUserByNick(newNick);
     if (existing && existing->getFd() != fd)
     {
-        return ircReply(fd, ERR_NICKNAMEINUSE, newNick, "Nickname is already in use");
+        sendNumeric(fd, ERR_NICKNAMEINUSE, newNick, "Nickname is already in use");
+        return;
     }
-    std::string oldNick = _users[fd].getNick();
-    bool wasAuthenticated = _users[fd].isAuthenticated();
-    _users[fd].setNick(newNick);
+
+    User &user = _users[fd];
+    std::string oldPrefix = user.getPrefix(); // Capture prefix BEFORE changing nick
+    bool wasAuthenticated = user.isAuthenticated();
+
+    user.setNick(newNick);
+
     if (wasAuthenticated)
     {
-        std::string message = ":" +
-                              oldNick + "!" +
-                              _users[fd].getUsername() + "@" +
-                              _users[fd].getHostname() +
-                              " NICK :" + newNick + "\r\n";
-        ircReply(fd, message);
+        // Format: :oldnick!user@host NICK :newnick
+        // We use a raw sender here because NICK isn't a numeric reply
+        std::string notifyMsg = ":" + oldPrefix + " NICK :" + newNick + "\r\n";
 
+        // 1. Send to self
+        sendToClient(fd, notifyMsg);
+
+        // 2. Notify everyone who shares a channel with the user
         std::set<int> notified;
-        notified.insert(fd);   // seed with sender so self isn't double-notified
-        ircReply(fd, message); // send to self explicitly
+        notified.insert(fd); // Don't send to self again via broadcast
 
-        for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+        std::map<std::string, Channel>::iterator it;
+        for (it = _channels.begin(); it != _channels.end(); ++it)
         {
-            if (it->second.isMember(_users[fd]))
+            if (it->second.isMember(user))
             {
-                // broadcastToChannel(it->second, message, notified);
-                sendToChannel(it->second, message, notified);
+                sendToChannel(it->second, notifyMsg, notified);
             }
         }
     }
+
+    // Check if this NICK command completes their registration
     checkRegistration(fd);
 }
 
@@ -104,9 +117,20 @@ void Server::user(int fd, std::vector<std::string> &params, std::string trailing
 }
 void Server::ping(int fd, std::vector<std::string> &params, std::string trailing)
 {
-    (void)trailing;
-    (void)params;
-    return ircReply(fd, ":ircserv PONG ircserv :ircserv");
+    // The token is usually in params[0] or trailing (depending on the client)
+    std::string token = params.empty() ? trailing : params[0];
+
+    if (token.empty())
+    {
+        // RFC 2812 says ERR_NEEDMOREPARAMS (461) should be sent if no token
+        sendNumeric(fd, 461, "PING", "Not enough parameters");
+        return;
+    }
+
+    // Format: :servername PONG servername :token
+    std::string pongMsg = ":" + _serverName + " PONG " + _serverName + " :" + token + "\r\n";
+
+    sendToClient(fd, pongMsg);
 }
 
 void Server::join(int fd, std::vector<std::string> &params, std::string trailing)
@@ -115,7 +139,7 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
     // Fix #2: check params is non-empty before any access
     std::string name = params[0];
     if (!valid_channel_name(name))
-        return ircReply(fd, ERR_BADCHANMASK, name, "Bad Channel Mask");
+        return sendNumeric(fd, ERR_BADCHANMASK, name, "Bad Channel Mask");
 
     std::map<std::string, Channel>::iterator it = _channels.find(name);
     if (it != _channels.end() && it->second.isMember(_users[fd]))
@@ -137,13 +161,13 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
             if (params.size() > 1)
                 key = params[1];
             else
-                return ircReply(fd, ERR_INVALIDMODEPARAM, "JOIN", "channel requires a key");
+                return sendNumeric(fd, ERR_INVALIDMODEPARAM, "JOIN", "channel requires a key");
 
             if (!channel.verifyKey(key))
-                return ircReply(fd, ERR_BADCHANNELKEY, "JOIN", "Cannot join channel (+k) - bad key");
+                return sendNumeric(fd, ERR_BADCHANNELKEY, "JOIN", "Cannot join channel (+k) - bad key");
         }
         if (channel.hasMode('i') && !channel.isInvited(_users[fd].getNick()))
-            return ircReply(fd, ERR_INVITEONLYCHAN, "JOIN", "Cannot join channel (+i) - you must be invited");
+            return sendNumeric(fd, ERR_INVITEONLYCHAN, "JOIN", "Cannot join channel (+i) - you must be invited");
 
         it->second.addMember(_users[fd]);
     }
@@ -156,11 +180,11 @@ void Server::part(int fd, std::vector<std::string> &params, std::string trailing
     std::string channel_name = params[0];
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it == _channels.end())
-        return ircReply(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
+        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
 
     Channel channel = it->second;
     if (!channel.isMember(fd))
-        return ircReply(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
+        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
 
     User &user = _users[fd];
     std::string message = ":" + user.getNick() +
@@ -195,29 +219,29 @@ void Server::invite(int fd, std::vector<std::string> &params, std::string traili
             std::stringstream ss;
             ss << it->second;
             std::string timeStr = ss.str();
-            ircReply(fd, RPL_INVITELIST, channelName, timeStr);
+            sendNumeric(fd, RPL_INVITELIST, channelName, timeStr);
         }
-        ircReply(fd, RPL_ENDOFINVITELIST, username, "End of /INVITE list");
+        sendNumeric(fd, RPL_ENDOFINVITELIST, username, "End of /INVITE list");
     }
     else if (params.size() == 2)
     {
         User *target = findUserByNick(params[0]);
         if (!target)
-            return ircReply(fd, ERR_NOSUCHNICK, params[0], "User doesnt exist");
+            return sendNumeric(fd, ERR_NOSUCHNICK, params[0], "User doesnt exist");
         std::map<std::string, Channel>::iterator it = _channels.find(params[1]);
         std::cout << "channel name = " << params[1] << "\n";
         if (it == _channels.end())
-            return ircReply(fd, ERR_NOSUCHCHANNEL, params[1], "No such channel!");
+            return sendNumeric(fd, ERR_NOSUCHCHANNEL, params[1], "No such channel!");
         Channel &channel = it->second;
         if (!channel.isMember(fd))
-            return ircReply(fd, ERR_NOTONCHANNEL, params[1], "You're not on that channel.");
+            return sendNumeric(fd, ERR_NOTONCHANNEL, params[1], "You're not on that channel.");
         if (!channel.isOperator(fd))
-            return ircReply(fd, ERR_CHANOPRIVSNEEDED, params[1], "You're not channel operator");
+            return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, params[1], "You're not channel operator");
         channel.addInvite(*target);
-        return ircReply(fd, RPL_INVITING, target->getNick(), channel.getName());
+        return sendNumeric(fd, RPL_INVITING, target->getNick(), channel.getName());
     }
     else
-        return ircReply(fd, ERR_NEEDMOREPARAMS, "INVITE", "Need more params nigga");
+        return sendNumeric(fd, ERR_NEEDMOREPARAMS, "INVITE", "Need more params nigga");
 }
 
 void Server::topic(int fd, std::vector<std::string> &params, std::string trailing)
@@ -227,20 +251,20 @@ void Server::topic(int fd, std::vector<std::string> &params, std::string trailin
     std::string channel_name = params[0];
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it == _channels.end())
-        return ircReply(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
+        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
     Channel &channel = it->second;
     if (!channel.isMember(fd))
-        return ircReply(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
+        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
 
     if (params.size() == 1)
     {
         if (channel.getTopic().content.empty())
-            return ircReply(fd, RPL_NOTOPIC, channel_name, "No topic is set");
-        ircReply(fd, RPL_TOPIC, channel_name, channel.getTopic().content);
+            return sendNumeric(fd, RPL_NOTOPIC, channel_name, "No topic is set");
+        sendNumeric(fd, RPL_TOPIC, channel_name, channel.getTopic().content);
         std::string time_str = timeToStr(channel.getTopic().creationTime);
-        return ircReply(fd, RPL_TOPICWHOTIME, channel_name, channel.getTopic().setBy + " " + time_str);
+        return sendNumeric(fd, RPL_TOPICWHOTIME, channel_name, channel.getTopic().setBy + " " + time_str);
     }
     if (!channel.isOperator(fd) && channel.hasMode('t'))
-        return ircReply(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
+        return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
     channel.setTopic(trailing, _users[fd].getNick());
 }

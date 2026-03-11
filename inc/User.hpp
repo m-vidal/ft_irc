@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 19:28:31 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:04:51 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,11 +43,11 @@ public:
 	~User(void);
 
 	// getters
-	std::string getHostname(void) const;
-	std::string getUsername(void) const;
-	std::string getRealname(void) const;
-	std::string getBuffer(void) const;
-	std::string getNick(void) const;
+	const std::string &getHostname(void) const;
+	const std::string &getUsername(void) const;
+	const std::string &getRealname(void) const;
+	const std::string &getBuffer(void) const;
+	const std::string &getNick(void) const;
 	int getFd(void) const;
 
 	// setters
@@ -74,6 +74,8 @@ public:
 	void removeInvite(const std::string &channelName);
 	bool isInvited(const std::string &channelName);
 	std::map<std::string, time_t> &getInvites();
+
+	std::string getPrefix() const;
 };
 
 #endif

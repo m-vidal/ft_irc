@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 15:18:01 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:19:17 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,9 @@ public:
 	~Channel();
 	// do not add default constructor use find istead
 	Channel(const std::string &name);
-	std::string getName(void) const;
+	const std::string &getName(void) const;
 	std::string getMemberNickList(void) const;
-	std::map<int, Member> getMembers(void) const;
+	const std::map<int, Member> &getMembers(void) const;
 	size_t getMemberCount(void) const;
 
 	void setName(const std::string &newName);
@@ -75,7 +75,7 @@ public:
 	bool hasMode(const char c) const;
 	std::string getModeStr() const;
 
-	std::string getCreationTimeStr();
+	std::string getCreationTimeStr() const;
 
 	void setKey(std::string &new_key);
 	void unsetKey();

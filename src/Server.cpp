@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 15:21:43 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 17:01:53 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,8 @@ Server::~Server(void)
         close(_socket);
 }
 
-Server::Server(unsigned short &port, std::string &password)
-    : _onlineUsers(0), _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port)
+Server::Server(unsigned short &port, std::string &password, std::string name)
+    : _onlineUsers(0), _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port), _serverName(name)
 {
     if (!checkPassword(password))
         throw std::runtime_error("Error: password too weak!");
@@ -54,12 +54,6 @@ Server::Server(unsigned short &port, std::string &password)
 
     setknowncommands();
     is_running = false;
-}
-
-void Server::sendToClient(int fd, std::string str)
-{
-    str += "\r\n";
-    send(fd, str.c_str(), str.size(), 0);
 }
 
 void Server::disconnectClient(int fd)
@@ -217,20 +211,20 @@ void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &
     // 1. Check if command exists
     std::map<std::string, Command>::iterator it = _commands.find(cmd);
     if (it == _commands.end())
-        return ircReply(fd, ERR_UNKNOWNCOMMAND, cmd, "Unknown command");
+        return sendNumeric(fd, ERR_UNKNOWNCOMMAND, cmd, "Unknown command");
 
     // if (!user.checkIsPassAccepted() && cmd != "/PASS")
-    //     return ircReply(fd, ERR_PASSWDMISMATCH, "*", "password not provided yet");
+    //     return sendNumeric(fd, ERR_PASSWDMISMATCH, "*", "password not provided yet");
 
     // if (!user.isAuthenticated() && cmd != "/PASS" && cmd != "/NICK" && cmd != "/USER")
-    //     return ircReply(fd, ERR_NOTREGISTERED, "*", "You have not registered");
+    //     return sendNumeric(fd, ERR_NOTREGISTERED, "*", "You have not registered");
 
     std::size_t params_needed = it->second.minArgs;
     std::cout << "params given " << args.size() << "\n";
     std::cout << "params needed " << params_needed << "\n";
 
     if ((args.size() < params_needed) || (it->second.needTrail && trailing.empty()))
-        return ircReply(fd, ERR_NEEDMOREPARAMS, cmd, "Need more params nigga");
+        return sendNumeric(fd, ERR_NEEDMOREPARAMS, cmd, "Need more params nigga");
 
     (this->*(it->second.handler))(fd, args, trailing);
 }
@@ -250,12 +244,12 @@ void Server::decUsers(void)
     std::cout << "Online users: " << _onlineUsers << "." << std::endl;
 }
 
+// 1. For Multi-Channel events (like NICK or QUIT)
 void Server::sendToChannel(const Channel &chan, const std::string &msg, std::set<int> &notified)
 {
-    std::map<int, Member> members = chan.getMembers();
-    std::map<int, Member>::const_iterator it;
+    const std::map<int, Member> &members = chan.getMembers();
 
-    for (it = members.begin(); it != members.end(); ++it)
+    for (std::map<int, Member>::const_iterator it = members.begin(); it != members.end(); ++it)
     {
         int fd = it->first;
         if (notified.find(fd) == notified.end())
@@ -266,22 +260,25 @@ void Server::sendToChannel(const Channel &chan, const std::string &msg, std::set
     }
 }
 
-void Server::sendToChannel(const Channel &chan, const std::string &msg)
+// 2. For Single-Channel events (like PRIVMSG or KICK)
+void Server::sendToChannel(const Channel &chan, const std::string &msg, int skipFd)
 {
-    std::map<int, Member> members = chan.getMembers();
-    std::map<int, Member>::const_iterator it;
+    const std::map<int, Member> &members = chan.getMembers();
 
-    for (it = members.begin(); it != members.end(); ++it)
+    for (std::map<int, Member>::const_iterator it = members.begin(); it != members.end(); ++it)
     {
         int fd = it->first;
-        this->sendToClient(fd, msg);
+        if (fd != skipFd)
+        {
+            this->sendToClient(fd, msg);
+        }
     }
 }
 
 void Server::sendToUserChannels(const User &user, const std::string &msg)
 {
     std::set<int> notified;
-    // Usually, we don't want the sender to get their own NICK/QUIT message
+    // We seed the set with the sender so they don't get their own message back
     notified.insert(user.getFd());
 
     std::map<std::string, Channel>::iterator it;
@@ -289,10 +286,16 @@ void Server::sendToUserChannels(const User &user, const std::string &msg)
     {
         if (it->second.isMember(user.getFd()))
         {
-            // Delegate to our helper method
             this->sendToChannel(it->second, msg, notified);
         }
     }
 }
 
-std::string ircToLower(std::string str);
+void Server::sendToClient(int fd, const std::string &rawMsg)
+{
+    // In production/42 eval, it's good to check if send() fails
+    if (send(fd, rawMsg.c_str(), rawMsg.size(), 0) == -1)
+    {
+        // Log error or handle disconnected peer if necessary
+    }
+}
