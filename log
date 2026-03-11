@@ -1,0 +1,64 @@
+src/Reply.cpp: In member function ‘void Server::ircReply(const Channel&, int, int, const std::string&, const std::string&) const’:
+src/Reply.cpp:23:18: error: passing ‘const Server’ as ‘this’ argument discards qualifiers [-fpermissive]
+   23 |     sendToChannel(channel, reply);
+      |     ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+In file included from src/Reply.cpp:15:
+./inc/Server.hpp:118:14: note:   in call to ‘void Server::sendToChannel(const Channel&, const std::string&)’
+  118 |         void sendToChannel(const Channel &chan, const std::string &msg);
+      |              ^~~~~~~~~~~~~
+src/Reply.cpp: At global scope:
+src/Reply.cpp:26:6: error: no declaration matches ‘void Server::ircReply(int, int, const std::string&, const std::string&) const’
+   26 | void Server::ircReply(int fd, int code, const std::string &command, const std::string &trailing) const
+      |      ^~~~~~
+src/Reply.cpp:17:6: note: candidates are: ‘void Server::ircReply(const Channel&, int, int, const std::string&, const std::string&) const’
+   17 | void Server::ircReply(const Channel &channel, int fd, int code, const std::string &command, const std::string &trailing) const
+      |      ^~~~~~
+./inc/Server.hpp:67:14: note:                 ‘void Server::ircReply(int, const std::string&)’
+   67 |         void ircReply(int fd, const std::string &msg);
+      |              ^~~~~~~~
+./inc/Server.hpp:66:14: note:                 ‘void Server::ircReply(int, const std::string&, const std::string&)’
+   66 |         void ircReply(int fd, const std::string &command, const std::string &trailing);
+      |              ^~~~~~~~
+./inc/Server.hpp:65:14: note:                 ‘void Server::ircReply(int, int, const std::string&, const std::string&)’
+   65 |         void ircReply(int fd, int code, const std::string &command, const std::string &trailing);
+      |              ^~~~~~~~
+./inc/Server.hpp:55:7: note: ‘class Server’ defined here
+   55 | class Server
+      |       ^~~~~~
+src/Reply.cpp:34:6: error: no declaration matches ‘void Server::ircReply(int, const std::string&) const’
+   34 | void Server::ircReply(int fd, const std::string &msg) const
+      |      ^~~~~~
+src/Reply.cpp:17:6: note: candidates are: ‘void Server::ircReply(const Channel&, int, int, const std::string&, const std::string&) const’
+   17 | void Server::ircReply(const Channel &channel, int fd, int code, const std::string &command, const std::string &trailing) const
+      |      ^~~~~~
+./inc/Server.hpp:67:14: note:                 ‘void Server::ircReply(int, const std::string&)’
+   67 |         void ircReply(int fd, const std::string &msg);
+      |              ^~~~~~~~
+./inc/Server.hpp:66:14: note:                 ‘void Server::ircReply(int, const std::string&, const std::string&)’
+   66 |         void ircReply(int fd, const std::string &command, const std::string &trailing);
+      |              ^~~~~~~~
+./inc/Server.hpp:65:14: note:                 ‘void Server::ircReply(int, int, const std::string&, const std::string&)’
+   65 |         void ircReply(int fd, int code, const std::string &command, const std::string &trailing);
+      |              ^~~~~~~~
+./inc/Server.hpp:55:7: note: ‘class Server’ defined here
+   55 | class Server
+      |       ^~~~~~
+src/Reply.cpp:39:6: error: no declaration matches ‘void Server::ircReply(int, const std::string&, const std::string&) const’
+   39 | void Server::ircReply(int fd, const std::string &command, const std::string &trailing) const
+      |      ^~~~~~
+src/Reply.cpp:17:6: note: candidates are: ‘void Server::ircReply(const Channel&, int, int, const std::string&, const std::string&) const’
+   17 | void Server::ircReply(const Channel &channel, int fd, int code, const std::string &command, const std::string &trailing) const
+      |      ^~~~~~
+./inc/Server.hpp:67:14: note:                 ‘void Server::ircReply(int, const std::string&)’
+   67 |         void ircReply(int fd, const std::string &msg);
+      |              ^~~~~~~~
+./inc/Server.hpp:66:14: note:                 ‘void Server::ircReply(int, const std::string&, const std::string&)’
+   66 |         void ircReply(int fd, const std::string &command, const std::string &trailing);
+      |              ^~~~~~~~
+./inc/Server.hpp:65:14: note:                 ‘void Server::ircReply(int, int, const std::string&, const std::string&)’
+   65 |         void ircReply(int fd, int code, const std::string &command, const std::string &trailing);
+      |              ^~~~~~~~
+./inc/Server.hpp:55:7: note: ‘class Server’ defined here
+   55 | class Server
+      |       ^~~~~~
+make: *** [Makefile:42: obj/Reply.o] Error 1

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 19:22:46 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 12:18:32 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,7 @@ public:
 
 	void addInvite(User &user);
 	void removeInvite(User &user);
+	bool isInvited(const std::string &user_nick) const;
 
 private:
 	std::map<char, bool> _mode;

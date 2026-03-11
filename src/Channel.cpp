@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/03 17:48:29 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 19:27:12 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 12:19:11 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,4 +182,9 @@ void Channel::removeInvite(User &user)
 
 	// 2. Update User's list
 	user.removeInvite(this->getName());
+}
+
+bool Channel::isInvited(const std::string &user_nick) const
+{
+	return _invited_users.find(user_nick) != _invited_users.end();
 }

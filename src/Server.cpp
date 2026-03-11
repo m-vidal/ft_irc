@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 12:46:21 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 13:21:41 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,9 +121,9 @@ void Server::acceptNewClient()
 
     char hostname[NI_MAXHOST];
     // getnameinfo converts the raw address into a human-readable hostname or IP
-    int res = getnameinfo((struct sockaddr *)&clientAddr, clientLen, 
+    int res = getnameinfo((struct sockaddr *)&clientAddr, clientLen,
                           hostname, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-    
+
     std::string finalHost;
     if (res == 0)
         finalHost = hostname;
@@ -132,7 +132,7 @@ void Server::acceptNewClient()
 
     fcntl(fd, F_SETFL, O_NONBLOCK);
     _polls.push_back((struct pollfd){fd, POLLIN, 0});
-    
+
     // Pass the hostname to your User constructor
     _users.insert(std::make_pair(fd, User(fd, finalHost)));
 
@@ -240,7 +240,7 @@ void Server::decUsers(void)
     std::cout << "Online users: " << _onlineUsers << "." << std::endl;
 }
 
-void Server::sendToMembers(const Channel &chan, const std::string &msg, std::set<int> &notified)
+void Server::sendToChannel(const Channel &chan, const std::string &msg, std::set<int> &notified) 
 {
     std::map<int, Member> members = chan.getMembers();
     std::map<int, Member>::const_iterator it;
@@ -256,7 +256,19 @@ void Server::sendToMembers(const Channel &chan, const std::string &msg, std::set
     }
 }
 
-void Server::sendToChannels(const User &user, const std::string &msg)
+void Server::sendToChannel(const Channel &chan, const std::string &msg)
+{
+    std::map<int, Member> members = chan.getMembers();
+    std::map<int, Member>::const_iterator it;
+
+    for (it = members.begin(); it != members.end(); ++it)
+    {
+        int fd = it->first;
+        this->sendToClient(fd, msg);
+    }
+}
+
+void Server::sendToUserChannels(const User &user, const std::string &msg)
 {
     std::set<int> notified;
     // Usually, we don't want the sender to get their own NICK/QUIT message
@@ -268,7 +280,7 @@ void Server::sendToChannels(const User &user, const std::string &msg)
         if (it->second.isMember(user.getFd()))
         {
             // Delegate to our helper method
-            this->sendToMembers(it->second, msg, notified);
+            this->sendToChannel(it->second, msg, notified);
         }
     }
 }

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/10 18:38:24 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 13:25:43 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,10 +62,11 @@ public:
 	~Server();
 
 	void listenMode();
-	void ircReply(int fd, int code, const std::string &command, const std::string &trailing) const;
-	void ircReply(int fd, const std::string &command, const std::string &trailing) const;
-	void ircReply(int fd, const std::string &msg) const;
+	void ircReply(int fd, int code, const std::string &command, const std::string &trailing);
+	void ircReply(int fd, const std::string &command, const std::string &trailing);
+	void ircReply(int fd, const std::string &msg);
 	void sendToClient(int fd, std::string str);
+	void ircReply(const Channel &channel, int fd, int code, const std::string &command, const std::string &trailing);
 
 private:
 	// data ---------------------------
@@ -74,8 +75,8 @@ private:
 	std::map<std::string, Channel> _channels;
 	const std::string _password;
 	const short _socket;
-	std::map<int, User> _users; // um mapa porque assim conseguimos identificar cada user pelo seu fd
-	std::vector<pollfd> _polls; // para controlar os eventos de cada cliente
+	std::map<int, User> _users;
+	std::vector<pollfd> _polls;
 	struct sockaddr_in _addr;
 	const short _port;
 
@@ -113,8 +114,9 @@ private:
 	int getFdFromNick(std::string nick);
 	User *findUserByNick(const std::string &nick);
 
-	void sendToMembers(const Channel &chan, const std::string &msg, std::set<int> &notified);
-	void sendToChannels(const User &user, const std::string &msg);
+	void sendToChannel(const Channel &chan, const std::string &msg, std::set<int> &notified);
+	void sendToChannel(const Channel &chan, const std::string &msg);
+	void sendToUserChannels(const User &user, const std::string &msg);
 
 	void sendUserList(const Channel &channel, const int &fd);
 	std::string getUserNick(int fd) const;

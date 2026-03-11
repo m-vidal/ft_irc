@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 19:37:37 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 13:03:10 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ void Server::nick(int fd, std::vector<std::string> &params, std::string trailing
             if (it->second.isMember(_users[fd]))
             {
                 // broadcastToChannel(it->second, message, notified);
-                sendToMembers(it->second, message, notified);
+                sendToChannel(it->second, message, notified);
             }
         }
     }
@@ -137,11 +137,11 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
                 return ircReply(fd, ERR_INVALIDMODEPARAM, "JOIN", "channel requires a key");
 
             if (!channel.verifyKey(key))
-                return ircReply(fd, ERR_BADCHANNELKEY, "JOIN", "Cannot join channel (+k)");
+                return ircReply(fd, ERR_BADCHANNELKEY, "JOIN", "Cannot join channel (+k) - bad key");
         }
-        if (channel.hasMode('i'))
-        {
-        }
+        if (channel.hasMode('i') && !channel.isInvited(_users[fd].getNick()))
+            return ircReply(fd, ERR_INVITEONLYCHAN, "JOIN", "Cannot join channel (+i) - you must be invited");
+
         _channels[name].addMember(_users[fd]);
     }
     sendUserList(_channels[name], fd);
@@ -170,7 +170,7 @@ void Server::part(int fd, std::vector<std::string> &params, std::string trailing
     }
     std::set<int> notified;
     // broadcastToChannel(channel, message, notified);
-    sendToMembers(channel, message, notified);
+    sendToChannel(channel, message, notified);
     channel.removeMember(fd);
     if (channel.getMemberCount() == 0)
         _channels.erase(channel_name);
@@ -214,100 +214,4 @@ void Server::invite(int fd, std::vector<std::string> &params, std::string traili
     }
     else
         return ircReply(fd, ERR_NEEDMOREPARAMS, "INVITE", "Need more params nigga");
-}
-
-void Server::mode(int fd, std::vector<std::string> &params, std::string trailing)
-{
-    (void)fd;
-    (void)params;
-    (void)trailing;
-    std::string channel_name = params[0];
-    std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
-    if (it == _channels.end())
-        return ircReply(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
-
-    Channel &channel = (it->second);
-    if (!channel.isMember(fd))
-        return ircReply(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
-    if (params.size() == 1)
-    {
-        ircReply(fd, RPL_CHANNELMODEIS, channel_name, channel.getModeStr());
-        return ircReply(fd, RPL_CREATIONTIME, channel_name, channel.getCreationTimeStr());
-    }
-    if (params.size() > 1)
-    {
-        if (!channel.isOperator(fd))
-            return ircReply(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
-
-        applyModeString(fd, params, trailing, channel);
-    }
-    ircReply(fd, RPL_CHANNELMODEIS, channel_name, channel.getModeStr());
-}
-
-bool Server::mode_k(int fd, std::vector<std::string> &params, Channel &channel, size_t j)
-{
-
-    if (params.size() <= j)
-    {
-        ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k missing key parameter");
-        return 1;
-    }
-    if (params[j].find_first_of(" ") != params[j].npos)
-    {
-
-        ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k '" + params[j] + "' key must not have spaces");
-        return 1;
-    }
-    if (params[j].size() > channel.MAX_KEY_LEN)
-    {
-        std::stringstream ss;
-        ss << " +k '" << params[j] << "' key must not exceed "
-           << channel.MAX_KEY_LEN << " characters";
-
-        ircReply(fd, ERR_INVALIDMODEPARAM, channel.getName(), ss.str());
-    }
-    channel.setKey(params[j]);
-    return 0;
-}
-
-void Server::applyModeString(int fd, std::vector<std::string> &params, std::string trailing, Channel &channel)
-{
-    (void)trailing;
-    bool adding = true;
-    std::string modes = params[1];
-    for (size_t i = 0; i < modes.length(); ++i)
-    {
-        size_t j = 2;
-        char c = modes[i];
-        if (c == '+')
-        {
-            adding = true;
-            continue;
-        }
-        if (c == '-')
-        {
-            adding = false;
-            continue;
-        }
-
-        if (adding)
-        {
-            std::cout << "agora\n";
-            if (c == 'k')
-            {
-                if (mode_k(fd, params, channel, j))
-                    return;
-                j++;
-            }
-            if (c == 'i')
-            {
-                if (mode_k(fd, params, channel, j))
-                    return;
-                j++;
-            }
-            channel.setMode(c);
-        }
-        else
-            channel.unsetMode(c);
-    }
 }

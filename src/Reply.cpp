@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 12:37:55 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/11 13:30:30 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,16 @@
 #include "Channel.hpp"
 #include "Server.hpp"
 
-void Server::ircReply(int fd, int code, const std::string &command, const std::string &trailing) const
+void Server::ircReply(const Channel &channel, int fd, int code, const std::string &command, const std::string &trailing)
+{
+    std::stringstream ss;
+
+    ss << std::setw(3) << std::setfill('0') << code;
+    std::string reply = ":ircserv " + ss.str() + " " + getUserNick(fd) + " " + command + " :" + trailing + "\r\n";
+    sendToChannel(channel, reply);
+}
+
+void Server::ircReply(int fd, int code, const std::string &command, const std::string &trailing)
 {
     std::stringstream ss;
 
@@ -22,12 +31,12 @@ void Server::ircReply(int fd, int code, const std::string &command, const std::s
     std::string reply = ":ircserv " + ss.str() + " " + getUserNick(fd) + " " + command + " :" + trailing + "\r\n";
     send(fd, reply.c_str(), reply.size(), 0);
 }
-void Server::ircReply(int fd, const std::string &msg) const
+void Server::ircReply(int fd, const std::string &msg)
 {
     std::string reply = msg + "\r\n";
     send(fd, reply.c_str(), reply.size(), 0);
 }
-void Server::ircReply(int fd, const std::string &command, const std::string &trailing) const
+void Server::ircReply(int fd, const std::string &command, const std::string &trailing)
 {
     std::map<int, User>::const_iterator it = _users.find(fd);
 
@@ -60,7 +69,7 @@ void Server::sendUserList(const Channel &channel, const int &fd)
     std::set<int> notified;
     notified.insert(fd);
     // broadcastToChannel(channel, message, notified);
-    sendToMembers(channel, message, notified);
+    sendToChannel(channel, message, notified);
     ircReply(fd, "JOIN", channel.getName());
 
     std::string mode_msg = " MODE " + channel.getName() + channel.getModeStr();
