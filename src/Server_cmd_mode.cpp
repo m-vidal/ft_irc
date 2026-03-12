@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/11 12:29:57 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/12 13:21:28 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 15:17:10 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,11 +55,11 @@ bool Server::mode_k(int fd, std::vector<std::string> &params, Channel &channel, 
         sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k '" + params[j] + "' key must not have spaces");
         return 1;
     }
-    if (params[j].size() > MAX_KEY_LEN)
+    if (params[j].size() > MAX_CHAN_KEY_LEN)
     {
         std::stringstream ss;
         ss << " +k '" << params[j] << "' key must not exceed "
-           << MAX_KEY_LEN << " characters";
+           << MAX_CHAN_KEY_LEN << " characters";
 
         sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName(), ss.str());
     }

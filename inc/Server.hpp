@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/12 15:02:24 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 15:25:08 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ public:
 	bool is_running;
 	static const int MAX_CHAN_KEY_LEN = 23;
 	static const size_t MAX_CHAN_NAME = 200;
-	static const size_t MAX_JOINED_CHAN = 20;
+	static const size_t MAX_JOINED_CHAN = 10;
 
 	Server(unsigned short &port, std::string &password, std::string name);
 	~Server();

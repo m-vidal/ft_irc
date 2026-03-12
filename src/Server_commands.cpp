@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/12 15:05:55 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 18:04:09 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,7 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it != _channels.end() && it->second.isMember(user))
         return;
-    if (user.getChannelCount() > MAX_JOINED_CHAN)
+    if (user.getChannelCount() + 1 > MAX_JOINED_CHAN)
         return sendNumeric(fd, ERR_TOOMANYCHANNELS, channel_name, "You have joined too many channels");
     if (it == _channels.end()) // channel dosent exits, create channel
     {
@@ -142,7 +142,10 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
         std::cout << "Channel " << channel_name << " created." << std::endl;
         std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
         if (it != _channels.end())
+        {
+            user.addChannel(channel_name);
             it->second.addOperator(user);
+        }
     }
     else if (it != _channels.end() && !(it->second.isMember(user)))
     {
@@ -161,6 +164,7 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
         if (channel.hasMode('i') && !channel.isInvited(user.getNick()))
             return sendNumeric(fd, ERR_INVITEONLYCHAN, "JOIN", "Cannot join channel (+i) - you must be invited");
 
+        user.addChannel(channel_name);
         it->second.addMember(user);
     }
     if (it != _channels.end())

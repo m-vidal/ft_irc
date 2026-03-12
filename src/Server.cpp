@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/12 14:39:25 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 15:28:07 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,7 +212,7 @@ void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &
     std::map<std::string, Command>::iterator it = _commands.find(cmd);
     if (it == _commands.end() && user.isAuthenticated())
         return sendNumeric(fd, ERR_UNKNOWNCOMMAND, cmd, "Unknown command");
-    else
+    else if (it == _commands.end() && !user.isAuthenticated())
         return;
 
     // if (!user.checkIsPassAccepted() && cmd != "/PASS")
