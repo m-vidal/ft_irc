@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 17:38:22 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 15:00:29 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,4 +89,9 @@ std::map<std::string, time_t> &User::getInvites()
 std::string User::getPrefix() const
 {
 	return _nickname + "!" + _username + "@" + _hostname;
+}
+
+size_t User::getChannelCount() const
+{
+	return _channels.size();
 }

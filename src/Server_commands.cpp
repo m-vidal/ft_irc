@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/11 17:43:47 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 15:05:55 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,22 +127,24 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
 {
     (void)trailing;
     // Fix #2: check params is non-empty before any access
-    std::string name = params[0];
-    if (!valid_channel_name(name))
-        return sendNumeric(fd, ERR_BADCHANMASK, name, "Bad Channel Mask");
-
-    std::map<std::string, Channel>::iterator it = _channels.find(name);
-    if (it != _channels.end() && it->second.isMember(_users[fd]))
+    User &user = _users[fd];
+    std::string channel_name = params[0];
+    if (!valid_channel_name(channel_name))
+        return sendNumeric(fd, ERR_BADCHANMASK, channel_name, "Bad Channel Mask");
+    std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+    if (it != _channels.end() && it->second.isMember(user))
         return;
+    if (user.getChannelCount() > MAX_JOINED_CHAN)
+        return sendNumeric(fd, ERR_TOOMANYCHANNELS, channel_name, "You have joined too many channels");
     if (it == _channels.end()) // channel dosent exits, create channel
     {
-        _channels.insert(std::make_pair(name, Channel(name)));
-        std::cout << "Channel " << name << " created." << std::endl;
-        std::map<std::string, Channel>::iterator it = _channels.find(name);
+        _channels.insert(std::make_pair(channel_name, Channel(channel_name)));
+        std::cout << "Channel " << channel_name << " created." << std::endl;
+        std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
         if (it != _channels.end())
-            it->second.addOperator(_users[fd]);
+            it->second.addOperator(user);
     }
-    else if (it != _channels.end() && !(it->second.isMember(_users[fd])))
+    else if (it != _channels.end() && !(it->second.isMember(user)))
     {
         Channel &channel = it->second;
         if (channel.hasMode('k'))
@@ -156,10 +158,10 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
             if (!channel.verifyKey(key))
                 return sendNumeric(fd, ERR_BADCHANNELKEY, "JOIN", "Cannot join channel (+k) - bad key");
         }
-        if (channel.hasMode('i') && !channel.isInvited(_users[fd].getNick()))
+        if (channel.hasMode('i') && !channel.isInvited(user.getNick()))
             return sendNumeric(fd, ERR_INVITEONLYCHAN, "JOIN", "Cannot join channel (+i) - you must be invited");
 
-        it->second.addMember(_users[fd]);
+        it->second.addMember(user);
     }
     if (it != _channels.end())
         sendUserList(it->first, fd);

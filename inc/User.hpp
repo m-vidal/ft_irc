@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 17:04:51 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 15:06:33 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ public:
 	const std::string &getRealname(void) const;
 	const std::string &getBuffer(void) const;
 	const std::string &getNick(void) const;
+	size_t getChannelCount() const;
 	int getFd(void) const;
 
 	// setters

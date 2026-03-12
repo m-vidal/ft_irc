@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 17:28:46 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 14:39:25 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,12 +206,14 @@ void Server::parseLine(int fd, std::string line)
 
 void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &args, std::string &trailing)
 {
-    // User &user = _users[fd];
+    User &user = _users[fd];
 
     // 1. Check if command exists
     std::map<std::string, Command>::iterator it = _commands.find(cmd);
-    if (it == _commands.end())
+    if (it == _commands.end() && user.isAuthenticated())
         return sendNumeric(fd, ERR_UNKNOWNCOMMAND, cmd, "Unknown command");
+    else
+        return;
 
     // if (!user.checkIsPassAccepted() && cmd != "/PASS")
     //     return sendNumeric(fd, ERR_PASSWDMISMATCH, "*", "password not provided yet");

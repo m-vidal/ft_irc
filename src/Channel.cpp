@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/03 17:48:29 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 17:17:03 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 14:32:15 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ void Channel::initMode()
 	_mode['k'] = false; // Key protected
 	_mode['l'] = false; // Limit protected
 }
+
 Channel::Channel(const std::string &name) : _name(name), _creationTime(std::time(NULL))
 {
 	initMode();

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 17:19:17 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 13:11:35 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+
+#define CHAN_NAME_MAX = 200;
 
 class User;
 struct Member
@@ -40,11 +42,9 @@ class Channel
 {
 
 public:
-	static const int MAX_KEY_LEN = 23;
-
 	~Channel();
-	// do not add default constructor use find istead
 	Channel(const std::string &name);
+	// do not add default constructor use find istead
 	const std::string &getName(void) const;
 	std::string getMemberNickList(void) const;
 	const std::map<int, Member> &getMembers(void) const;
