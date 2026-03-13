@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/12 18:04:09 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 10:53:20 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,10 +144,11 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
         if (it != _channels.end())
         {
             user.addChannel(channel_name);
-            it->second.addOperator(user);
+            it->second.addMember(user);
+            it->second.setOperator(user, true);
         }
     }
-    else if (it != _channels.end() && !(it->second.isMember(user)))
+    else if (it != _channels.end() && !(it->second.isMember(user))) // if exist try to join
     {
         Channel &channel = it->second;
         if (channel.hasMode('k'))
@@ -163,6 +164,8 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
         }
         if (channel.hasMode('i') && !channel.isInvited(user.getNick()))
             return sendNumeric(fd, ERR_INVITEONLYCHAN, "JOIN", "Cannot join channel (+i) - you must be invited");
+        if (channel.getLimit() >= channel.getMemberCount())
+            return sendNumeric(fd, ERR_CHANNELISFULL, "JOIN", "Cannot join channel (+l)");
 
         user.addChannel(channel_name);
         it->second.addMember(user);
@@ -184,20 +187,20 @@ void Server::part(int fd, std::vector<std::string> &params, std::string trailing
 
     User &user = _users[fd];
     std::string message = ":" + user.getNick() +
-                          "!" + user.getUsername() +
-                          "@" + user.getHostname() +
-                          " PART " + channel_name;
+                          "!" + user.getUsername() + "@" + user.getHostname() + " PART " + channel_name;
 
     if (trailing.empty() == false)
     {
         message += " :" + trailing;
     }
     std::set<int> notified;
-    // broadcastToChannel(channel, message, notified);
     sendToChannel(channel, message, notified);
     channel.removeMember(fd);
     if (channel.getMemberCount() == 0)
+    {
         _channels.erase(channel_name);
+        std::cout << "channel " + channel_name + " has been erased\n";
+    }
 }
 
 void Server::invite(int fd, std::vector<std::string> &params, std::string trailing)

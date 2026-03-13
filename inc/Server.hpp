@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/12 15:25:08 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 19:38:11 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,8 +113,11 @@ private:
 
 	// mode command -----------------------------------------------------------
 	void mode(int fd, std::vector<std::string> &params, std::string trailing);
-	void applyModeString(int fd, std::vector<std::string> &params, std::string trailing, Channel &channel);
-	bool mode_k(int fd, std::vector<std::string> &params, Channel &channel, size_t j);
+	void applyModeString(int fd, std::vector<std::string> &params, Channel &channel);
+	bool mode_k(int fd, std::vector<std::string> &params, Channel &channel, size_t j, bool set);
+	bool mode_o(int fd, std::vector<std::string> &params, Channel &channel, size_t j, bool make_operator);
+	bool mode_l(int fd, std::vector<std::string> &params, Channel &channel, size_t j, bool make_operator);
+
 	// ------------------------------------------------------------------------
 
 	int getFdFromNick(std::string nick);

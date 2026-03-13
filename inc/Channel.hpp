@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/12 13:11:35 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 10:03:10 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,10 +62,8 @@ public:
 	bool isOperator(const int fd) const;
 	bool isOperator(const User &user) const;
 
-	void setOperator(const int fd);
-	void setOperator(const User &user);
-	void unsetOperator(const int fd);
-	void unsetOperator(const User &user);
+	void setOperator(int fd, bool make_operator);
+	void setOperator(const User &user, bool make_operator);
 
 	// Channel_mode
 	bool isModeChar(const char c);
@@ -89,6 +87,10 @@ public:
 	void setTopic(const std::string &new_topic, const std::string &setter);
 	const TopicData &getTopic() const;
 
+	void setLimit(size_t limit);
+	void unsetLimit();
+	size_t getLimit() const;
+
 private:
 	std::map<char, bool> _mode;
 	std::string _name;
@@ -97,6 +99,7 @@ private:
 	std::map<std::string, time_t> _invited_users;
 	time_t _creationTime;
 	std::string _key;
+	size_t _limit;
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/11 12:29:57 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/12 15:17:10 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 10:14:06 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,11 +37,64 @@ void Server::mode(int fd, std::vector<std::string> &params, std::string trailing
         if (!channel.isOperator(fd))
             return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
 
-        applyModeString(fd, params, trailing, channel);
+        applyModeString(fd, params, channel);
     }
 }
 
-bool Server::mode_k(int fd, std::vector<std::string> &params, Channel &channel, size_t j)
+void Server::applyModeString(int fd, std::vector<std::string> &params, Channel &channel)
+{
+    std::string modes = params[1];
+    bool adding = true;
+    size_t j = 2; // Parameter index starts here
+
+    for (size_t i = 0; i < modes.length(); ++i)
+    {
+        char c = modes[i];
+        if (c == '+')
+        {
+            adding = true;
+            continue;
+        }
+        if (c == '-')
+        {
+            adding = false;
+            continue;
+        }
+
+        switch (c)
+        {
+        // Modes that require a parameter
+        case 'k':
+            mode_k(fd, params, channel, j, adding);
+            if (adding)
+                j++;
+            break;
+
+        case 'o':
+            mode_o(fd, params, channel, j, adding);
+            j++; // o always consumes a parameter
+            break;
+
+        case 'l':
+            mode_l(fd, params, channel, j, adding);
+            if (adding)
+                j++;
+            break;
+
+        // Simple toggle modes (no parameters)
+        case 'i':
+        case 't':
+            adding ? channel.setMode(c) : channel.unsetMode(c);
+            break;
+
+        default:
+            sendNumeric(fd, ERR_UNKNOWNMODE, std::string(1, c), "is unknown mode char to me");
+            break;
+        }
+    }
+}
+
+bool Server::mode_k(int fd, std::vector<std::string> &params, Channel &channel, size_t j, bool adding)
 {
 
     if (params.size() <= j)
@@ -63,51 +116,74 @@ bool Server::mode_k(int fd, std::vector<std::string> &params, Channel &channel, 
 
         sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName(), ss.str());
     }
-    channel.setKey(params[j]);
+    if (adding)
+    {
+        channel.setKey(params[j]);
+        channel.setMode('k');
+    }
+    else
+    {
+        channel.unsetKey();
+        channel.unsetMode('k');
+    }
     return 0;
 }
 
-void Server::applyModeString(int fd, std::vector<std::string> &params, std::string trailing, Channel &channel)
+bool Server::mode_o(int fd, std::vector<std::string> &params, Channel &channel, size_t j, bool make_operator)
 {
-    (void)trailing;
-    bool adding = true;
-    std::string modes = params[1];
-    for (size_t i = 0; i < modes.length(); ++i)
+    if (j >= params.size())
     {
-        size_t j = 2;
-        char c = modes[i];
-        if (c == '+')
-        {
-            adding = true;
-            continue;
-        }
-        if (c == '-')
-        {
-            adding = false;
-            continue;
-        }
-
-        if (adding)
-        {
-            if (c == 'k')
-            {
-                if (mode_k(fd, params, channel, j))
-                    return;
-                j++;
-            }
-            if (!channel.hasMode(c))
-            {
-                channel.setMode(c);
-                sendNumeric(channel, fd, RPL_CHANNELMODEIS, channel.getName(), channel.getModeStr());
-            }
-        }
-        else
-        {
-            if (channel.hasMode(c))
-            {
-                channel.unsetMode(c);
-                sendNumeric(channel, fd, RPL_CHANNELMODEIS, channel.getName(), channel.getModeStr());
-            }
-        }
+        sendNumeric(fd, ERR_NEEDMOREPARAMS, "MODE +o", "is missing a parameter");
+        return true;
     }
+
+    User *target = findUserByNick(params[j]);
+    if (!target)
+    {
+        sendNumeric(fd, ERR_NOSUCHNICK, params[j], "No such nick");
+        return true;
+    }
+
+    if (!channel.isMember(target->getFd()))
+    {
+        sendNumeric(fd, ERR_USERNOTINCHANNEL, params[j], "They aren't on that channel");
+        return true;
+    }
+
+    channel.setOperator(target->getFd(), make_operator);
+    std::string msg = ":" + _users[fd].getNick() + " MODE " + channel.getName() + (make_operator ? " +o " : " -o ") + target->getNick();
+    sendToChannel(channel, msg, fd);
+    return false;
+}
+
+bool Server::mode_l(int fd, std::vector<std::string> &params, Channel &channel, size_t j, bool adding)
+{
+    if (adding)
+    {
+        if (j >= params.size())
+        {
+            sendNumeric(fd, ERR_NEEDMOREPARAMS, "MODE +l", "missing limit parameter");
+            return false;
+        }
+        int new_limit = std::atoi(params[j].c_str());
+
+        if (new_limit <= 0)
+            return true;
+
+        channel.setLimit(new_limit);
+        channel.setMode('l');
+    }
+    else
+    {
+        channel.unsetLimit();
+        channel.unsetMode('l');
+    }
+
+    // 4. Broadcast the change to the channel
+    std::string modeChar = adding ? "+l" : "-l";
+    std::string limitStr = adding ? params[j] : "";
+    std::string msg = ":" + _users[fd].getNick() + " MODE " + channel.getName() + " " + modeChar + " " + limitStr;
+    sendToChannel(channel, msg, fd);
+
+    return true; // Successfully processed
 }

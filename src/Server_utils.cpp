@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 12:37:24 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/12 14:37:13 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 10:42:21 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,11 +105,27 @@ bool Server::checkPassword(std::string password)
 
 void Server::printBanner()
 {
-    std::string cyan = "\033[36m";
-    std::string green = "\033[32m";
+    std::string colors[] = {
+        "\033[31m",
+        "\033[32m",
+        "\033[33m",
+        "\033[34m",
+        "\033[35m",
+        "\033[36m",
+        "\033[91m",
+        "\033[92m",
+        "\033[93m",
+        "\033[94m",
+        "\033[95m",
+        "\033[96m"};
+    int num_colors = 12;
+
+    std::srand(std::time(0));
+    std::string banner_color = colors[std::rand() % num_colors];
+    std::string accent_color = colors[std::rand() % num_colors];
     std::string reset = "\033[0m";
 
-    std::cout << cyan;
+    std::cout << banner_color;
     std::cout << "  _____ _____   _____  _____ ______ _______      __" << std::endl;
     std::cout << " |_   _|  __ \\ / ____|/ ____|  ____|  __ \\ \\    / /" << std::endl;
     std::cout << "   | | | |__) | |    | (___ | |__  | |__) \\ \\  / / " << std::endl;
@@ -117,9 +133,8 @@ void Server::printBanner()
     std::cout << "  _| |_| | \\ \\| |____ ____) | |____| | \\ \\  \\  /   " << std::endl;
     std::cout << " |_____|_|  \\_\\\\_____|_____/|______|_| _\\_\\  \\/    " << std::endl;
     std::cout << reset << std::endl;
-
-    std::cout << green << " [SYSTEM] " << reset << "ft_irc server started" << std::endl;
-    std::cout << green << " [INFO]   " << reset << "Listening on port: " << _port << std::endl;
+    std::cout << accent_color << " [SYSTEM] " << reset << "ft_irc server started" << std::endl;
+    std::cout << accent_color << " [INFO]   " << reset << "Listening on port: " << _port << std::endl;
     std::cout << " --------------------------------------------------" << std::endl;
 }
 

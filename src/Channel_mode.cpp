@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 08:26:11 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/10 16:50:14 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 19:10:13 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 bool Channel::isModeChar(const char c)
 {
-    std::string mode_chars = "itkol";
+    std::string mode_chars = "itkl";
     return mode_chars.find(c) != mode_chars.npos;
 }
 

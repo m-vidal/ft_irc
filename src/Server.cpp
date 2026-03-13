@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/12 15:28:07 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/12 19:03:03 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -263,14 +263,14 @@ void Server::sendToChannel(const Channel &chan, const std::string &msg, std::set
 }
 
 // 2. For Single-Channel events (like PRIVMSG or KICK)
-void Server::sendToChannel(const Channel &chan, const std::string &msg, int skipFd)
+void Server::sendToChannel(const Channel &chan, const std::string &msg, int userFd)
 {
     const std::map<int, Member> &members = chan.getMembers();
 
     for (std::map<int, Member>::const_iterator it = members.begin(); it != members.end(); ++it)
     {
         int fd = it->first;
-        if (fd != skipFd)
+        if (fd != userFd)
         {
             this->sendToClient(fd, msg);
         }

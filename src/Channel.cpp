@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/03 17:48:29 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/12 14:32:15 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 10:04:29 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ void Channel::initMode()
 	_mode['l'] = false; // Limit protected
 }
 
-Channel::Channel(const std::string &name) : _name(name), _creationTime(std::time(NULL))
+Channel::Channel(const std::string &name) : _name(name), _creationTime(std::time(NULL)), _limit(0)
 {
 	initMode();
 }
@@ -66,12 +66,6 @@ void Channel::addMember(User &user)
 	_members.insert(std::make_pair(user.getFd(), Member(false, user)));
 	std::cout << "User " << user.getNick() << " joined " << _name << "." << std::endl;
 	user.addChannel(this->getName());
-}
-
-void Channel::addOperator(const User &user)
-{
-	_members.insert(std::make_pair(user.getFd(), Member(true, user)));
-	std::cout << "User " << user.getNick() << " is now an operator of " << _name << "." << std::endl;
 }
 
 void Channel::removeMember(const int &fd)
@@ -118,34 +112,23 @@ size_t Channel::getMemberCount(void) const
 	return (_members.size());
 }
 
-void Channel::setOperator(const int fd)
+void Channel::setOperator(int fd, bool make_operator)
 {
 	std::map<int, Member>::iterator it = _members.find(fd);
+
 	if (it != _members.end())
 	{
-		it->second.is_operator = true;
-		std::cout << "User " << it->second.user.getNick() << " is now an operator." << std::endl;
+		it->second.is_operator = make_operator;
+
+		// Dynamic logging based on the toggle
+		std::string status = make_operator ? " is now an operator." : " is no longer an operator.";
+		std::cout << "User " << it->second.user.getNick() << status << std::endl;
 	}
 }
 
-void Channel::setOperator(const User &user)
+void Channel::setOperator(const User &user, bool make_operator)
 {
-	this->setOperator(user.getFd());
-}
-
-void Channel::unsetOperator(const int fd)
-{
-	std::map<int, Member>::iterator it = _members.find(fd);
-	if (it != _members.end())
-	{
-		it->second.is_operator = false;
-		std::cout << "User " << it->second.user.getNick() << " is no longer an operator." << std::endl;
-	}
-}
-
-void Channel::unsetOperator(const User &user)
-{
-	this->unsetOperator(user.getFd());
+	this->setOperator(user.getFd(), make_operator);
 }
 
 const std::map<int, Member> &Channel::getMembers(void) const
@@ -193,3 +176,20 @@ void Channel::setTopic(const std::string &new_topic, const std::string &setter)
 }
 
 const TopicData &Channel::getTopic() const { return _topic; };
+
+void Channel::setLimit(size_t limit)
+{
+	this->_limit = limit;
+	std::cout << "Channel " << _name << " limit set to " << _limit << std::endl;
+}
+
+void Channel::unsetLimit()
+{
+	this->_limit = 0; // Or whatever default you prefer
+	std::cout << "Channel " << _name << " limit removed." << std::endl;
+}
+
+size_t Channel::getLimit() const
+{
+	return this->_limit;
+}
