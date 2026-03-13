@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/11 17:38:05 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 16:04:02 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void Server::sendNumeric(int fd, int code, const std::string &params, const std:
 {
     std::string nick = _users[fd].getNick();
     std::string msg = formatNumeric(code, nick, params, trailing);
-    send(fd, msg.c_str(), msg.size(), 0);
+    sendToClient(fd, msg);
 }
 
 void Server::sendNumeric(Channel &channel, int fd, int code, const std::string &params, const std::string &trailing)

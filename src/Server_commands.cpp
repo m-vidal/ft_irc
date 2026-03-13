@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/13 10:53:20 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 15:54:10 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 
 void Server::setknowncommands(void)
 {
-    // _commands["PRIVMSG"] = &Server::msg;
     _commands["PASS"] = Command(&Server::pass, 1, false);
     _commands["NICK"] = Command(&Server::nick, 0, false);
     _commands["USER"] = Command(&Server::user, 4, false);
@@ -26,6 +25,8 @@ void Server::setknowncommands(void)
     _commands["MODE"] = Command(&Server::mode, 1, false);
     _commands["INVITE"] = Command(&Server::invite, 0, false);
     _commands["TOPIC"] = Command(&Server::topic, 1, false);
+    _commands["PRIVMSG"] = Command(&Server::msg, 1, false);
+    _commands["KICK"] = Command(&Server::kick, 2, false);
 }
 // commands
 void Server::pass(int fd, std::vector<std::string> &params, std::string trailing)
@@ -280,4 +281,94 @@ void Server::topic(int fd, std::vector<std::string> &params, std::string trailin
     if (!channel.isOperator(fd) && channel.hasMode('t'))
         return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
     channel.setTopic(trailing, _users[fd].getNick());
+}
+
+void Server::msg(int fd, std::vector<std::string> &params, std::string trailing)
+{
+    User &sender = _users[fd];
+
+    if (params.empty() || params[0].empty())
+    {
+        sendNumeric(fd, ERR_NORECIPIENT, "PRIVMSG", "No recipient given");
+        return;
+    }
+
+    if (trailing.empty())
+    {
+        sendNumeric(fd, ERR_NOTEXTTOSEND, "PRIVMSG", "No text to send");
+        return;
+    }
+
+    std::string target = params[0];
+
+    // CHANNEL MESSAGE
+    if (target[0] == '#')
+    {
+        std::map<std::string, Channel>::iterator chanIt = _channels.find(target);
+
+        if (chanIt == _channels.end())
+        {
+            sendNumeric(fd, ERR_NOSUCHCHANNEL, "PRIVMSG", "No such channel");
+            return;
+        }
+
+        Channel &channel = chanIt->second;
+
+        if (!channel.isMember(fd))
+        {
+            sendNumeric(fd, ERR_NOTONCHANNEL, "PRIVMSG", "Not on channel");
+            return;
+        }
+
+        std::string message =
+            ":" + sender.getNick() + "!" +
+            sender.getUsername() + "@" +
+            sender.getHostname() +
+            " PRIVMSG " + target + " :" + trailing;
+
+        std::set<int> notified;
+        notified.insert(fd);
+
+        sendToChannel(channel, message, notified);
+    }
+    else
+    {
+        int targetFd = getFdFromNick(target);
+
+        if (targetFd == -1 || _users.find(targetFd) == _users.end())
+        {
+            sendNumeric(fd, ERR_NOSUCHNICK, target, "No such nick");
+            return;
+        }
+
+        std::string message = formatMessage(sender, "PRIVMSG", "", trailing);
+
+        sendToClient(targetFd, message);
+    }
+}
+
+void Server::kick(int fd, std::vector<std::string> &params, std::string trailing)
+{
+    (void)trailing;
+    std::string channel_name = params[0];
+    std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+    if (it == _channels.end())
+        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
+    User *target = findUserByNick(params[1]);
+    if (!target)
+        return sendNumeric(fd, ERR_NOSUCHNICK, params[1], "User doesn't exist");
+    Channel &channel = it->second;
+    if (!channel.isMember(fd))
+        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
+    if (!channel.isOperator(fd) && channel.hasMode('t'))
+        return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
+    if (!channel.isMember(*target))
+        return sendNumeric(fd, ERR_USERNOTINCHANNEL, channel_name, "target not in channel");
+    std::string reason;
+    if (params.size() > 2)
+        reason = " : " + params[2];
+    //:<kicker_prefix> KICK <channel> <target> :<reason>"
+    std::string msg = target->getPrefix() + " KICK " + channel.getName() + " " + target->getNick() + reason;
+    sendToChannel(channel, msg, fd);
+    channel.removeMember(target->getFd());
 }
