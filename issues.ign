@@ -1,0 +1,7 @@
+
+Thu Mar 12 14:46:12 WAT 2026
+
+- nick not sending no nick given reply when no nick is given
+- user must be removed from all channels when disconnected i think, should check
+- when user join message is not broadcast and also only their name appers in member list
+- user should not be put into the list of server user before they are auth, maybe we could have a temp list of something
