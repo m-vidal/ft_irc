@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 12:37:24 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/13 10:42:21 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 17:04:14 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,4 +178,51 @@ std::string ircToLower(std::string str)
             str[i] = '^';
     }
     return str;
+}
+
+void Server::initReplies()
+{
+    // Registration & Connection
+    _replyMessages[RPL_WELCOME] = "Welcome to the Internet Relay Network";
+    _replyMessages[RPL_YOURHOST] = "Your host is running GeminiIRC";
+    _replyMessages[RPL_CREATED] = "This server was created 2026-03-13";
+    _replyMessages[RPL_MYINFO] = "GeminiIRC 1.0 itkol";
+
+    // Channel & Mode Errors
+    _replyMessages[ERR_NOSUCHNICK] = "No such nick/channel";
+    _replyMessages[ERR_NOSUCHCHANNEL] = "No such channel";
+    _replyMessages[ERR_CANNOTSENDTOCHAN] = "Cannot send to channel";
+    _replyMessages[ERR_TOOMANYCHANNELS] = "You have joined too many channels";
+    _replyMessages[ERR_CHANNELISFULL] = "Cannot join channel (+l)";
+    _replyMessages[ERR_INVITEONLYCHAN] = "Cannot join channel (+i)";
+    _replyMessages[ERR_BADCHANNELKEY] = "Cannot join channel (+k)";
+    _replyMessages[ERR_CHANOPRIVSNEEDED] = "You're not channel operator";
+    _replyMessages[ERR_USERNOTINCHANNEL] = "They aren't on that channel";
+    _replyMessages[ERR_NOTONCHANNEL] = "You're not on that channel";
+    _replyMessages[ERR_USERONCHANNEL] = "is already on channel";
+    _replyMessages[ERR_UNKNOWNMODE] = "is unknown mode char to me";
+
+    // Nickname & Registration Errors
+    _replyMessages[ERR_NONICKNAMEGIVEN] = "No nickname given";
+    _replyMessages[ERR_ERRONEUSNICKNAME] = "Erroneous nickname";
+    _replyMessages[ERR_NICKNAMEINUSE] = "Nickname is already in use";
+    _replyMessages[ERR_NOTREGISTERED] = "You have not registered";
+    _replyMessages[ERR_ALREADYREGISTERED] = "Unauthorized command (already registered)";
+    _replyMessages[ERR_PASSWDMISMATCH] = "Password incorrect";
+
+    // Misc Errors
+    _replyMessages[ERR_UNKNOWNCOMMAND] = "Unknown command";
+    _replyMessages[ERR_NEEDMOREPARAMS] = "Not enough parameters";
+    _replyMessages[ERR_INVALIDMODEPARAM] = "Invalid mode parameter";
+}
+
+const std::string &Server::getNumericMsg(int code)
+{
+    std::map<int, std::string>::const_iterator it = _replyMessages.find(code);
+    if (it != _replyMessages.end())
+        return it->second;
+
+    // Fallback if code isn't defined to prevent crashes
+    static std::string fallback = "Unknown Error";
+    return fallback;
 }

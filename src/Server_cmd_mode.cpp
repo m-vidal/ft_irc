@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/11 12:29:57 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/13 10:14:06 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 17:22:57 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,28 +14,25 @@
 #include "Channel.hpp"
 #include "Server.hpp"
 
-void Server::mode(int fd, std::vector<std::string> &params, std::string trailing)
+void Server::mode(int fd, std::vector<std::string> &params)
 {
-    (void)fd;
-    (void)params;
-    (void)trailing;
     std::string channel_name = params[0];
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it == _channels.end())
-        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
+        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name);
 
     Channel &channel = (it->second);
     if (!channel.isMember(fd))
-        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
+        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name);
     if (params.size() == 1)
     {
-        sendNumeric(fd, RPL_CHANNELMODEIS, channel_name, channel.getModeStr());
-        return sendNumeric(fd, RPL_CREATIONTIME, channel_name, channel.getCreationTimeStr());
+        sendNumeric(fd, RPL_CHANNELMODEIS, channel_name + " " + channel.getModeStr());
+        return sendNumeric(fd, RPL_CREATIONTIME, channel_name + " " + channel.getCreationTimeStr());
     }
     if (params.size() > 1)
     {
         if (!channel.isOperator(fd))
-            return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
+            return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name);
 
         applyModeString(fd, params, channel);
     }
@@ -88,7 +85,7 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, Channel &
             break;
 
         default:
-            sendNumeric(fd, ERR_UNKNOWNMODE, std::string(1, c), "is unknown mode char to me");
+            sendNumeric(fd, ERR_UNKNOWNMODE, std::string(1, c));
             break;
         }
     }
@@ -99,13 +96,13 @@ bool Server::mode_k(int fd, std::vector<std::string> &params, Channel &channel, 
 
     if (params.size() <= j)
     {
-        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k missing key parameter");
+        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName() + " +k missing key parameter");
         return 1;
     }
     if (params[j].find_first_of(" ") != params[j].npos)
     {
 
-        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName(), " +k '" + params[j] + "' key must not have spaces");
+        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName() + " +k '" + params[j]);
         return 1;
     }
     if (params[j].size() > MAX_CHAN_KEY_LEN)
@@ -114,7 +111,7 @@ bool Server::mode_k(int fd, std::vector<std::string> &params, Channel &channel, 
         ss << " +k '" << params[j] << "' key must not exceed "
            << MAX_CHAN_KEY_LEN << " characters";
 
-        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName(), ss.str());
+        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName() + ss.str());
     }
     if (adding)
     {
@@ -133,20 +130,20 @@ bool Server::mode_o(int fd, std::vector<std::string> &params, Channel &channel, 
 {
     if (j >= params.size())
     {
-        sendNumeric(fd, ERR_NEEDMOREPARAMS, "MODE +o", "is missing a parameter");
+        sendNumeric(fd, ERR_NEEDMOREPARAMS, "MODE +o is missing a parameter");
         return true;
     }
 
     User *target = findUserByNick(params[j]);
     if (!target)
     {
-        sendNumeric(fd, ERR_NOSUCHNICK, params[j], "No such nick");
+        sendNumeric(fd, ERR_NOSUCHNICK, params[j]);
         return true;
     }
 
     if (!channel.isMember(target->getFd()))
     {
-        sendNumeric(fd, ERR_USERNOTINCHANNEL, params[j], "They aren't on that channel");
+        sendNumeric(fd, ERR_USERNOTINCHANNEL, params[j]);
         return true;
     }
 
@@ -162,7 +159,7 @@ bool Server::mode_l(int fd, std::vector<std::string> &params, Channel &channel, 
     {
         if (j >= params.size())
         {
-            sendNumeric(fd, ERR_NEEDMOREPARAMS, "MODE +l", "missing limit parameter");
+            sendNumeric(fd, ERR_NEEDMOREPARAMS, "MODE +l missing limit parameter");
             return false;
         }
         int new_limit = std::atoi(params[j].c_str());

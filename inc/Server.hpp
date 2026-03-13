@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/12 19:38:11 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 17:24:44 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,15 +41,20 @@ class User;
 class Channel;
 class Server;
 
-typedef void (Server::*CommandFunc)(int fd, std::vector<std::string> &params, std::string trailing);
+typedef void (Server::*CommandFunc)(int fd, std::vector<std::string> &params);
 struct Command
 {
 	CommandFunc handler;
 	int minArgs;
-	bool needTrail;
 
 	Command();
-	Command(CommandFunc h, int args, bool trail);
+	Command(CommandFunc h, int args);
+};
+
+struct NumericInfo
+{
+	int code;
+	std::string message;
 };
 
 class Server
@@ -65,12 +70,13 @@ public:
 	~Server();
 
 	void listenMode();
-	std::string formatNumeric(int code, const std::string &nick, const std::string &params, const std::string &trailing);
-	std::string formatMessage(const User &source, const std::string &command, const std::string &params, const std::string &trailing);
-	void sendToClient(int fd, const std::string &rawMsg);
+	std::string formatNumeric(int code, const std::string &nick, const std::string &params);
+	std::string formatMessage(const User &source, const std::string &command, const std::string &params);
+	void sendToClient(int fd, const std::string rawMsg);
 	void sendUserList(const Channel &channel, int fd);
-	void sendNumeric(int fd, int code, const std::string &params, const std::string &trailing);
-	void sendNumeric(Channel &channel, int fd, int code, const std::string &params, const std::string &trailing);
+	void sendNumeric(int fd, int code);
+	void sendNumeric(int fd, int code, const std::string &params);
+	void sendNumeric(Channel &channel, int fd, int code, const std::string &params);
 
 private:
 	// data ---------------------------
@@ -84,6 +90,7 @@ private:
 	struct sockaddr_in _addr;
 	const short _port;
 	const std::string _serverName;
+	std::map<int, std::string> _replyMessages;
 
 	// methods ------------------------
 	void initPoll();
@@ -94,25 +101,29 @@ private:
 
 	void processMessage(int fd, std::string str);
 	void parseLine(int fd, std::string line);
-	void executeCommand(int fd, std::string &cmd, std::vector<std::string> &args, std::string &trailing);
+	void executeCommand(int fd, std::string &cmd, std::vector<std::string> &args);
 
 	bool checkPassword(std::string password);
 	void disconnectClient(int fd);
 	void setknowncommands();
 
 	// command functions ------------------------------------------------------
-	void msg(int fd, std::vector<std::string> &params, std::string trailing);
-	void pass(int fd, std::vector<std::string> &params, std::string trailing);
-	void nick(int fd, std::vector<std::string> &params, std::string trailing);
-	void user(int fd, std::vector<std::string> &params, std::string trailing);
-	void ping(int fd, std::vector<std::string> &params, std::string trailing);
-	void join(int fd, std::vector<std::string> &params, std::string trailing);
-	void part(int fd, std::vector<std::string> &params, std::string trailing);
-	void invite(int fd, std::vector<std::string> &params, std::string trailing);
-	void topic(int fd, std::vector<std::string> &params, std::string trailing);
+	void pass(int fd, std::vector<std::string> &params);
+	void nick(int fd, std::vector<std::string> &params);
+	void user(int fd, std::vector<std::string> &params);
+	void ping(int fd, std::vector<std::string> &params);
+	void join(int fd, std::vector<std::string> &params);
+	void part(int fd, std::vector<std::string> &params);
+	void invite(int fd, std::vector<std::string> &params);
+	void topic(int fd, std::vector<std::string> &params);
+	void msg(int fd, std::vector<std::string> &params);
+	void kick(int fd, std::vector<std::string> &params);
+	void notice(int fd, std::vector<std::string> &params);
+	void list(int fd, std::vector<std::string> &params);
+	void names(int fd, std::vector<std::string> &params);
 
 	// mode command -----------------------------------------------------------
-	void mode(int fd, std::vector<std::string> &params, std::string trailing);
+	void mode(int fd, std::vector<std::string> &params);
 	void applyModeString(int fd, std::vector<std::string> &params, Channel &channel);
 	bool mode_k(int fd, std::vector<std::string> &params, Channel &channel, size_t j, bool set);
 	bool mode_o(int fd, std::vector<std::string> &params, Channel &channel, size_t j, bool make_operator);
@@ -127,11 +138,14 @@ private:
 	void sendToChannel(const Channel &chan, const std::string &msg, int skipFd);
 	void sendToUserChannels(const User &user, const std::string &msg);
 
+	// Utils ------------------------------------------------------------------
 	std::string getUserNick(int fd) const;
 	void checkRegistration(int fd);
 	void incUsers(void);
 	void decUsers(void);
 	void printBanner();
+	void initReplies();
+	const std::string &getNumericMsg(int code);
 };
 
 bool valid_channel_name(const std::string &name);

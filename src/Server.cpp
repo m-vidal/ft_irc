@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/12 19:03:03 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 17:25:26 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 // constructor destructor
 
 Command::Command() : handler(NULL), minArgs(0) {}
-Command::Command(CommandFunc h, int args, bool trail) : handler(h), minArgs(args), needTrail(trail) {}
+Command::Command(CommandFunc h, int args) : handler(h), minArgs(args) {}
 
 Server::~Server(void)
 {
@@ -53,6 +53,8 @@ Server::Server(unsigned short &port, std::string &password, std::string name)
     }
 
     setknowncommands();
+    initReplies();
+
     is_running = false;
 }
 
@@ -201,17 +203,17 @@ void Server::parseLine(int fd, std::string line)
         std::cout << "param[" << i << "] = " << args[i] << "\n";
     std::cout << "trailing = " << trailing << "\n";
 
-    this->executeCommand(fd, command, args, trailing);
+    this->executeCommand(fd, command, args);
 }
 
-void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &args, std::string &trailing)
+void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &args)
 {
     User &user = _users[fd];
 
     // 1. Check if command exists
     std::map<std::string, Command>::iterator it = _commands.find(cmd);
-    if (it == _commands.end() && user.isAuthenticated())
-        return sendNumeric(fd, ERR_UNKNOWNCOMMAND, cmd, "Unknown command");
+    if (it == _commands.end() /*&& user.isAuthenticated()*/)
+        return sendNumeric(fd, ERR_UNKNOWNCOMMAND, cmd);
     else if (it == _commands.end() && !user.isAuthenticated())
         return;
 
@@ -225,10 +227,10 @@ void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &
     std::cout << "params given " << args.size() << "\n";
     std::cout << "params needed " << params_needed << "\n";
 
-    if ((args.size() < params_needed) || (it->second.needTrail && trailing.empty()))
-        return sendNumeric(fd, ERR_NEEDMOREPARAMS, cmd, "Not enough parameters");
+    if (args.size() < params_needed)
+        return sendNumeric(fd, ERR_NEEDMOREPARAMS, cmd);
 
-    (this->*(it->second.handler))(fd, args, trailing);
+    (this->*(it->second.handler))(fd, args); // executes the command
 }
 
 void Server::incUsers(void)
@@ -293,8 +295,9 @@ void Server::sendToUserChannels(const User &user, const std::string &msg)
     }
 }
 
-void Server::sendToClient(int fd, const std::string &rawMsg)
+void Server::sendToClient(int fd, std::string rawMsg)
 {
+    rawMsg += "\r\n";
     // In production/42 eval, it's good to check if send() fails
     if (send(fd, rawMsg.c_str(), rawMsg.size(), 0) == -1)
     {

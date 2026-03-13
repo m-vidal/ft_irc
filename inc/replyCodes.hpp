@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/28 19:07:44 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/11 14:02:43 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 17:24:35 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,5 +128,7 @@ enum NumericReply
     ERR_USERSDONTMATCH = 502,
     ERR_INVALIDMODEPARAM = 696
 };
+
+// A function that returns the string for a specific numeric
 
 #endif

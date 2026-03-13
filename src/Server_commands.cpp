@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/13 15:54:10 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/13 17:31:17 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,56 +16,56 @@
 
 void Server::setknowncommands(void)
 {
-    _commands["PASS"] = Command(&Server::pass, 1, false);
-    _commands["NICK"] = Command(&Server::nick, 0, false);
-    _commands["USER"] = Command(&Server::user, 4, false);
-    _commands["PING"] = Command(&Server::ping, 1, false);
-    _commands["JOIN"] = Command(&Server::join, 1, false);
-    _commands["PART"] = Command(&Server::part, 1, false);
-    _commands["MODE"] = Command(&Server::mode, 1, false);
-    _commands["INVITE"] = Command(&Server::invite, 0, false);
-    _commands["TOPIC"] = Command(&Server::topic, 1, false);
-    _commands["PRIVMSG"] = Command(&Server::msg, 1, false);
-    _commands["KICK"] = Command(&Server::kick, 2, false);
+    _commands["PASS"] = Command(&Server::pass, 1);
+    _commands["NICK"] = Command(&Server::nick, 0);
+    _commands["USER"] = Command(&Server::user, 4);
+    _commands["PING"] = Command(&Server::ping, 1);
+    _commands["JOIN"] = Command(&Server::join, 1);
+    _commands["PART"] = Command(&Server::part, 1);
+    _commands["MODE"] = Command(&Server::mode, 1);
+    _commands["INVITE"] = Command(&Server::invite, 0);
+    _commands["TOPIC"] = Command(&Server::topic, 1);
+    _commands["PRIVMSG"] = Command(&Server::msg, 1);
+    _commands["KICK"] = Command(&Server::kick, 2);
+    _commands["NOTICE"] = Command(&Server::notice, 0);
 }
 // commands
-void Server::pass(int fd, std::vector<std::string> &params, std::string trailing)
+void Server::pass(int fd, std::vector<std::string> &params)
 {
-    (void)trailing;
     if (_users[fd].isAuthenticated() == true)
     {
-        sendNumeric(fd, ERR_ALREADYREGISTERED, "PASS", "User already registered!");
+        sendNumeric(fd, ERR_ALREADYREGISTERED, "PASS");
         return;
     }
     if (params.size() == 0)
     {
-        sendNumeric(fd, ERR_NEEDMOREPARAMS, "INVITE", "Not enough parameters");
+        sendNumeric(fd, ERR_NEEDMOREPARAMS, "INVITE");
         return;
     }
     if (params[0] != _password)
     {
-        sendNumeric(fd, ERR_PASSWDMISMATCH, "PASS", "Wrong password!");
+        sendNumeric(fd, ERR_PASSWDMISMATCH, "PASS");
         return;
     }
     _users[fd].setPassAccepted(); // sets passAccepted to true
 }
 
-void Server::nick(int fd, std::vector<std::string> &params, std::string trailing)
+void Server::nick(int fd, std::vector<std::string> &params)
 {
     // If your parser puts the nick in trailing when no colon is used,
     // or if it's the only param, we check both.
-    std::string newNick = (params.empty()) ? trailing : params[0];
+    std::string newNick = params[0];
 
     if (newNick.empty())
     {
-        sendNumeric(fd, ERR_NONICKNAMEGIVEN, "", "No nickname given");
+        sendNumeric(fd, ERR_NONICKNAMEGIVEN);
         return;
     }
 
     // IRC Nick Rules: No leading digits, no forbidden chars
     if (std::isdigit(newNick[0]) || newNick.find_first_of(" ,*!@:#\n") != std::string::npos)
     {
-        sendNumeric(fd, ERR_ERRONEUSNICKNAME, newNick, "Erroneous nickname");
+        sendNumeric(fd, ERR_ERRONEUSNICKNAME, newNick);
         return;
     }
 
@@ -73,7 +73,7 @@ void Server::nick(int fd, std::vector<std::string> &params, std::string trailing
     User *existing = findUserByNick(newNick);
     if (existing && existing->getFd() != fd)
     {
-        sendNumeric(fd, ERR_NICKNAMEINUSE, newNick, "Nickname is already in use");
+        sendNumeric(fd, ERR_NICKNAMEINUSE, newNick);
         return;
     }
 
@@ -110,33 +110,32 @@ void Server::nick(int fd, std::vector<std::string> &params, std::string trailing
     checkRegistration(fd);
 }
 
-void Server::user(int fd, std::vector<std::string> &params, std::string trailing)
+void Server::user(int fd, std::vector<std::string> &params)
 {
     _users[fd].setUser(params[0]);
-    _users[fd].setRealname(trailing);
+    _users[fd].setRealname(params[1]);
     checkRegistration(fd);
 }
-void Server::ping(int fd, std::vector<std::string> &params, std::string trailing)
+void Server::ping(int fd, std::vector<std::string> &params)
 {
     // The token is usually in params[0] or trailing (depending on the client)
-    std::string token = params.empty() ? trailing : params[0];
+    std::string token = params[0];
     std::string pongMsg = ":" + _serverName + " PONG " + _serverName + " :" + token + "\r\n";
     sendToClient(fd, pongMsg);
 }
 
-void Server::join(int fd, std::vector<std::string> &params, std::string trailing)
+void Server::join(int fd, std::vector<std::string> &params)
 {
-    (void)trailing;
     // Fix #2: check params is non-empty before any access
     User &user = _users[fd];
     std::string channel_name = params[0];
     if (!valid_channel_name(channel_name))
-        return sendNumeric(fd, ERR_BADCHANMASK, channel_name, "Bad Channel Mask");
+        return sendNumeric(fd, ERR_BADCHANMASK, channel_name);
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it != _channels.end() && it->second.isMember(user))
         return;
     if (user.getChannelCount() + 1 > MAX_JOINED_CHAN)
-        return sendNumeric(fd, ERR_TOOMANYCHANNELS, channel_name, "You have joined too many channels");
+        return sendNumeric(fd, ERR_TOOMANYCHANNELS, channel_name);
     if (it == _channels.end()) // channel dosent exits, create channel
     {
         _channels.insert(std::make_pair(channel_name, Channel(channel_name)));
@@ -158,15 +157,15 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
             if (params.size() > 1)
                 key = params[1];
             else
-                return sendNumeric(fd, ERR_INVALIDMODEPARAM, "JOIN", "channel requires a key");
+                return sendNumeric(fd, ERR_INVALIDMODEPARAM, "JOIN");
 
             if (!channel.verifyKey(key))
-                return sendNumeric(fd, ERR_BADCHANNELKEY, "JOIN", "Cannot join channel (+k) - bad key");
+                return sendNumeric(fd, ERR_BADCHANNELKEY, "JOIN");
         }
         if (channel.hasMode('i') && !channel.isInvited(user.getNick()))
-            return sendNumeric(fd, ERR_INVITEONLYCHAN, "JOIN", "Cannot join channel (+i) - you must be invited");
+            return sendNumeric(fd, ERR_INVITEONLYCHAN, "JOIN");
         if (channel.getLimit() >= channel.getMemberCount())
-            return sendNumeric(fd, ERR_CHANNELISFULL, "JOIN", "Cannot join channel (+l)");
+            return sendNumeric(fd, ERR_CHANNELISFULL, "JOIN");
 
         user.addChannel(channel_name);
         it->second.addMember(user);
@@ -175,25 +174,21 @@ void Server::join(int fd, std::vector<std::string> &params, std::string trailing
         sendUserList(it->first, fd);
 }
 
-void Server::part(int fd, std::vector<std::string> &params, std::string trailing)
+void Server::part(int fd, std::vector<std::string> &params)
 {
     std::string channel_name = params[0];
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it == _channels.end())
-        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
+        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name);
 
     Channel channel = it->second;
     if (!channel.isMember(fd))
-        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
+        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name);
 
     User &user = _users[fd];
-    std::string message = ":" + user.getNick() +
-                          "!" + user.getUsername() + "@" + user.getHostname() + " PART " + channel_name;
-
-    if (trailing.empty() == false)
-    {
-        message += " :" + trailing;
-    }
+    std::string message = ":" + user.getPrefix() + " PART " + channel_name;
+    if (params.size() > 1)
+        message += " :" + params[1];
     std::set<int> notified;
     sendToChannel(channel, message, notified);
     channel.removeMember(fd);
@@ -204,9 +199,8 @@ void Server::part(int fd, std::vector<std::string> &params, std::string trailing
     }
 }
 
-void Server::invite(int fd, std::vector<std::string> &params, std::string trailing)
+void Server::invite(int fd, std::vector<std::string> &params)
 {
-    (void)trailing;
     std::string username = _users[fd].getUsername();
     User user = _users[fd];
     if (params.size() == 0)
@@ -219,83 +213,83 @@ void Server::invite(int fd, std::vector<std::string> &params, std::string traili
             std::stringstream ss;
             ss << it->second;
             std::string timeStr = ss.str();
-            sendNumeric(fd, RPL_INVITELIST, username, timeStr);
+            sendNumeric(fd, RPL_INVITELIST, username + " " + timeStr);
         }
-        return sendNumeric(fd, RPL_ENDOFINVITELIST, username, "End of /INVITE list");
+        return sendNumeric(fd, RPL_ENDOFINVITELIST, username);
     }
     else if (params.size() == 2)
     {
         User *target = findUserByNick(params[0]);
         if (!target)
-            return sendNumeric(fd, ERR_NOSUCHNICK, params[0], "User doesn't exist");
+            return sendNumeric(fd, ERR_NOSUCHNICK, params[0]);
 
         std::map<std::string, Channel>::iterator it = _channels.find(params[1]);
         if (it == _channels.end())
-            return sendNumeric(fd, ERR_NOSUCHCHANNEL, params[1], "No such channel!");
+            return sendNumeric(fd, ERR_NOSUCHCHANNEL, params[1]);
 
         Channel &channel = it->second;
 
         if (!channel.isMember(fd))
-            return sendNumeric(fd, ERR_NOTONCHANNEL, params[1], "You're not on that channel.");
+            return sendNumeric(fd, ERR_NOTONCHANNEL, params[1]);
 
         if (channel.hasMode('i') && !channel.isOperator(fd))
-            return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, params[1], "You're not channel operator");
+            return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, params[1]);
 
         if (channel.isMember(target->getFd()))
-            return sendNumeric(fd, ERR_USERONCHANNEL, target->getNick() + " " + params[1], "is already on channel");
+            return sendNumeric(fd, ERR_USERONCHANNEL, target->getNick() + " " + params[1]);
 
         // 1. Add to the channel's internal invite list
         channel.addInvite(*target);
 
         // 2. Notify the INVITER (Standard Numeric)
-        sendNumeric(fd, RPL_INVITING, target->getNick(), channel.getName());
+        sendNumeric(fd, RPL_INVITING, target->getNick() + " " + channel.getName());
 
         // 3. Notify the INVITED User (Raw Command)
         // Format: :InviterNick!InviterUser@InviterHost INVITE TargetNick :ChannelName
         std::string inviteMsg = ":" + _users[fd].getPrefix() + " INVITE " + target->getNick() + " :" + channel.getName() + "\r\n";
         return sendToClient(target->getFd(), inviteMsg);
     }
-    return sendNumeric(fd, ERR_NEEDMOREPARAMS, "INVITE", "Not enough parameters");
+    return sendNumeric(fd, ERR_NEEDMOREPARAMS, "INVITE");
 }
 
-void Server::topic(int fd, std::vector<std::string> &params, std::string trailing)
+void Server::topic(int fd, std::vector<std::string> &params)
 {
     if (params.size() < 1)
         throw std::runtime_error("error in Server::topic");
     std::string channel_name = params[0];
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it == _channels.end())
-        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
+        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name);
     Channel &channel = it->second;
     if (!channel.isMember(fd))
-        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
+        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name);
 
     if (params.size() == 1)
     {
         if (channel.getTopic().content.empty())
-            return sendNumeric(fd, RPL_NOTOPIC, channel_name, "No topic is set");
-        sendNumeric(fd, RPL_TOPIC, channel_name, channel.getTopic().content);
+            return sendNumeric(fd, RPL_NOTOPIC, channel_name);
+        sendNumeric(fd, RPL_TOPIC, channel_name + channel.getTopic().content);
         std::string time_str = timeToStr(channel.getTopic().creationTime);
-        return sendNumeric(fd, RPL_TOPICWHOTIME, channel_name, channel.getTopic().setBy + " " + time_str);
+        return sendNumeric(fd, RPL_TOPICWHOTIME, channel_name + " " + channel.getTopic().setBy + " " + time_str);
     }
     if (!channel.isOperator(fd) && channel.hasMode('t'))
-        return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
-    channel.setTopic(trailing, _users[fd].getNick());
+        return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name);
+    channel.setTopic(params[1], _users[fd].getNick());
 }
 
-void Server::msg(int fd, std::vector<std::string> &params, std::string trailing)
+void Server::msg(int fd, std::vector<std::string> &params)
 {
     User &sender = _users[fd];
 
     if (params.empty() || params[0].empty())
     {
-        sendNumeric(fd, ERR_NORECIPIENT, "PRIVMSG", "No recipient given");
+        sendNumeric(fd, ERR_NORECIPIENT, "PRIVMSG");
         return;
     }
 
-    if (trailing.empty())
+    if (params.size() < 2)
     {
-        sendNumeric(fd, ERR_NOTEXTTOSEND, "PRIVMSG", "No text to send");
+        sendNumeric(fd, ERR_NOTEXTTOSEND, "PRIVMSG");
         return;
     }
 
@@ -308,7 +302,7 @@ void Server::msg(int fd, std::vector<std::string> &params, std::string trailing)
 
         if (chanIt == _channels.end())
         {
-            sendNumeric(fd, ERR_NOSUCHCHANNEL, "PRIVMSG", "No such channel");
+            sendNumeric(fd, ERR_NOSUCHCHANNEL, "PRIVMSG");
             return;
         }
 
@@ -316,7 +310,7 @@ void Server::msg(int fd, std::vector<std::string> &params, std::string trailing)
 
         if (!channel.isMember(fd))
         {
-            sendNumeric(fd, ERR_NOTONCHANNEL, "PRIVMSG", "Not on channel");
+            sendNumeric(fd, ERR_NOTONCHANNEL, "PRIVMSG");
             return;
         }
 
@@ -324,7 +318,7 @@ void Server::msg(int fd, std::vector<std::string> &params, std::string trailing)
             ":" + sender.getNick() + "!" +
             sender.getUsername() + "@" +
             sender.getHostname() +
-            " PRIVMSG " + target + " :" + trailing;
+            " PRIVMSG " + target + " :" + params[1];
 
         std::set<int> notified;
         notified.insert(fd);
@@ -337,33 +331,32 @@ void Server::msg(int fd, std::vector<std::string> &params, std::string trailing)
 
         if (targetFd == -1 || _users.find(targetFd) == _users.end())
         {
-            sendNumeric(fd, ERR_NOSUCHNICK, target, "No such nick");
+            sendNumeric(fd, ERR_NOSUCHNICK, target);
             return;
         }
 
-        std::string message = formatMessage(sender, "PRIVMSG", "", trailing);
+        std::string message = formatMessage(sender, "PRIVMSG", "");
 
         sendToClient(targetFd, message);
     }
 }
 
-void Server::kick(int fd, std::vector<std::string> &params, std::string trailing)
+void Server::kick(int fd, std::vector<std::string> &params)
 {
-    (void)trailing;
     std::string channel_name = params[0];
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it == _channels.end())
-        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name, "No such channel!");
+        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name);
     User *target = findUserByNick(params[1]);
     if (!target)
-        return sendNumeric(fd, ERR_NOSUCHNICK, params[1], "User doesn't exist");
+        return sendNumeric(fd, ERR_NOSUCHNICK, params[1]);
     Channel &channel = it->second;
     if (!channel.isMember(fd))
-        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name, "You're not on that channel.");
+        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name);
     if (!channel.isOperator(fd) && channel.hasMode('t'))
-        return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name, "You're not channel operator");
+        return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name);
     if (!channel.isMember(*target))
-        return sendNumeric(fd, ERR_USERNOTINCHANNEL, channel_name, "target not in channel");
+        return sendNumeric(fd, ERR_USERNOTINCHANNEL, channel_name);
     std::string reason;
     if (params.size() > 2)
         reason = " : " + params[2];
@@ -371,4 +364,107 @@ void Server::kick(int fd, std::vector<std::string> &params, std::string trailing
     std::string msg = target->getPrefix() + " KICK " + channel.getName() + " " + target->getNick() + reason;
     sendToChannel(channel, msg, fd);
     channel.removeMember(target->getFd());
+}
+
+void Server::notice(int fd, std::vector<std::string> &params)
+{
+    // 1. Basic validation (Silent return as per RFC 2812)
+    std::map<int, User>::iterator itUser = _users.find(fd);
+    if (itUser == _users.end() || !itUser->second.isAuthenticated())
+        return;
+    if (params.size() < 2 || params[0].empty())
+        return;
+
+    User &sender = itUser->second;
+    std::string targetName = params[0];
+    std::string text = params[1];
+
+    // 2. Handle Channel Notice
+    if (targetName[0] == '#')
+    {
+        std::map<std::string, Channel>::iterator itChan = _channels.find(targetName);
+        if (itChan == _channels.end())
+            return;
+
+        Channel &channel = itChan->second;
+        // Optional: Check if sender is in channel, but some IRC setups allow external notice
+        if (!channel.isMember(fd))
+            return;
+
+        std::string message = ":" + sender.getPrefix() + " NOTICE " + targetName + " :" + text + "\r\n";
+
+        // Broadcast to everyone in channel EXCEPT the sender
+        std::set<int> exclude;
+        exclude.insert(fd);
+        sendToChannel(channel, message, exclude);
+    }
+    // 3. Handle Private Notice (User to User)
+    else
+    {
+        int targetFd = getFdFromNick(targetName);
+        if (targetFd == -1)
+            return;
+
+        std::map<int, User>::iterator itTarget = _users.find(targetFd);
+        if (itTarget == _users.end())
+            return;
+
+        std::string message = ":" + sender.getPrefix() + " NOTICE " + targetName + " :" + text + "\r\n";
+        sendToClient(targetFd, message);
+    }
+}
+
+void Server::list(int fd, std::vector<std::string> &params)
+{
+    User &user = _users[fd];
+    (void)params; // Simplified: list all channels
+
+    // 321 RPL_LISTSTART (Often optional, but good practice)
+    sendToClient(fd, formatNumeric(RPL_LISTSTART, user.getNick(), "Channel :Users Name"));
+
+    for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+    {
+        std::stringstream ss;
+        ss << it->first << " " << it->second.getMemberCount();
+
+        // RPL_LIST (322): #channel 5 :[Topic]
+        sendToClient(fd, formatNumeric(RPL_LIST, user.getNick(), ss.str() + " :" + it->second.getTopic().content));
+    }
+
+    // 323 RPL_LISTEND
+    sendToClient(fd, formatNumeric(RPL_LISTEND, user.getNick(), ""));
+}
+
+void Server::names(int fd, std::vector<std::string> &params)
+{
+    User &user = _users[fd];
+    if (!user.isAuthenticated())
+        return sendToClient(fd, formatNumeric(ERR_NOTREGISTERED, user.getNick(), "NAMES"));
+
+    // If no params, the RFC says show all visible channels/users.
+    // For 42 projects, usually showing all channels is sufficient.
+    std::vector<std::string> channelsToShow;
+    if (params.empty())
+    {
+        for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+            channelsToShow.push_back(it->first);
+    }
+    else
+    {
+        channelsToShow.push_back(params[0]);
+    }
+
+    for (size_t i = 0; i < channelsToShow.size(); ++i)
+    {
+        std::map<std::string, Channel>::iterator it = _channels.find(channelsToShow[i]);
+        if (it != _channels.end())
+        {
+            // RPL_NAMREPLY (353):  = #channel :@op member1 member2
+            std::string chanData = "= " + it->first;
+            sendToClient(fd, formatNumeric(RPL_NAMREPLY, user.getNick(), chanData + " :" + it->second.getMemberNickList()));
+
+            // RPL_ENDOFNAMES (366): #channel :End of /NAMES list
+            sendToClient(fd, formatNumeric(RPL_ENDOFNAMES, user.getNick(), it->first));
+        }
+    }
 }
