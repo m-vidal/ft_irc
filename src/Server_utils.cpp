@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 12:37:24 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/13 17:04:14 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 09:04:36 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,9 +184,9 @@ void Server::initReplies()
 {
     // Registration & Connection
     _replyMessages[RPL_WELCOME] = "Welcome to the Internet Relay Network";
-    _replyMessages[RPL_YOURHOST] = "Your host is running GeminiIRC";
+    _replyMessages[RPL_YOURHOST] = "Your host is running ft_irc";
     _replyMessages[RPL_CREATED] = "This server was created 2026-03-13";
-    _replyMessages[RPL_MYINFO] = "GeminiIRC 1.0 itkol";
+    _replyMessages[RPL_MYINFO] = "ft_irc 1.0 itkol";
 
     // Channel & Mode Errors
     _replyMessages[ERR_NOSUCHNICK] = "No such nick/channel";

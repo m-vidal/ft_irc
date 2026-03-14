@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/13 17:25:26 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 08:46:21 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,6 @@ void Server::listenMode()
             else
                 handleClientData(i);
         }
-        std::cout << "- - - - - - - - - - - - - - - - - - \n";
     }
 }
 
@@ -163,24 +162,29 @@ void Server::consumeBuffer(int fd)
         _users[fd].clearBuffer(pos + 2);
 
         if (!line.empty())
+        {
             this->parseLine(fd, line);
+            const char *raw = "- - - - - - - - - - - - - - - - - - \n";
+            write(1, raw, 37);
+        }
     }
 }
 
 void Server::parseLine(int fd, std::string line)
 {
-    std::string command, trailing;
+    std::string command;
     std::vector<std::string> args;
+    std::string trailing;
 
-    // 1. Look for the explicit trailing marked by " :"
+    // 1. Check for the colon (the "multi-word" parameter)
     size_t colonPos = line.find(" :");
     if (colonPos != std::string::npos)
     {
-        trailing = line.substr(colonPos + 2);
-        line = line.substr(0, colonPos);
+        trailing = line.substr(colonPos + 2); // Get everything after " :"
+        line = line.substr(0, colonPos);      // Keep only the part before " :"
     }
 
-    // 2. Parse the command and regular arguments
+    // 2. Parse the command and middle parameters
     std::stringstream ss(line);
     ss >> command;
     for (size_t i = 0; i < command.length(); ++i)
@@ -190,12 +194,14 @@ void Server::parseLine(int fd, std::string line)
     while (ss >> temp)
         args.push_back(temp);
 
-    // 3. Logic Shift: If no colon was used, make the last word the trailing
-    if (trailing.empty() && args.size() > 1)
+    // 3. If we found a colon part, add it as the final argument
+    if (colonPos != std::string::npos)
     {
-        trailing = args.back(); // Take the last word
-        // args.pop_back();        // Remove it from the arguments vector
+        args.push_back(trailing);
     }
+    // 4. Special case: If there was no colon, but there is no "trailing",
+    // it doesn't matter. The last word in args is already the "trailing".
+    // Example: KICK #chan Bob -> args[0] is #chan, args[1] is Bob.
 
     // Debug output
     std::cout << "cmd = " << command << "\n";
@@ -212,25 +218,26 @@ void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &
 
     // 1. Check if command exists
     std::map<std::string, Command>::iterator it = _commands.find(cmd);
-    if (it == _commands.end() /*&& user.isAuthenticated()*/)
+    if (it == _commands.end() && user.isAuthenticated())
         return sendNumeric(fd, ERR_UNKNOWNCOMMAND, cmd);
     else if (it == _commands.end() && !user.isAuthenticated())
         return;
 
-    // if (!user.checkIsPassAccepted() && cmd != "/PASS")
-    //     return sendNumeric(fd, ERR_PASSWDMISMATCH, "*", "password not provided yet");
-
-    // if (!user.isAuthenticated() && cmd != "/PASS" && cmd != "/NICK" && cmd != "/USER")
-    //     return sendNumeric(fd, ERR_NOTREGISTERED, "*", "You have not registered");
-
     std::size_t params_needed = it->second.minArgs;
-    std::cout << "params given " << args.size() << "\n";
-    std::cout << "params needed " << params_needed << "\n";
 
     if (args.size() < params_needed)
         return sendNumeric(fd, ERR_NEEDMOREPARAMS, cmd);
 
-    (this->*(it->second.handler))(fd, args); // executes the command
+    if (!user.checkIsPassAccepted() && cmd != "PASS")
+        return sendNumeric(fd, ERR_PASSWDMISMATCH, "*");
+
+    if (!user.isAuthenticated() && cmd != "PASS" && cmd != "NICK" && cmd != "USER")
+        return sendNumeric(fd, ERR_NOTREGISTERED, "*");
+
+    std::cout << "params given " << args.size() << "\n";
+    std::cout << "params needed " << params_needed << "\n";
+
+    (this->*(it->second.handler))(fd, args); // call command handler
 }
 
 void Server::incUsers(void)

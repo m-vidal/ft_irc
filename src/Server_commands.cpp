@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/13 17:31:17 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 08:48:03 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,20 +33,11 @@ void Server::setknowncommands(void)
 void Server::pass(int fd, std::vector<std::string> &params)
 {
     if (_users[fd].isAuthenticated() == true)
-    {
-        sendNumeric(fd, ERR_ALREADYREGISTERED, "PASS");
-        return;
-    }
-    if (params.size() == 0)
-    {
-        sendNumeric(fd, ERR_NEEDMOREPARAMS, "INVITE");
-        return;
-    }
+        return sendNumeric(fd, ERR_ALREADYREGISTERED, "PASS");
+
     if (params[0] != _password)
-    {
-        sendNumeric(fd, ERR_PASSWDMISMATCH, "PASS");
-        return;
-    }
+        return sendNumeric(fd, ERR_PASSWDMISMATCH, "PASS");
+
     _users[fd].setPassAccepted(); // sets passAccepted to true
 }
 
@@ -116,6 +107,7 @@ void Server::user(int fd, std::vector<std::string> &params)
     _users[fd].setRealname(params[1]);
     checkRegistration(fd);
 }
+
 void Server::ping(int fd, std::vector<std::string> &params)
 {
     // The token is usually in params[0] or trailing (depending on the client)
