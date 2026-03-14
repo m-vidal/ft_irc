@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/12 15:06:33 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 16:36:03 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,13 +34,15 @@ private:
 	std::string _inbuffer;
 	std::string _outbuffer;
 
-	const short _fd;
-	const std::string _hostname;
+	short _fd;
+	std::string _hostname;
 
 public:
 	User(int fd, const std::string &ip);
 	User(void);
 	~User(void);
+	User(const User &src);
+	User &operator=(const User &src);
 
 	// getters
 	const std::string &getHostname(void) const;

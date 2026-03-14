@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/14 14:44:29 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 17:08:18 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ void Server::pass(int fd, std::vector<std::string> &params)
         return sendNumeric(fd, ERR_PASSWDMISMATCH, "PASS");
 
     _users[fd].setPassAccepted(); // sets passAccepted to true
+    checkRegistration(fd);
 }
 
 void Server::nick(int fd, std::vector<std::string> &params)
@@ -96,8 +97,8 @@ void Server::nick(int fd, std::vector<std::string> &params)
             }
         }
     }
+    std::cout << "nickname set\n";
 
-    // Check if this NICK command completes their registration
     checkRegistration(fd);
 }
 
@@ -105,6 +106,7 @@ void Server::user(int fd, std::vector<std::string> &params)
 {
     _users[fd].setUser(params[0]);
     _users[fd].setRealname(params[1]);
+    std::cout << "username set\n";
     checkRegistration(fd);
 }
 

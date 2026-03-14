@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/14 10:40:08 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 17:08:18 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,13 +124,16 @@ void Server::acceptNewClient()
     if (res == 0)
         finalHost = hostname;
     else
-        finalHost = inet_ntoa(clientAddr.sin_addr); // Fallback to raw IP string
+    {
+        char *ip_ptr = inet_ntoa(clientAddr.sin_addr);
+        finalHost = (ip_ptr) ? ip_ptr : "unknown";
+    }
 
     fcntl(fd, F_SETFL, O_NONBLOCK);
     _polls.push_back((struct pollfd){fd, POLLIN, 0});
 
     // Pass the hostname to your User constructor
-    _users.insert(std::make_pair(fd, User(fd, finalHost)));
+    _users_not_auth.insert(std::make_pair(fd, User(fd, finalHost)));
 
     std::cout << "New connection: FD " << fd << " from " << finalHost << std::endl;
 }
@@ -215,7 +218,14 @@ void Server::parseLine(int fd, std::string line)
 
 void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &args)
 {
-    User &user = _users[fd];
+    std::map<int, User>::iterator it_user = _users.find(fd);
+    if (it_user == _users.end())
+    {
+        it_user = _users_not_auth.find(fd);
+        if (it_user == _users_not_auth.end())
+            throw std::runtime_error("User not found in any map (T - T)");
+    }
+    User &user = it_user->second;
 
     // 1. Check if command exists
     std::map<std::string, Command>::iterator it = _commands.find(cmd);
@@ -223,14 +233,11 @@ void Server::executeCommand(int fd, std::string &cmd, std::vector<std::string> &
         return sendNumeric(fd, ERR_UNKNOWNCOMMAND, cmd);
     else if (it == _commands.end() && !user.isAuthenticated())
         return;
-
+    std::cout << "command found\n";
     std::size_t params_needed = it->second.minArgs;
 
     if (args.size() < params_needed)
         return sendNumeric(fd, ERR_NEEDMOREPARAMS, cmd);
-
-    if (!user.checkIsPassAccepted() && cmd != "PASS")
-        return sendNumeric(fd, ERR_PASSWDMISMATCH, "*");
 
     if (!user.isAuthenticated() && cmd != "PASS" && cmd != "NICK" && cmd != "USER")
         return sendNumeric(fd, ERR_NOTREGISTERED, "*");
@@ -310,5 +317,28 @@ void Server::sendToClient(int fd, std::string rawMsg)
     if (send(fd, rawMsg.c_str(), rawMsg.size(), 0) == -1)
     {
         // Log error or handle disconnected peer if necessary
+    }
+}
+
+void Server::checkRegistration(int fd)
+{
+    std::map<int, User>::iterator it = _users_not_auth.find(fd);
+
+    if (it == _users_not_auth.end())
+        throw std::runtime_error("Non auth user not in _users_not_auth");
+    User &user = it->second;
+    if ((user.checkIsPassAccepted() == true) && (user.checkIsUserSet() == true) && (user.checkIsNickSet() == true))
+    {
+        user.setIsAuthenticated();
+        std::cout << "User: " << user.getNick() << " is authenticated." << std::endl;
+        sendNumeric(fd, RPL_WELCOME, "Welcome to " + _serverName);
+        sendNumeric(fd, RPL_YOURHOST, "Your host is " + _serverName + ", running version 1.0");
+        sendNumeric(fd, RPL_CREATED, "This " + _serverName + " was created " + timeToStr(_creationTime));
+        sendNumeric(fd, RPL_MYINFO, _serverName + " 1.0 ~NA +" + mode_chars);
+        incUsers();
+
+        _users_not_auth.insert(std::make_pair(fd, User(user)));
+        _users_not_auth.erase(fd);
+        std::cout << "User has been registered!\n";
     }
 }

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/14 14:47:31 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 16:23:41 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,20 +103,4 @@ void Server::sendNumeric(Channel &channel, int fd, int code, const std::string &
 void Server::sendNumeric(int fd, int code)
 {
     sendNumeric(fd, code, "");
-}
-
-void Server::checkRegistration(int fd)
-{
-    if (_users[fd].isAuthenticated() == true)
-        return;
-    if ((_users[fd].checkIsPassAccepted() == true) && (_users[fd].checkIsUserSet() == true) && (_users[fd].checkIsNickSet() == true))
-    {
-        _users[fd].setIsAuthenticated();
-        std::cout << "User: " << _users[fd].getNick() << " is authenticated." << std::endl;
-        sendNumeric(fd, RPL_WELCOME, "Welcome to " + _serverName);
-        sendNumeric(fd, RPL_YOURHOST, "Your host is " + _serverName + ", running version 1.0");
-        sendNumeric(fd, RPL_CREATED, "This " + _serverName + " was created " + timeToStr(_creationTime));
-        sendNumeric(fd, RPL_MYINFO, _serverName + " 1.0 ~NA +" + mode_chars);
-        incUsers();
-    }
 }

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/12 15:00:29 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 16:36:17 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,17 +16,39 @@
 User::User(int fd, const std::string &ip) : _isAuthenticated(false), _isPassAccepted(false), _isNickSet(false),
 											_isUserSet(false), _fd(fd), _hostname(ip)
 {
-	_nickname = "~NA";
+	_nickname = "*";
 	_username = "~NA";
 	_realName = "~NA";
 }
 
 User::User(void) : _isAuthenticated(false), _isPassAccepted(false), _isNickSet(false),
-				   _isUserSet(false), _fd(-1), _hostname(0)
+				   _isUserSet(false), _fd(-1), _hostname("")
 {
 	_nickname = "*";
 	_username = "~NA";
 	_realName = "~NA";
+}
+
+User::User(const User &src)
+{
+	*this = src; // We leverage the assignment operator here to avoid duplication
+}
+
+User &User::operator=(const User &src)
+{
+	if (this != &src) // Protection against self-assignment (u1 = u1)
+	{
+		this->_fd = src._fd;
+		this->_hostname = src._hostname;
+		this->_nickname = src._nickname;
+		this->_username = src._username;
+		this->_realName = src._realName;
+		this->_isAuthenticated = src._isAuthenticated;
+		this->_isPassAccepted = src._isPassAccepted;
+		this->_isNickSet = src._isNickSet;
+		this->_isUserSet = src._isUserSet;
+	}
+	return *this;
 }
 
 void User::setPassAccepted(void) { _isPassAccepted = true; }
