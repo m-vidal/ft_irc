@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/13 17:09:27 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 09:21:57 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,10 +75,10 @@ void Server::checkRegistration(int fd)
     {
         _users[fd].setIsAuthenticated();
         std::cout << "User: " << _users[fd].getNick() << " is authenticated." << std::endl;
-        sendNumeric(fd, RPL_WELCOME, "Welcome to ircserv.");
-        sendNumeric(fd, RPL_YOURHOST, "Your host is ircserv, running version 1.0"); // make version and date macros.
-        sendNumeric(fd, RPL_CREATED, "This server was created <date>.");
-        sendNumeric(fd, RPL_MYINFO, "ircserv 1.0 <user modes> <chan modes> ");
+        sendNumeric(fd, RPL_WELCOME, "Welcome to " + _serverName);
+        sendNumeric(fd, RPL_YOURHOST, "Your host is " + _serverName + ", running version 1.0");
+        sendNumeric(fd, RPL_CREATED, "This " + _serverName + " was created <date>.");
+        sendNumeric(fd, RPL_MYINFO, _serverName + " 1.0 <user modes> <chan modes> ");
         incUsers();
     }
 }
