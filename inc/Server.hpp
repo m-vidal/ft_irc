@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/13 17:24:44 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 09:19:26 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,9 @@
 #include <vector>
 #include <list>
 #include <set>
+#include <cerrno>
 #include <map>
+#include <unistd.h>
 
 #include "replyCodes.hpp"
 
