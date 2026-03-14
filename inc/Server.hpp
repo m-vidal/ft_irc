@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/14 09:19:26 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 10:28:44 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,8 @@ private:
 	const short _port;
 	const std::string _serverName;
 	std::map<int, std::string> _replyMessages;
+	time_t _creationTime;
+	const std::string mode_chars;
 
 	// methods ------------------------
 	void initPoll();
@@ -148,6 +150,7 @@ private:
 	void printBanner();
 	void initReplies();
 	const std::string &getNumericMsg(int code);
+	std::string getCreationTimeStr(time_t time) const;
 };
 
 bool valid_channel_name(const std::string &name);

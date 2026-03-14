@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/11 12:29:57 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/13 17:22:57 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 11:17:50 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,23 +16,31 @@
 
 void Server::mode(int fd, std::vector<std::string> &params)
 {
-    std::string channel_name = params[0];
-    std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+    std::string target = params[0];
+    if (target[0] != '&' && target[0] != '#')
+    {
+        std::map<int, User>::iterator it = _users.find(fd);
+        if (it == _users.end())
+            return sendNumeric(fd, ERR_NOSUCHNICK, target);
+        return sendNumeric(fd, RPL_UMODEIS, " +");
+    }
+
+    std::map<std::string, Channel>::iterator it = _channels.find(target);
     if (it == _channels.end())
-        return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name);
+        return sendNumeric(fd, ERR_NOSUCHCHANNEL, target);
 
     Channel &channel = (it->second);
     if (!channel.isMember(fd))
-        return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name);
+        return sendNumeric(fd, ERR_NOTONCHANNEL, target);
     if (params.size() == 1)
     {
-        sendNumeric(fd, RPL_CHANNELMODEIS, channel_name + " " + channel.getModeStr());
-        return sendNumeric(fd, RPL_CREATIONTIME, channel_name + " " + channel.getCreationTimeStr());
+        sendNumeric(fd, RPL_CHANNELMODEIS, target + " " + channel.getModeStr());
+        return sendNumeric(fd, RPL_CREATIONTIME, target + " " + timeToStr(channel.getCreationTime()));
     }
     if (params.size() > 1)
     {
         if (!channel.isOperator(fd))
-            return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name);
+            return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, target);
 
         applyModeString(fd, params, channel);
     }

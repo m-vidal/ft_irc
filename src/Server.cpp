@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/14 08:46:21 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 10:40:08 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,8 @@ Server::~Server(void)
 }
 
 Server::Server(unsigned short &port, std::string &password, std::string name)
-    : _onlineUsers(0), _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)), _port(port), _serverName(name)
+    : _onlineUsers(0), _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)),
+      _port(port), _serverName(name), _creationTime(std::time(NULL)), mode_chars("itkl")
 {
     if (!checkPassword(password))
         throw std::runtime_error("Error: password too weak!");

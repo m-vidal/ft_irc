@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/14 09:21:57 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 11:06:03 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,9 @@ std::string Server::formatNumeric(int code, const std::string &nick, const std::
         ss << " " << arg;
 
     // Append the message from our map
-    ss << " :" << getNumericMsg(code) << "\r\n";
-
+    std::string msg = getNumericMsg(code);
+    if (!msg.empty())
+        ss << " :" << getNumericMsg(code) << "\r\n";
     return ss.str();
 }
 
@@ -77,11 +78,12 @@ void Server::checkRegistration(int fd)
         std::cout << "User: " << _users[fd].getNick() << " is authenticated." << std::endl;
         sendNumeric(fd, RPL_WELCOME, "Welcome to " + _serverName);
         sendNumeric(fd, RPL_YOURHOST, "Your host is " + _serverName + ", running version 1.0");
-        sendNumeric(fd, RPL_CREATED, "This " + _serverName + " was created <date>.");
-        sendNumeric(fd, RPL_MYINFO, _serverName + " 1.0 <user modes> <chan modes> ");
+        sendNumeric(fd, RPL_CREATED, "This " + _serverName + " was created " + timeToStr(_creationTime));
+        sendNumeric(fd, RPL_MYINFO, _serverName + " 1.0 ~NA +" + mode_chars);
         incUsers();
     }
 }
+
 void Server::sendUserList(const Channel &channel, int fd)
 {
     User &user = _users[fd];

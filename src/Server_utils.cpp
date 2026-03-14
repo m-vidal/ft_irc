@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 12:37:24 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/14 09:04:36 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 10:38:24 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ User *Server::findUserByNick(const std::string &nick)
     }
     return (NULL);
 }
+
 std::string Server::getUserNick(int fd) const
 {
     std::map<int, User>::const_iterator it = _users.find(fd);
@@ -38,6 +39,7 @@ std::string Server::getUserNick(int fd) const
     }
     return (it->second.getNick());
 }
+
 int Server::getFdFromNick(std::string nick)
 {
     for (size_t i = 1; i < _polls.size(); i++)
@@ -48,6 +50,7 @@ int Server::getFdFromNick(std::string nick)
     }
     return (-1);
 }
+
 std::vector<std::string> split(const std::string &input)
 {
     std::vector<std::string> result;
@@ -182,12 +185,6 @@ std::string ircToLower(std::string str)
 
 void Server::initReplies()
 {
-    // Registration & Connection
-    _replyMessages[RPL_WELCOME] = "Welcome to the Internet Relay Network";
-    _replyMessages[RPL_YOURHOST] = "Your host is running ft_irc";
-    _replyMessages[RPL_CREATED] = "This server was created 2026-03-13";
-    _replyMessages[RPL_MYINFO] = "ft_irc 1.0 itkol";
-
     // Channel & Mode Errors
     _replyMessages[ERR_NOSUCHNICK] = "No such nick/channel";
     _replyMessages[ERR_NOSUCHCHANNEL] = "No such channel";
@@ -223,6 +220,17 @@ const std::string &Server::getNumericMsg(int code)
         return it->second;
 
     // Fallback if code isn't defined to prevent crashes
-    static std::string fallback = "Unknown Error";
+    static std::string fallback = "";
     return fallback;
+}
+
+time_t Channel::getCreationTime() const
+{
+    return _creationTime;
+}
+
+std::string Server::getCreationTimeStr(time_t time) const
+{
+
+    return timeToStr(time);
 }

@@ -6,35 +6,25 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 08:26:11 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/12 19:10:13 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 10:27:34 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "User.hpp"
 #include "Channel.hpp"
 
-bool Channel::isModeChar(const char c)
-{
-    std::string mode_chars = "itkl";
-    return mode_chars.find(c) != mode_chars.npos;
-}
-
 void Channel::setMode(const char c)
 {
-    if (isModeChar(c))
+    std::map<char, bool>::const_iterator it = _mode.find(c);
+    if (it != _mode.end())
         _mode[c] = true;
 }
 
 void Channel::unsetMode(const char c)
 {
-    if (isModeChar(c))
+    std::map<char, bool>::const_iterator it = _mode.find(c);
+    if (it != _mode.end())
         _mode[c] = false;
-}
-
-// Since you moved to a map, this likely returns the internal map now
-std::map<char, bool> Channel::getMode() const
-{
-    return (_mode);
 }
 
 bool Channel::hasMode(const char c) const

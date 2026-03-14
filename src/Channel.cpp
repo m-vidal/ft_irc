@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/03 17:48:29 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/13 10:04:29 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 10:32:39 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,12 +134,6 @@ void Channel::setOperator(const User &user, bool make_operator)
 const std::map<int, Member> &Channel::getMembers(void) const
 {
 	return _members;
-}
-
-std::string Channel::getCreationTimeStr() const
-{
-
-	return timeToStr(_creationTime);
 }
 
 void Channel::addInvite(User &user)

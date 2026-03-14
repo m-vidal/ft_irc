@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/28 19:07:44 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/13 17:24:35 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 11:16:17 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,12 +24,12 @@ enum NumericReply
     RPL_MYINFO = 004,
     RPL_BOUNCE = 005,
 
+    RPL_UMODEIS = 221,
     RPL_USERHOST = 302,
     RPL_ISON = 303,
     RPL_AWAY = 301,
     RPL_UNAWAY = 305,
     RPL_NOWAWAY = 306,
-
     RPL_WHOISUSER = 311,
     RPL_WHOISSERVER = 312,
     RPL_WHOISOPERATOR = 313,

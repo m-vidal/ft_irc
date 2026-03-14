@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/09 18:32:05 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/13 10:03:10 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 10:28:01 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,11 +69,10 @@ public:
 	bool isModeChar(const char c);
 	void setMode(const char c);
 	void unsetMode(const char c);
-	std::map<char, bool> getMode() const;
 	bool hasMode(const char c) const;
 	std::string getModeStr() const;
 
-	std::string getCreationTimeStr() const;
+	time_t getCreationTime() const;
 
 	void setKey(std::string &new_key);
 	void unsetKey();
