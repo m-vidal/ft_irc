@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/14 08:48:03 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 14:44:29 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,8 +162,26 @@ void Server::join(int fd, std::vector<std::string> &params)
         user.addChannel(channel_name);
         it->second.addMember(user);
     }
+    it = _channels.find(channel_name);
     if (it != _channels.end())
-        sendUserList(it->first, fd);
+    {
+        Channel &channel = it->second;
+        sendMsg(fd, _users[fd], "JOIN", channel_name);
+        sendNumeric(fd, RPL_CHANNELMODEIS, "MODE " + channel_name + " " + channel.getModeStr());
+
+        // 1. Get the current list from your function
+        std::string list = channel.getMemberNickList();
+
+        // 2. Add your test names (ensure there's a space before them)
+        // list += " test01 test02 test03";
+
+        // 3. Construct the full message body: <symbol> <channel> :<list>
+        std::string rpl_body = "= " + channel.getName() + " :" + list;
+
+        // 4. Send it
+        sendNumeric(fd, RPL_NAMREPLY, rpl_body);
+        sendNumeric(fd, RPL_ENDOFNAMES, channel.getName());
+    }
 }
 
 void Server::part(int fd, std::vector<std::string> &params)

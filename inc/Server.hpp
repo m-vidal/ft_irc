@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/14 10:28:44 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 13:46:34 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,8 +74,8 @@ public:
 	void listenMode();
 	std::string formatNumeric(int code, const std::string &nick, const std::string &params);
 	std::string formatMessage(const User &source, const std::string &command, const std::string &params);
+	void sendMsg(int fd, const User &source, const std::string &command, const std::string &params);
 	void sendToClient(int fd, const std::string rawMsg);
-	void sendUserList(const Channel &channel, int fd);
 	void sendNumeric(int fd, int code);
 	void sendNumeric(int fd, int code, const std::string &params);
 	void sendNumeric(Channel &channel, int fd, int code, const std::string &params);

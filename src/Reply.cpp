@@ -6,13 +6,44 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/14 11:06:03 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/14 14:47:31 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Server.hpp"
+
+void Server::initReplies()
+{
+    _replyMessages[RPL_ENDOFNAMES] = "End of /NAMES list";
+    // Channel & Mode Errors
+    _replyMessages[ERR_NOSUCHNICK] = "No such nick/channel";
+    _replyMessages[ERR_NOSUCHCHANNEL] = "No such channel";
+    _replyMessages[ERR_CANNOTSENDTOCHAN] = "Cannot send to channel";
+    _replyMessages[ERR_TOOMANYCHANNELS] = "You have joined too many channels";
+    _replyMessages[ERR_CHANNELISFULL] = "Cannot join channel (+l)";
+    _replyMessages[ERR_INVITEONLYCHAN] = "Cannot join channel (+i)";
+    _replyMessages[ERR_BADCHANNELKEY] = "Cannot join channel (+k)";
+    _replyMessages[ERR_CHANOPRIVSNEEDED] = "You're not channel operator";
+    _replyMessages[ERR_USERNOTINCHANNEL] = "They aren't on that channel";
+    _replyMessages[ERR_NOTONCHANNEL] = "You're not on that channel";
+    _replyMessages[ERR_USERONCHANNEL] = "is already on channel";
+    _replyMessages[ERR_UNKNOWNMODE] = "is unknown mode char to me";
+
+    // Nickname & Registration Errors
+    _replyMessages[ERR_NONICKNAMEGIVEN] = "No nickname given";
+    _replyMessages[ERR_ERRONEUSNICKNAME] = "Erroneous nickname";
+    _replyMessages[ERR_NICKNAMEINUSE] = "Nickname is already in use";
+    _replyMessages[ERR_NOTREGISTERED] = "You have not registered";
+    _replyMessages[ERR_ALREADYREGISTERED] = "Unauthorized command (already registered)";
+    _replyMessages[ERR_PASSWDMISMATCH] = "Password incorrect";
+
+    // Misc Errors
+    _replyMessages[ERR_UNKNOWNCOMMAND] = "Unknown command";
+    _replyMessages[ERR_NEEDMOREPARAMS] = "Not enough parameters";
+    _replyMessages[ERR_INVALIDMODEPARAM] = "Invalid mode parameter";
+}
 
 // For Numerics (e.g., :ircserv 001 target :Welcome)
 std::string Server::formatNumeric(int code, const std::string &nick, const std::string &arg)
@@ -38,7 +69,13 @@ std::string Server::formatMessage(const User &source, const std::string &command
     std::string msg = ":" + source.getPrefix() + " " + command;
     if (!params.empty())
         msg += " " + params;
-    return msg + "\r\n";
+    return msg;
+}
+
+void Server::sendMsg(int fd, const User &source, const std::string &command, const std::string &params)
+{
+    std::string msg = formatMessage(source, command, params);
+    sendToClient(fd, msg);
 }
 
 void Server::sendNumeric(int fd, int code, const std::string &params)
@@ -82,25 +119,4 @@ void Server::checkRegistration(int fd)
         sendNumeric(fd, RPL_MYINFO, _serverName + " 1.0 ~NA +" + mode_chars);
         incUsers();
     }
-}
-
-void Server::sendUserList(const Channel &channel, int fd)
-{
-    User &user = _users[fd];
-    std::string nick = user.getNick();
-    std::string chanName = channel.getName();
-
-    // 1. Tell everyone (including joining user) about the JOIN
-    std::string joinMsg = formatMessage(user, "JOIN", chanName);
-    sendToChannel(channel, joinMsg, -1);
-
-    // 2. Send Topic (if exists) - Good addition here!
-    if (!channel.getTopic().content.empty())
-    {
-        sendToClient(fd, formatNumeric(RPL_TOPIC, nick, chanName + channel.getTopic().content));
-    }
-
-    // 3. Send Name List (353) and End of Names (366)
-    sendToClient(fd, formatNumeric(RPL_NAMREPLY, nick, "= " + chanName + channel.getMemberNickList()));
-    sendToClient(fd, formatNumeric(RPL_ENDOFNAMES, nick, chanName + " End of /NAMES list"));
 }
