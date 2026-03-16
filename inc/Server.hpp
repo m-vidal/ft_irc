@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/14 17:08:46 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/16 18:00:57 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,6 +152,7 @@ private:
 	void initReplies();
 	const std::string &getNumericMsg(int code);
 	std::string getCreationTimeStr(time_t time) const;
+	bool isNickTaken(const std::string &nick, int ignoreFd);
 };
 
 bool valid_channel_name(const std::string &name);

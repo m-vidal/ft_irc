@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/14 17:08:18 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/16 18:00:57 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,13 +62,11 @@ void Server::nick(int fd, std::vector<std::string> &params)
     }
 
     // Case-insensitive check (assuming findUserByNick handles it)
-    User *existing = findUserByNick(newNick);
-    if (existing && existing->getFd() != fd)
+    if (isNickTaken(newNick, fd))
     {
         sendNumeric(fd, ERR_NICKNAMEINUSE, newNick);
         return;
     }
-
     User &user = _users[fd];
     std::string oldPrefix = user.getPrefix(); // Capture prefix BEFORE changing nick
     bool wasAuthenticated = user.isAuthenticated();

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 12:37:24 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/14 17:05:50 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/16 18:00:57 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ User *Server::findUserByNick(const std::string &nick)
         if (_users.find(fd) == _users.end())
             continue;
 
-        if (_users[fd].getNick() == nick)
+        if (_users[fd].getNick() == nick && _users[fd].isAuthenticated())
             return (&_users[fd]);
     }
     return (NULL);
@@ -42,13 +42,10 @@ std::string Server::getUserNick(int fd) const
 
 int Server::getFdFromNick(std::string nick)
 {
-    for (size_t i = 1; i < _polls.size(); i++)
-    {
-        if (_users[_polls[i].fd].getNick() != nick)
-            continue;
-        return (_users[_polls[i].fd].getFd());
-    }
-    return (-1);
+    User *user = findUserByNick(nick);
+    if (user)
+        return user->getFd();
+    return -1;
 }
 
 std::vector<std::string> split(const std::string &input)
@@ -203,4 +200,19 @@ std::string Server::getCreationTimeStr(time_t time) const
 {
 
     return timeToStr(time);
+}
+
+bool Server::isNickTaken(const std::string &nick, int ignoreFd)
+{
+    std::map<int, User>::iterator it;
+
+    // 1. Check fully authenticated users
+    for (it = _users.begin(); it != _users.end(); ++it)
+    {
+        if (it->first == ignoreFd)
+            continue;
+        if (ircToLower(it->second.getNick()) == ircToLower(nick))
+            return true;
+    }
+    return false;
 }
