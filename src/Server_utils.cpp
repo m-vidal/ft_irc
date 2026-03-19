@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/10 12:37:24 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/16 18:00:57 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/19 13:33:00 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,6 @@ User *Server::findUserByNick(const std::string &nick)
     for (size_t i = 1; i < _polls.size(); ++i)
     {
         int fd = _polls[i].fd;
-
-        // opcional: ignorar o fd do próprio servidor se estiver no índice 0
         if (_users.find(fd) == _users.end())
             continue;
 
