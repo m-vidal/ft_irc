@@ -28,6 +28,7 @@ void Server::setknowncommands(void)
     _commands["PRIVMSG"] = Command(&Server::msg, 1);
     _commands["KICK"] = Command(&Server::kick, 2);
     _commands["NOTICE"] = Command(&Server::notice, 0);
+    _commands["QUIT"] = Command(&Server::quit, 0);
 }
 // commands
 void Server::pass(int fd, std::vector<std::string> &params)
