@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   User.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/14 16:36:17 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/20 13:32:00 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,25 @@ void User::clearBuffer(size_t pos) { _inbuffer.erase(0, pos); }
 User::~User(void) {}
 
 void User::addChannel(std::string channel_name) { _channels.push_back(channel_name); }
+
+void User::removeChannel(std::string channel_name)
+{
+	size_t i = 0;
+	while (i < _channels.size())
+	{
+		if (_channels[i] == channel_name)
+		{
+			_channels.erase(_channels.begin() + i);
+			continue;
+		}
+		i++;
+	}
+}
+
+std::vector<std::string> User::getChannels(void) const
+{
+	return _channels;
+}
 
 void User::addInvite(const std::string &channelName, time_t time)
 {

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/14 17:08:18 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/20 13:32:00 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,8 +70,11 @@ void Server::disconnectClient(int fd)
         }
     }
     close(fd);
-    _users.erase(fd);
-    decUsers();
+
+    if (_users.erase(fd) > 0)
+        decUsers();
+    else
+        _users_not_auth.erase(fd);
 }
 
 void Server::listenMode()
@@ -337,7 +340,7 @@ void Server::checkRegistration(int fd)
         sendNumeric(fd, RPL_MYINFO, _serverName + " 1.0 ~NA +" + mode_chars);
         incUsers();
 
-        _users_not_auth.insert(std::make_pair(fd, User(user)));
+        _users.insert(std::make_pair(fd, User(user)));
         _users_not_auth.erase(fd);
         std::cout << "User has been registered!\n";
     }

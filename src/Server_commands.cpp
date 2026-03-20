@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server_commands.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/16 18:00:57 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/20 13:32:00 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,22 +192,86 @@ void Server::part(int fd, std::vector<std::string> &params)
     if (it == _channels.end())
         return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name);
 
-    Channel channel = it->second;
+    Channel &channel = it->second;
     if (!channel.isMember(fd))
         return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name);
 
-    User &user = _users[fd];
-    std::string message = ":" + user.getPrefix() + " PART " + channel_name;
+    User *userPtr = NULL;
+    std::map<int, User>::iterator it_user = _users.find(fd);
+    if (it_user != _users.end())
+        userPtr = &it_user->second;
+    else
+    {
+        std::map<int, User>::iterator it_tmp = _users_not_auth.find(fd);
+        if (it_tmp != _users_not_auth.end())
+            userPtr = &it_tmp->second;
+    }
+    if (!userPtr)
+        return;
+
+    std::string message = ":" + userPtr->getPrefix() + " PART " + channel_name;
     if (params.size() > 1)
         message += " :" + params[1];
+
     std::set<int> notified;
     sendToChannel(channel, message, notified);
+
+    userPtr->removeChannel(channel_name);
     channel.removeMember(fd);
+
     if (channel.getMemberCount() == 0)
     {
         _channels.erase(channel_name);
         std::cout << "channel " + channel_name + " has been erased\n";
     }
+}
+
+void Server::quit(int fd, std::vector<std::string> &params)
+{
+    User *userPtr = NULL;
+    std::map<int, User>::iterator it_user = _users.find(fd);
+    if (it_user != _users.end())
+        userPtr = &it_user->second;
+    else
+    {
+        std::map<int, User>::iterator it_tmp = _users_not_auth.find(fd);
+        if (it_tmp != _users_not_auth.end())
+            userPtr = &it_tmp->second;
+    }
+    if (!userPtr)
+        return;
+
+    std::string reason = "Leaving";
+    if (!params.empty() && !params[0].empty())
+        reason = params[0];
+
+    std::string quitMsg = ":" + userPtr->getPrefix() + " QUIT :" + reason;
+
+    std::vector<std::string> channels = userPtr->getChannels();
+
+    for (size_t i = 0; i < channels.size(); ++i)
+    {
+        std::string channel_name = channels[i];
+        std::map<std::string, Channel>::iterator it_chan = _channels.find(channel_name);
+        if (it_chan == _channels.end())
+            continue;
+
+        Channel &channel = it_chan->second;
+        if (!channel.isMember(fd))
+            continue;
+
+        std::set<int> notified;
+        sendToChannel(channel, quitMsg, notified);
+
+        channel.removeMember(fd);
+
+        if (channel.getMemberCount() == 0)
+        {
+            _channels.erase(channel_name);
+        }
+    }
+
+    disconnectClient(fd);
 }
 
 void Server::invite(int fd, std::vector<std::string> &params)

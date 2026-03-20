@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   User.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:54:53 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/14 16:36:03 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/20 13:32:00 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,8 @@ public:
 	void appendToBuffer(std::string data);
 
 	void addChannel(std::string channel_name);
+	void removeChannel(std::string channel_name);
+	std::vector<std::string> getChannels(void) const;
 
 	void addInvite(const std::string &channelName, time_t time);
 	void removeInvite(const std::string &channelName);
