@@ -126,6 +126,7 @@ private:
 	void notice(int fd, std::vector<std::string> &params);
 	void list(int fd, std::vector<std::string> &params);
 	void names(int fd, std::vector<std::string> &params);
+	void quit(int fd, std::vector<std::string> &params);
 
 	// mode command -----------------------------------------------------------
 	void mode(int fd, std::vector<std::string> &params);
