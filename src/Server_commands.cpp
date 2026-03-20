@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/16 18:00:57 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/19 14:03:19 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ void Server::setknowncommands(void)
 // commands
 void Server::pass(int fd, std::vector<std::string> &params)
 {
-    if (_users[fd].isAuthenticated() == true)
+    if (_users[fd].checkIsPassAccepted() == true)
         return sendNumeric(fd, ERR_ALREADYREGISTERED, "PASS");
 
     if (params[0] != _password)
@@ -47,13 +47,13 @@ void Server::nick(int fd, std::vector<std::string> &params)
 {
     // If your parser puts the nick in trailing when no colon is used,
     // or if it's the only param, we check both.
-    std::string newNick = params[0];
 
-    if (newNick.empty())
+    if (params.empty())
     {
         sendNumeric(fd, ERR_NONICKNAMEGIVEN);
         return;
     }
+    std::string newNick = params[0];
 
     // IRC Nick Rules: No leading digits, no forbidden chars
     if (std::isdigit(newNick[0]) || newNick.find_first_of(" ,*!@:#\n") != std::string::npos)

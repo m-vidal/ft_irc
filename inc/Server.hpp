@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/16 18:00:57 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/19 13:58:09 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,6 @@ private:
 	const std::string _password;
 	const short _socket;
 	std::map<int, User> _users;
-	std::map<int, User> _users_not_auth;
 	std::vector<pollfd> _polls;
 	struct sockaddr_in _addr;
 	const short _port;
