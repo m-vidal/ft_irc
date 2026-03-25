@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   User.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 17:55:00 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/14 16:36:17 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/25 11:51:01 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,4 +116,9 @@ std::string User::getPrefix() const
 size_t User::getChannelCount() const
 {
 	return _channels.size();
+}
+
+const std::vector<std::string> &User::getChannels(void) const
+{
+	return _channels;
 }

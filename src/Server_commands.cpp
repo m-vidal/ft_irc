@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server_commands.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/19 14:03:19 by atambo           ###   ########.fr       */
+/*   Updated: 2026/03/25 11:51:12 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -478,4 +478,31 @@ void Server::names(int fd, std::vector<std::string> &params)
             sendToClient(fd, formatNumeric(RPL_ENDOFNAMES, user.getNick(), it->first));
         }
     }
+}
+
+void Server::quit(int fd, std::vector<std::string> &params)
+{
+    (void)params;
+    // Get the quit message if provided
+    std::string quitMsg;
+    if (!params.empty())
+        quitMsg = params[0];
+
+    // Remove user from all channels they are in
+    User &user = _users[fd];
+    std::vector<std::string> userChannels = user.getChannels();
+    for (size_t i = 0; i < userChannels.size(); ++i)
+    {
+        std::map<std::string, Channel>::iterator it = _channels.find(userChannels[i]);
+        if (it != _channels.end())
+        {
+            it->second.removeMember(user.getFd());
+            // If channel is empty, remove it
+            if (it->second.getMemberCount() == 0)
+                _channels.erase(it);
+        }
+    }
+
+    // Disconnect the client
+    disconnectClient(fd);
 }
