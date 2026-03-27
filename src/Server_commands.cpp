@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/25 11:51:12 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/27 19:24:17 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -346,8 +346,8 @@ void Server::msg(int fd, std::vector<std::string> &params)
             return;
         }
 
-        std::string message = formatMessage(sender, "PRIVMSG", "");
-
+        std::string user_and_msg = target + " :" + params[1];
+        std::string message = formatMessage(sender, "PRIVMSG", user_and_msg);
         sendToClient(targetFd, message);
     }
 }
