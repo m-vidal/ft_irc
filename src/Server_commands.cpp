@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/27 19:24:17 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/03/29 20:09:26 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -482,27 +482,34 @@ void Server::names(int fd, std::vector<std::string> &params)
 
 void Server::quit(int fd, std::vector<std::string> &params)
 {
-    (void)params;
-    // Get the quit message if provided
-    std::string quitMsg;
-    if (!params.empty())
-        quitMsg = params[0];
+    std::map<int, User>::iterator itUser = _users.find(fd);
+    if (itUser == _users.end())
+        return;
 
-    // Remove user from all channels they are in
-    User &user = _users[fd];
+    User &user = itUser->second;
+    std::string reason = "Client Quit";
+    if (!params.empty() && !params[0].empty())
+        reason = params[0];
+
+    std::string msg = ":" + user.getPrefix() + " QUIT :" + reason + "\r\n";
+
     std::vector<std::string> userChannels = user.getChannels();
+
+    std::set<int> notified;
+    notified.insert(fd);
+
     for (size_t i = 0; i < userChannels.size(); ++i)
     {
         std::map<std::string, Channel>::iterator it = _channels.find(userChannels[i]);
-        if (it != _channels.end())
-        {
-            it->second.removeMember(user.getFd());
-            // If channel is empty, remove it
-            if (it->second.getMemberCount() == 0)
-                _channels.erase(it);
-        }
+        if (it == _channels.end())
+            continue;
+
+        sendToChannel(it->second, msg, notified);
+        it->second.removeMember(fd);
+
+        if (it->second.getMemberCount() == 0)
+            _channels.erase(it);
     }
 
-    // Disconnect the client
     disconnectClient(fd);
 }
