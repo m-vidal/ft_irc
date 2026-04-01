@@ -6,7 +6,7 @@
 /*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/03/31 23:46:51 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/04/01 13:09:59 by mvidal           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ int main(int ac, char **av)
 		return (std::cerr << "Error: bad arguments." << std::endl, 1);
 
 	std::stringstream ss(av[1]);
-	if (!(ss >> port) || ss >> c || port < 1024 || port > 65535)
+	if (!(ss >> port) || ss >> c || ss.fail() || port < 1024 || port > 65535)
 		return (std::cerr << "Error: invalid port." << std::endl, 1);
 
 	std::cout << "IRC Server starting..." << std::endl;
