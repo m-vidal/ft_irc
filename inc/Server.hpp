@@ -13,6 +13,10 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#define PORT_MAX  7000
+#define PORT_MIN  6660
+
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/types.h>

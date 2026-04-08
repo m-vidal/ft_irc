@@ -15,6 +15,7 @@
 int main(int ac, char **av)
 {
 	std::string password;
+	long long port_check = 0;
 	unsigned short port;
 	char c;
 
@@ -22,9 +23,9 @@ int main(int ac, char **av)
 		return (std::cerr << "Error: bad arguments." << std::endl, 1);
 
 	std::stringstream ss(av[1]);
-	if (!(ss >> port) || ss.fail() || ss >> c  || port < 1024 || port > 65535)
-		return (std::cerr << "Error: invalid port." << std::endl, 1);
-
+	if (!(ss >> port_check) || ss.fail() || ss >> c  || port_check < PORT_MIN || port_check > PORT_MAX)
+		return (std::cerr << "Error: invalid port.Port number must be between " << PORT_MIN << "-" << PORT_MAX << std::endl, 1);
+	port = static_cast<unsigned short>(port_check);
 	std::cout << "IRC Server starting..." << std::endl;
 
 	password = av[2];
