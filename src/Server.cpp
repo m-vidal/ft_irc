@@ -71,6 +71,7 @@ void Server::disconnectClient(int fd)
     }
     close(fd);
     _users.erase(fd);
+    std::cout << "Client [" << fd << "]  disconnected" << std::endl;
     decUsers();
 }
 
@@ -146,7 +147,9 @@ void Server::handleClientData(size_t &idx)
 
     if (n <= 0)
     {
-        disconnectClient(fd);
+        std::vector<std::string> msg;
+        msg.push_back("Remote host closed the connection");
+        quit(fd, msg);
         return;
     }
     buffer[n] = '\0';
