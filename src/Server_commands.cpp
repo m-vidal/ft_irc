@@ -349,6 +349,7 @@ void Server::msg(int fd, std::vector<std::string> &params)
 
 void Server::kick(int fd, std::vector<std::string> &params)
 {
+    User &user = _users[fd];
     std::string channel_name = params[0];
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it == _channels.end())
@@ -367,9 +368,10 @@ void Server::kick(int fd, std::vector<std::string> &params)
     if (params.size() > 2)
         reason = " : " + params[2];
     //:<kicker_prefix> KICK <channel> <target> :<reason>"
-    std::string msg = target->getPrefix() + " KICK " + channel.getName() + " " + target->getNick() + reason;
+    std::string msg = ":" + user.getPrefix() + " KICK " + channel.getName() + " " + target->getNick() + reason;
     sendToChannel(channel, msg, fd);
     channel.removeMember(target->getFd());
+    target->removeChannel(channel_name);
 }
 
 void Server::notice(int fd, std::vector<std::string> &params)
