@@ -88,7 +88,7 @@ void Channel::setName(const std::string &newName)
 	_name = newName;
 }
 
-std::string Channel::getMemberNickList(void) const
+std::string Channel::getMemberList(void) const
 {
 	std::string nickList;
 	std::map<int, Member>::const_iterator it;

@@ -46,7 +46,7 @@ public:
 	Channel(const std::string &name);
 	// do not add default constructor use find istead
 	const std::string &getName(void) const;
-	std::string getMemberNickList(void) const;
+	std::string getMemberList(void) const;
 	const std::map<int, Member> &getMembers(void) const;
 	size_t getMemberCount(void) const;
 

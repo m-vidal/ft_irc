@@ -16,6 +16,7 @@
 
 void Server::setknowncommands(void)
 {
+    // command | min params needed
     _commands["PASS"] = Command(&Server::pass, 1);
     _commands["NICK"] = Command(&Server::nick, 0);
     _commands["USER"] = Command(&Server::user, 4);
@@ -29,6 +30,7 @@ void Server::setknowncommands(void)
     _commands["KICK"] = Command(&Server::kick, 2);
     _commands["NOTICE"] = Command(&Server::notice, 0);
     _commands["QUIT"] = Command(&Server::quit, 0);
+    _commands["NAMES"] = Command(&Server::names, 0);
 }
 // commands
 void Server::pass(int fd, std::vector<std::string> &params)
@@ -167,21 +169,10 @@ void Server::join(int fd, std::vector<std::string> &params)
     if (it != _channels.end())
     {
         Channel &channel = it->second;
-        sendMsg(fd, _users[fd], "JOIN", channel_name);
+        std::string msg = formatMessage(user, "JOIN", channel_name);
+        sendToChannel(channel, msg, 0);
         sendNumeric(fd, RPL_CHANNELMODEIS, "MODE " + channel_name + " " + channel.getModeStr());
-
-        // 1. Get the current list from your function
-        std::string list = channel.getMemberNickList();
-
-        // 2. Add your test names (ensure there's a space before them)
-        // list += " test01 test02 test03";
-
-        // 3. Construct the full message body: <symbol> <channel> :<list>
-        std::string rpl_body = "= " + channel.getName() + " :" + list;
-
-        // 4. Send it
-        sendNumeric(fd, RPL_NAMREPLY, rpl_body);
-        sendNumeric(fd, RPL_ENDOFNAMES, channel.getName());
+        names(fd, params);
     }
 }
 
@@ -472,7 +463,7 @@ void Server::names(int fd, std::vector<std::string> &params)
         {
             // RPL_NAMREPLY (353):  = #channel :@op member1 member2
             std::string chanData = "= " + it->first;
-            sendToClient(fd, formatNumeric(RPL_NAMREPLY, user.getNick(), chanData + " :" + it->second.getMemberNickList()));
+            sendToClient(fd, formatNumeric(RPL_NAMREPLY, user.getNick(), chanData + " :" + it->second.getMemberList()));
 
             // RPL_ENDOFNAMES (366): #channel :End of /NAMES list
             sendToClient(fd, formatNumeric(RPL_ENDOFNAMES, user.getNick(), it->first));
