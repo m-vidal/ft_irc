@@ -73,6 +73,7 @@ public:
 	void appendToBuffer(std::string data);
 
 	void addChannel(std::string channel_name);
+	void removeChannel(std::string channel_name);
 
 	void addInvite(const std::string &channelName, time_t time);
 	void removeInvite(const std::string &channelName);

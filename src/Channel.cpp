@@ -14,9 +14,8 @@
 #include "Channel.hpp"
 #include "Server.hpp"
 
-Member::Member() : is_operator(false) {}
-Member::Member(bool op, const User user) : is_operator(op), user(user) {}
-
+Member::Member() : is_operator(false) {user = NULL;}
+Member::Member(bool op, User &u) : is_operator(op), user(&u){}
 Channel::~Channel()
 {
 }
@@ -73,7 +72,7 @@ void Channel::removeMember(const int &fd)
 	std::map<int, Member>::iterator it = _members.find(fd);
 	if (it != _members.end())
 	{
-		std::cout << "User " << it->second.user.getNick() << " left " << _name << "." << std::endl;
+		std::cout << "User " << it->second.user->getNick() << " left " << _name << "." << std::endl;
 		_members.erase(it);
 	}
 }
@@ -97,7 +96,7 @@ std::string Channel::getMemberList(void) const
 	{
 		if (it->second.is_operator)
 			nickList += "@";
-		nickList += it->second.user.getNick();
+		nickList += it->second.user->getNick();
 
 		// Add space if not the last element
 		std::map<int, Member>::const_iterator nextIt = it;
@@ -122,7 +121,7 @@ void Channel::setOperator(int fd, bool make_operator)
 
 		// Dynamic logging based on the toggle
 		std::string status = make_operator ? " is now an operator." : " is no longer an operator.";
-		std::cout << "User " << it->second.user.getNick() << status << std::endl;
+		std::cout << "User " << it->second.user->getNick() << status << std::endl;
 	}
 }
 

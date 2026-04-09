@@ -126,11 +126,14 @@ void Server::join(int fd, std::vector<std::string> &params)
     std::string channel_name = params[0];
     if (!valid_channel_name(channel_name))
         return sendNumeric(fd, ERR_BADCHANMASK, channel_name);
-    std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
+    //------------------------------------------------------
+    std::map<std::string, Channel>::iterator it;
+    it = _channels.find(channel_name);
     if (it != _channels.end() && it->second.isMember(user))
         return;
     if (user.getChannelCount() + 1 > MAX_JOINED_CHAN)
         return sendNumeric(fd, ERR_TOOMANYCHANNELS, channel_name);
+    //------------------------------------------------------
     if (it == _channels.end()) // channel dosent exits, create channel
     {
         _channels.insert(std::make_pair(channel_name, Channel(channel_name)));
@@ -165,39 +168,41 @@ void Server::join(int fd, std::vector<std::string> &params)
         user.addChannel(channel_name);
         it->second.addMember(user);
     }
+    //------------------------------------------------------
     it = _channels.find(channel_name);
     if (it != _channels.end())
     {
         Channel &channel = it->second;
         std::string msg = formatMessage(user, "JOIN", channel_name);
         sendToChannel(channel, msg, 0);
-        sendNumeric(fd, RPL_CHANNELMODEIS, "MODE " + channel_name + " " + channel.getModeStr());
+        topic(fd, params);
+        mode(fd, params);
         names(fd, params);
     }
 }
 
 void Server::part(int fd, std::vector<std::string> &params)
 {
+    if (params.empty())
+        return sendNumeric(fd, ERR_NEEDMOREPARAMS, "PART");
     std::string channel_name = params[0];
     std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
     if (it == _channels.end())
         return sendNumeric(fd, ERR_NOSUCHCHANNEL, channel_name);
-
-    Channel channel = it->second;
+    Channel &channel = it->second; 
     if (!channel.isMember(fd))
         return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name);
-
-    User &user = _users[fd];
+    User &user = _users.at(fd);
     std::string message = ":" + user.getPrefix() + " PART " + channel_name;
     if (params.size() > 1)
         message += " :" + params[1];
-    std::set<int> notified;
-    sendToChannel(channel, message, notified);
+    sendToChannel(channel, message, -1); 
     channel.removeMember(fd);
+    user.removeChannel(channel_name);
     if (channel.getMemberCount() == 0)
     {
-        _channels.erase(channel_name);
-        std::cout << "channel " + channel_name + " has been erased\n";
+        _channels.erase(it);
+        std::cout << "Channel " << channel_name << " has been erased (empty)." << std::endl;
     }
 }
 
@@ -266,11 +271,10 @@ void Server::topic(int fd, std::vector<std::string> &params)
     if (!channel.isMember(fd))
         return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name);
 
-    if (params.size() == 1)
-    {
+    if (params.size() == 1){
         if (channel.getTopic().content.empty())
             return sendNumeric(fd, RPL_NOTOPIC, channel_name);
-        sendNumeric(fd, RPL_TOPIC, channel_name + channel.getTopic().content);
+        sendNumeric(fd, RPL_TOPIC, channel_name + " " + channel.getTopic().content);
         std::string time_str = timeToStr(channel.getTopic().creationTime);
         return sendNumeric(fd, RPL_TOPICWHOTIME, channel_name + " " + channel.getTopic().setBy + " " + time_str);
     }
@@ -488,7 +492,7 @@ void Server::quit(int fd, std::vector<std::string> &params)
 
     std::set<int> notified;
     notified.insert(fd);
-
+    std::vector<std::string> empty_channels;
     for (size_t i = 0; i < userChannels.size(); ++i)
     {
         std::map<std::string, Channel>::iterator it = _channels.find(userChannels[i]);
@@ -499,8 +503,12 @@ void Server::quit(int fd, std::vector<std::string> &params)
         it->second.removeMember(fd);
 
         if (it->second.getMemberCount() == 0)
-            _channels.erase(it);
+            empty_channels.push_back(it->second.getName());
     }
-
+    for (size_t i = 0; i < empty_channels.size(); i++)
+    {
+        _channels.erase(empty_channels[i]);
+        std::cout << "Channel " << empty_channels[i] << " deleted (empty)." << std::endl;
+    }
     disconnectClient(fd);
 }

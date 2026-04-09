@@ -86,6 +86,16 @@ User::~User(void) {}
 
 void User::addChannel(std::string channel_name) { _channels.push_back(channel_name); }
 
+void User::removeChannel(std::string channel_name) {
+    for (std::vector<std::string>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
+        if (*it == channel_name) {
+            _channels.erase(it);
+            return ; // Exit once found to avoid iterator issues
+        }
+    }
+}
+
+
 void User::addInvite(const std::string &channelName, time_t time)
 {
 	// If they are already invited, this just updates the time

@@ -26,10 +26,10 @@ class User;
 struct Member
 {
 	bool is_operator;
-	User user;
+	User *user;
 
 	Member();
-	Member(bool op, User user);
+	Member(bool op, User &user);
 };
 
 struct TopicData
