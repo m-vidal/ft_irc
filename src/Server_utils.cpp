@@ -141,13 +141,17 @@ bool valid_channel_name(const std::string &name)
     if (name.empty() || name.size() > 200)
         return false;
 
+    // Must start with # or &
     if (name[0] != '#' && name[0] != '&')
         return false;
 
-    // " " = Space
-    // "," = Comma
-    // "\x07" = Control G (Hex for ASCII 7)
-    if (name.find_first_of(" ,\x07") != std::string::npos)
+    // Check for forbidden characters
+    if (name.find_first_of(" ,\x07:") != std::string::npos) // Added colon ':'
+        return false;
+
+    // NEW: Ensure there is at least one character after the prefix 
+    // and it's not just a string of more prefixes.
+    if (name.find_first_not_of("#&") == std::string::npos)
         return false;
 
     return true;
