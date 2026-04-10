@@ -64,8 +64,14 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, Channel &
         switch (c)
         {
             case 'k':
-                if (j < params.size()) {
-                    mode_k(fd, params, channel, j++, adding);
+                if (adding){
+                    if (j < params.size()) {
+                        mode_k(fd, params, channel, j++, adding);
+                    }
+                }
+                else{
+                    channel.unsetMode('k');
+                    channel.unsetKey();
                 }
                 break;
 
@@ -83,7 +89,8 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, Channel &
                         mode_l(fd, params, channel, j++, adding);
                     }
                 } else {
-                    channel.unsetMode('l'); // -l doesn't need a param
+                    channel.unsetMode('l');
+                    channel.unsetLimit();
                 }
                 break;
 
