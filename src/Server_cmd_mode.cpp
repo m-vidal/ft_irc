@@ -42,9 +42,7 @@ void Server::mode(int fd, std::vector<std::string> &params)
         if (!channel.isOperator(fd))
             return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, target);
 
-        applyModeString(fd, params, channel);
-        std::string msg = formatNotice(_users[fd], "MODE", params[1]);
-        sendToChannel(channel, msg, 0);      
+        applyModeString(fd, params, channel);  
     }
 }
 
@@ -56,6 +54,7 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, Channel &
     bool adding = true;
     size_t j = 2; // Parameter index
 
+    std::string old_modes = channel.getModeStr();
     for (size_t i = 0; i < modes.length(); ++i)
     {
         char c = modes[i];
@@ -99,6 +98,10 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, Channel &
                 sendNumeric(fd, ERR_UNKNOWNMODE, modeChar);
                 break;
         }
+    }
+    if (old_modes != channel.getModeStr()){
+        std::string msg = formatNotice(_users[fd], "MODE", channel.getModeStr());
+        sendToChannel(channel, msg, 0);    
     }
 }
 
