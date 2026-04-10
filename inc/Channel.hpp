@@ -43,7 +43,7 @@ class Channel
 
 public:
 	~Channel();
-	Channel(const std::string &name);
+	Channel(const std::string &name, const std::string &mode_chars);
 	// do not add default constructor use find istead
 	const std::string &getName(void) const;
 	std::string getMemberList(void) const;

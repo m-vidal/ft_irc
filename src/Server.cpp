@@ -27,7 +27,7 @@ Server::~Server(void)
 
 Server::Server(unsigned short &port, std::string &password, std::string name)
     : _onlineUsers(0), _password(password), _socket(socket(AF_INET, SOCK_STREAM, 0)),
-      _port(port), _serverName(name), _creationTime(std::time(NULL)), mode_chars("itkl")
+      _port(port), _serverName(name), _creationTime(std::time(NULL)), mode_chars("itkln")
 {
     if (!checkPassword(password))
         throw std::runtime_error("Error: password too weak!");

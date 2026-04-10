@@ -20,17 +20,10 @@ Channel::~Channel()
 {
 }
 
-void Channel::initMode()
+Channel::Channel(const std::string &name, const std::string &mode_chars): _name(name), _creationTime(std::time(NULL)), _limit(0)
 {
-	_mode['i'] = false; // Invite only
-	_mode['t'] = true;	// Topic restricted
-	_mode['k'] = false; // Key protected
-	_mode['l'] = false; // Limit protected
-}
-
-Channel::Channel(const std::string &name) : _name(name), _creationTime(std::time(NULL)), _limit(0)
-{
-	initMode();
+	for(size_t i = 0; i < mode_chars.size(); i++)
+		_mode[mode_chars[i]] = false;
 }
 
 bool Channel::isMember(const int fd) const

@@ -30,7 +30,8 @@ void Server::initReplies()
     _replyMessages[ERR_NOTONCHANNEL] = "You're not on that channel";
     _replyMessages[ERR_USERONCHANNEL] = "is already on channel";
     _replyMessages[ERR_UNKNOWNMODE] = "is unknown mode char to me";
-
+    _replyMessages[ERR_BADCHANMASK] = "Bad Channel Mask";
+    _replyMessages[ERR_CANNOTSENDTOCHAN] = "Cannot send to channel";
     // Nickname & Registration Errors
     _replyMessages[ERR_NONICKNAMEGIVEN] = "No nickname given";
     _replyMessages[ERR_ERRONEUSNICKNAME] = "Erroneous nickname";

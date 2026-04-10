@@ -136,7 +136,7 @@ void Server::join(int fd, std::vector<std::string> &params)
     //------------------------------------------------------
     if (it == _channels.end()) // channel dosent exits, create channel
     {
-        _channels.insert(std::make_pair(channel_name, Channel(channel_name)));
+        _channels.insert(std::make_pair(channel_name, Channel(channel_name, mode_chars)));
         std::cout << "Channel " << channel_name << " created." << std::endl;
         std::map<std::string, Channel>::iterator it = _channels.find(channel_name);
         if (it != _channels.end())
@@ -314,12 +314,11 @@ void Server::msg(int fd, std::vector<std::string> &params)
 
         Channel &channel = chanIt->second;
 
-        if (!channel.isMember(fd))
+        if (!channel.isMember(fd) && channel.hasMode('n'))
         {
-            sendNumeric(fd, ERR_NOTONCHANNEL, "PRIVMSG");
+            sendNumeric(fd, ERR_CANNOTSENDTOCHAN, target);
             return;
         }
-
         std::string message =
             ":" + sender.getNick() + "!" +
             sender.getUsername() + "@" +

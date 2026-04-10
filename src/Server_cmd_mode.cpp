@@ -48,53 +48,54 @@ void Server::mode(int fd, std::vector<std::string> &params)
 
 void Server::applyModeString(int fd, std::vector<std::string> &params, Channel &channel)
 {
+    if (params.size() < 2) return; // Safety check
+    
     std::string modes = params[1];
     bool adding = true;
-    size_t j = 2; // Parameter index starts here
+    size_t j = 2; // Parameter index
 
     for (size_t i = 0; i < modes.length(); ++i)
     {
         char c = modes[i];
-        if (c == '+')
-        {
-            adding = true;
-            continue;
-        }
-        if (c == '-')
-        {
-            adding = false;
-            continue;
-        }
+        if (c == '+') { adding = true; continue; }
+        if (c == '-') { adding = false; continue; }
 
         switch (c)
         {
-        // Modes that require a parameter
-        case 'k':
-            mode_k(fd, params, channel, j, adding);
-            if (adding)
-                j++;
-            break;
+            case 'k':
+                if (j < params.size()) {
+                    mode_k(fd, params, channel, j++, adding);
+                }
+                break;
 
-        case 'o':
-            mode_o(fd, params, channel, j, adding);
-            j++; // o always consumes a parameter
-            break;
+            case 'o':
+                if (j < params.size()) {
+                    mode_o(fd, params, channel, j++, adding);
+                } else {
+                    sendNumeric(fd, ERR_NEEDMOREPARAMS, "MODE +o");
+                }
+                break;
 
-        case 'l':
-            mode_l(fd, params, channel, j, adding);
-            if (adding)
-                j++;
-            break;
+            case 'l':
+                if (adding) {
+                    if (j < params.size()) {
+                        mode_l(fd, params, channel, j++, adding);
+                    }
+                } else {
+                    channel.unsetMode('l'); // -l doesn't need a param
+                }
+                break;
 
-        // Simple toggle modes (no parameters)
-        case 'i':
-        case 't':
-            adding ? channel.setMode(c) : channel.unsetMode(c);
-            break;
+            case 'i':
+            case 't':
+            case 'n':
+                adding ? channel.setMode(c) : channel.unsetMode(c);
+                break;
 
-        default:
-            sendNumeric(fd, ERR_UNKNOWNMODE, std::string(1, c));
-            break;
+            default:
+                std::string modeChar(1, c);
+                sendNumeric(fd, ERR_UNKNOWNMODE, modeChar);
+                break;
         }
     }
 }
