@@ -66,7 +66,7 @@ std::string Server::formatNumeric(int code, const std::string &nick, const std::
 }
 
 // For Commands (e.g., :nick!user@host JOIN #channel)
-std::string Server::formatMessage(const User &source, const std::string &command, const std::string &params)
+std::string Server::formatNotice(const User &source, const std::string &command, const std::string &params)
 {
     std::string msg = ":" + source.getPrefix() + " " + command;
     if (!params.empty())
@@ -74,9 +74,9 @@ std::string Server::formatMessage(const User &source, const std::string &command
     return msg;
 }
 
-void Server::sendMsg(int fd, const User &source, const std::string &command, const std::string &params)
+void Server::sendNotice(int fd, const User &source, const std::string &command, const std::string &params)
 {
-    std::string msg = formatMessage(source, command, params);
+    std::string msg = formatNotice(source, command, params);
     sendToClient(fd, msg);
 }
 

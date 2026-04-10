@@ -173,7 +173,7 @@ void Server::join(int fd, std::vector<std::string> &params)
     if (it != _channels.end())
     {
         Channel &channel = it->second;
-        std::string msg = formatMessage(user, "JOIN", channel_name);
+        std::string msg = formatNotice(user, "JOIN", channel_name);
         sendToChannel(channel, msg, 0);
         topic(fd, params);
         mode(fd, params);
@@ -273,6 +273,9 @@ void Server::topic(int fd, std::vector<std::string> &params)
     if (!channel.isOperator(fd) && channel.hasMode('t'))
         return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name);
     channel.setTopic(params[1], _users[fd].getNick());
+    // :jade_yuzu!user@host TOPIC #test_room :Coding all night!
+    std::string msg = formatNotice(_users[fd], "TOPIC", channel_name + " " + channel.getTopic().content);
+    sendToChannel(channel, msg, 0);
 }
 
 void Server::msg(int fd, std::vector<std::string> &params)
@@ -333,7 +336,7 @@ void Server::msg(int fd, std::vector<std::string> &params)
         }
 
         std::string user_and_msg = target + " :" + params[1];
-        std::string message = formatMessage(sender, "PRIVMSG", user_and_msg);
+        std::string message = formatNotice(sender, "PRIVMSG", user_and_msg);
         sendToClient(targetFd, message);
     }
 }

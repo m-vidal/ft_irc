@@ -43,7 +43,7 @@ void Server::mode(int fd, std::vector<std::string> &params)
             return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, target);
 
         applyModeString(fd, params, channel);
-        std::string msg = formatMessage(_users[fd], "MODE", params[1]);
+        std::string msg = formatNotice(_users[fd], "MODE", params[1]);
         sendToChannel(channel, msg, 0);      
     }
 }
