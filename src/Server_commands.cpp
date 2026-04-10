@@ -344,7 +344,7 @@ void Server::kick(int fd, std::vector<std::string> &params)
     Channel &channel = it->second;
     if (!channel.isMember(fd))
         return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name);
-    if (!channel.isOperator(fd) && channel.hasMode('t'))
+    if (!channel.isOperator(fd))
         return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, channel_name);
     if (!channel.isMember(*target))
         return sendNumeric(fd, ERR_USERNOTINCHANNEL, channel_name);
@@ -433,8 +433,6 @@ void Server::names(int fd, std::vector<std::string> &params)
     if (!user.isAuthenticated())
         return sendToClient(fd, formatNumeric(ERR_NOTREGISTERED, user.getNick(), "NAMES"));
 
-    // If no params, the RFC says show all visible channels/users.
-    // For 42 projects, usually showing all channels is sufficient.
     std::vector<std::string> channelsToShow;
     if (params.empty())
     {
@@ -445,7 +443,6 @@ void Server::names(int fd, std::vector<std::string> &params)
     {
         channelsToShow.push_back(params[0]);
     }
-
     for (size_t i = 0; i < channelsToShow.size(); ++i)
     {
         std::map<std::string, Channel>::iterator it = _channels.find(channelsToShow[i]);
