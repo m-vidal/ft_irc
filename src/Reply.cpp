@@ -17,6 +17,8 @@
 void Server::initReplies()
 {
     _replyMessages[ERR_NOTEXTTOSEND] = "No text to send";
+    // replies
+    _replyMessages[RPL_ENDOFINVITELIST] = "End of /INVITE list";
     _replyMessages[RPL_ENDOFNAMES] = "End of /NAMES list";
     // Channel & Mode Errors
     _replyMessages[ERR_NOSUCHNICK] = "No such nick/channel";

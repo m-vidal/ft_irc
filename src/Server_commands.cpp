@@ -49,21 +49,18 @@ void Server::nick(int fd, std::vector<std::string> &params)
 {
     // If your parser puts the nick in trailing when no colon is used,
     // or if it's the only param, we check both.
-
     if (params.empty())
     {
         sendNumeric(fd, ERR_NONICKNAMEGIVEN);
         return;
     }
     std::string newNick = params[0];
-
     // IRC Nick Rules: No leading digits, no forbidden chars
     if (std::isdigit(newNick[0]) || newNick.find_first_of(" ,*!@:#\n") != std::string::npos)
     {
         sendNumeric(fd, ERR_ERRONEUSNICKNAME, newNick);
         return;
     }
-
     // Case-insensitive check (assuming findUserByNick handles it)
     if (isNickTaken(newNick, fd))
     {
@@ -73,22 +70,17 @@ void Server::nick(int fd, std::vector<std::string> &params)
     User &user = _users[fd];
     std::string oldPrefix = user.getPrefix(); // Capture prefix BEFORE changing nick
     bool wasAuthenticated = user.isAuthenticated();
-
     user.setNick(newNick);
-
     if (wasAuthenticated)
     {
         // Format: :oldnick!user@host NICK :newnick
         // We use a raw sender here because NICK isn't a numeric reply
         std::string notifyMsg = ":" + oldPrefix + " NICK :" + newNick + "\r\n";
-
         // 1. Send to self
         sendToClient(fd, notifyMsg);
-
         // 2. Notify everyone who shares a channel with the user
         std::set<int> notified;
         notified.insert(fd); // Don't send to self again via broadcast
-
         std::map<std::string, Channel>::iterator it;
         for (it = _channels.begin(); it != _channels.end(); ++it)
         {
@@ -99,7 +91,6 @@ void Server::nick(int fd, std::vector<std::string> &params)
         }
     }
     std::cout << "nickname set\n";
-
     checkRegistration(fd);
 }
 
@@ -162,9 +153,8 @@ void Server::join(int fd, std::vector<std::string> &params)
         }
         if (channel.hasMode('i') && !channel.isInvited(user.getNick()))
             return sendNumeric(fd, ERR_INVITEONLYCHAN, "JOIN");
-        if (channel.getLimit() >= channel.getMemberCount())
+        if (channel.hasMode('l') && channel.getMemberCount() >= channel.getLimit())
             return sendNumeric(fd, ERR_CHANNELISFULL, "JOIN");
-
         user.addChannel(channel_name);
         it->second.addMember(user);
     }
@@ -209,20 +199,20 @@ void Server::part(int fd, std::vector<std::string> &params)
 void Server::invite(int fd, std::vector<std::string> &params)
 {
     std::string username = _users[fd].getUsername();
-    User user = _users[fd];
+    User &user = _users[fd];
     if (params.size() == 0)
     {
         const std::map<std::string, time_t> &invites = user.getInvites();
         std::map<std::string, time_t>::const_iterator it;
         for (it = invites.begin(); it != invites.end(); ++it)
         {
-            std::string username = it->first;
+            std::string channel_name = it->first;
             std::stringstream ss;
             ss << it->second;
             std::string timeStr = ss.str();
-            sendNumeric(fd, RPL_INVITELIST, username + " " + timeStr);
+            sendNumeric(fd, RPL_INVITELIST, channel_name);
         }
-        return sendNumeric(fd, RPL_ENDOFINVITELIST, username);
+        return sendNumeric(fd, RPL_ENDOFINVITELIST);
     }
     else if (params.size() == 2)
     {
@@ -363,7 +353,7 @@ void Server::kick(int fd, std::vector<std::string> &params)
         reason = " : " + params[2];
     //:<kicker_prefix> KICK <channel> <target> :<reason>"
     std::string msg = ":" + user.getPrefix() + " KICK " + channel.getName() + " " + target->getNick() + reason;
-    sendToChannel(channel, msg, fd);
+    sendToChannel(channel, msg, 0);
     channel.removeMember(target->getFd());
     target->removeChannel(channel_name);
 }
