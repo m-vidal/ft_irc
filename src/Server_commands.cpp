@@ -293,7 +293,7 @@ void Server::msg(int fd, std::vector<std::string> &params)
         return;
     }
 
-    if (params.size() < 2)
+    if (params.size() < 2 || params[1].empty())
     {
         sendNumeric(fd, ERR_NOTEXTTOSEND, "PRIVMSG");
         return;
