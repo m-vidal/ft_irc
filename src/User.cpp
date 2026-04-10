@@ -120,7 +120,7 @@ std::map<std::string, time_t> &User::getInvites()
 
 std::string User::getPrefix() const
 {
-	return _nickname + "!" + _username + "@" + _hostname;
+	return ":" + _nickname + "!" + _username + "@" + _hostname;
 }
 
 size_t User::getChannelCount() const

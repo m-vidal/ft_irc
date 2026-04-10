@@ -70,7 +70,7 @@ std::string Server::formatNumeric(int code, const std::string &nick, const std::
 // For Commands (e.g., :nick!user@host JOIN #channel)
 std::string Server::formatNotice(const User &source, const std::string &command, const std::string &params)
 {
-    std::string msg = ":" + source.getPrefix() + " " + command;
+    std::string msg = source.getPrefix() + " " + command;
     if (!params.empty())
         msg += " " + params;
     return msg;

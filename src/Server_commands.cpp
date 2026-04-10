@@ -75,7 +75,7 @@ void Server::nick(int fd, std::vector<std::string> &params)
     {
         // Format: :oldnick!user@host NICK :newnick
         // We use a raw sender here because NICK isn't a numeric reply
-        std::string notifyMsg = ":" + oldPrefix + " NICK :" + newNick + "\r\n";
+        std::string notifyMsg = oldPrefix + " NICK " + newNick + "\r\n";
         // 1. Send to self
         sendToClient(fd, notifyMsg);
         // 2. Notify everyone who shares a channel with the user
@@ -106,7 +106,7 @@ void Server::ping(int fd, std::vector<std::string> &params)
 {
     // The token is usually in params[0] or trailing (depending on the client)
     std::string token = params[0];
-    std::string pongMsg = ":" + _serverName + " PONG " + _serverName + " :" + token + "\r\n";
+    std::string pongMsg = ":" + _serverName + " PONG " + _serverName + " " + token + "\r\n";
     sendToClient(fd, pongMsg);
 }
 
@@ -183,7 +183,7 @@ void Server::part(int fd, std::vector<std::string> &params)
     if (!channel.isMember(fd))
         return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name);
     User &user = _users.at(fd);
-    std::string message = ":" + user.getPrefix() + " PART " + channel_name;
+    std::string message = user.getPrefix() + " PART " + channel_name;
     if (params.size() > 1)
         message += " :" + params[1];
     sendToChannel(channel, message, -1); 
@@ -235,7 +235,7 @@ void Server::invite(int fd, std::vector<std::string> &params)
         sendNumeric(fd, RPL_INVITING, target->getNick() + " " + channel.getName());
         // 3. Notify the INVITED User (Raw Command)
         // Format: :InviterNick!InviterUser@InviterHost INVITE TargetNick :ChannelName
-        std::string inviteMsg = ":" + _users[fd].getPrefix() + " INVITE " + target->getNick() + " :" + channel.getName() + "\r\n";
+        std::string inviteMsg = _users[fd].getPrefix() + " INVITE " + target->getNick() + " :" + channel.getName() + "\r\n";
         return sendToClient(target->getFd(), inviteMsg);
     }
     return sendNumeric(fd, ERR_NEEDMOREPARAMS, "INVITE");
@@ -304,11 +304,8 @@ void Server::msg(int fd, std::vector<std::string> &params)
             sendNumeric(fd, ERR_CANNOTSENDTOCHAN, target);
             return;
         }
-        std::string message =
-            ":" + sender.getNick() + "!" +
-            sender.getUsername() + "@" +
-            sender.getHostname() +
-            " PRIVMSG " + target + " :" + params[1];
+        std::string message = sender.getPrefix() + 
+        " PRIVMSG " + target + " " + params[1];
 
         std::set<int> notified;
         notified.insert(fd);
@@ -325,7 +322,7 @@ void Server::msg(int fd, std::vector<std::string> &params)
             return;
         }
 
-        std::string user_and_msg = target + " :" + params[1];
+        std::string user_and_msg = target + " " + params[1];
         std::string message = formatNotice(sender, "PRIVMSG", user_and_msg);
         sendToClient(targetFd, message);
     }
@@ -352,7 +349,7 @@ void Server::kick(int fd, std::vector<std::string> &params)
     if (params.size() > 2)
         reason = " : " + params[2];
     //:<kicker_prefix> KICK <channel> <target> :<reason>"
-    std::string msg = ":" + user.getPrefix() + " KICK " + channel.getName() + " " + target->getNick() + reason;
+    std::string msg = user.getPrefix() + " KICK " + channel.getName() + " " + target->getNick() + reason;
     sendToChannel(channel, msg, 0);
     channel.removeMember(target->getFd());
     target->removeChannel(channel_name);
@@ -383,7 +380,7 @@ void Server::notice(int fd, std::vector<std::string> &params)
         if (!channel.isMember(fd))
             return;
 
-        std::string message = ":" + sender.getPrefix() + " NOTICE " + targetName + " :" + text + "\r\n";
+        std::string message = sender.getPrefix() + " NOTICE " + targetName + " :" + text + "\r\n";
 
         // Broadcast to everyone in channel EXCEPT the sender
         std::set<int> exclude;
@@ -401,7 +398,7 @@ void Server::notice(int fd, std::vector<std::string> &params)
         if (itTarget == _users.end())
             return;
 
-        std::string message = ":" + sender.getPrefix() + " NOTICE " + targetName + " :" + text + "\r\n";
+        std::string message = sender.getPrefix() + " NOTICE " + targetName + " :" + text + "\r\n";
         sendToClient(targetFd, message);
     }
 }
@@ -469,7 +466,7 @@ void Server::quit(int fd, std::vector<std::string> &params)
     if (!params.empty() && !params[0].empty())
         reason = params[0];
 
-    std::string msg = ":" + user.getPrefix() + " QUIT :" + reason + "\r\n";
+    std::string msg = user.getPrefix() + " QUIT :" + reason + "\r\n";
 
     std::vector<std::string> userChannels = user.getChannels();
 

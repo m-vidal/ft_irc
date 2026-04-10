@@ -188,7 +188,7 @@ void Server::parseLine(int fd, std::string line)
     size_t colonPos = line.find(" :");
     if (colonPos != std::string::npos)
     {
-        trailing = line.substr(colonPos + 2); // Get everything after " :"
+        trailing = line.substr(colonPos + 1); // Get the : and everything after"
         line = line.substr(0, colonPos);      // Keep only the part before " :"
     }
 
