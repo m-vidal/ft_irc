@@ -24,6 +24,7 @@ Channel::Channel(const std::string &name, const std::string &mode_chars): _name(
 {
 	for(size_t i = 0; i < mode_chars.size(); i++)
 		_mode[mode_chars[i]] = false;
+	setMode('n');
 }
 
 bool Channel::isMember(const int fd) const
