@@ -229,28 +229,20 @@ void Server::invite(int fd, std::vector<std::string> &params)
         User *target = findUserByNick(params[0]);
         if (!target)
             return sendNumeric(fd, ERR_NOSUCHNICK, params[0]);
-
         std::map<std::string, Channel>::iterator it = _channels.find(params[1]);
         if (it == _channels.end())
             return sendNumeric(fd, ERR_NOSUCHCHANNEL, params[1]);
-
         Channel &channel = it->second;
-
         if (!channel.isMember(fd))
             return sendNumeric(fd, ERR_NOTONCHANNEL, params[1]);
-
         if (channel.hasMode('i') && !channel.isOperator(fd))
             return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, params[1]);
-
         if (channel.isMember(target->getFd()))
             return sendNumeric(fd, ERR_USERONCHANNEL, target->getNick() + " " + params[1]);
-
         // 1. Add to the channel's internal invite list
         channel.addInvite(*target);
-
         // 2. Notify the INVITER (Standard Numeric)
         sendNumeric(fd, RPL_INVITING, target->getNick() + " " + channel.getName());
-
         // 3. Notify the INVITED User (Raw Command)
         // Format: :InviterNick!InviterUser@InviterHost INVITE TargetNick :ChannelName
         std::string inviteMsg = ":" + _users[fd].getPrefix() + " INVITE " + target->getNick() + " :" + channel.getName() + "\r\n";

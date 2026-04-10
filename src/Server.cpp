@@ -162,6 +162,7 @@ void Server::consumeBuffer(int fd)
     std::string buf = _users[fd].getBuffer();
     size_t pos;
 
+    std::cout << "\nbuffer [" << fd << "] " << buf << std::endl;
     while ((pos = buf.find("\r\n")) != std::string::npos)
     {
         std::string line = buf.substr(0, pos);

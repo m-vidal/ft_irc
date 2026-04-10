@@ -37,12 +37,14 @@ void Server::mode(int fd, std::vector<std::string> &params)
         sendNumeric(fd, RPL_CHANNELMODEIS, target + " " + channel.getModeStr());
         return sendNumeric(fd, RPL_CREATIONTIME, target + " " + timeToStr(channel.getCreationTime()));
     }
-    if (params.size() > 1)
+    if (params.size() > 1 && !params[1].empty())
     {
         if (!channel.isOperator(fd))
             return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, target);
 
         applyModeString(fd, params, channel);
+        std::string msg = formatMessage(_users[fd], "MODE", params[1]);
+        sendToChannel(channel, msg, 0);      
     }
 }
 
