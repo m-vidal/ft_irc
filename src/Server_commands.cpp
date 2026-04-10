@@ -185,7 +185,7 @@ void Server::part(int fd, std::vector<std::string> &params)
     User &user = _users.at(fd);
     std::string message = user.getPrefix() + " PART " + channel_name;
     if (params.size() > 1)
-        message += " :" + params[1];
+        message += " " + params[1];
     sendToChannel(channel, message, -1); 
     channel.removeMember(fd);
     user.removeChannel(channel_name);
@@ -374,14 +374,11 @@ void Server::notice(int fd, std::vector<std::string> &params)
         std::map<std::string, Channel>::iterator itChan = _channels.find(targetName);
         if (itChan == _channels.end())
             return;
-
         Channel &channel = itChan->second;
         // Optional: Check if sender is in channel, but some IRC setups allow external notice
-        if (!channel.isMember(fd))
+        if (!channel.isMember(fd) && channel.hasMode('n'))
             return;
-
-        std::string message = sender.getPrefix() + " NOTICE " + targetName + " :" + text + "\r\n";
-
+        std::string message = sender.getPrefix() + " NOTICE " + targetName + " " + text + "\r\n";
         // Broadcast to everyone in channel EXCEPT the sender
         std::set<int> exclude;
         exclude.insert(fd);
@@ -393,12 +390,10 @@ void Server::notice(int fd, std::vector<std::string> &params)
         int targetFd = getFdFromNick(targetName);
         if (targetFd == -1)
             return;
-
         std::map<int, User>::iterator itTarget = _users.find(targetFd);
         if (itTarget == _users.end())
             return;
-
-        std::string message = sender.getPrefix() + " NOTICE " + targetName + " :" + text + "\r\n";
+        std::string message = sender.getPrefix() + " NOTICE " + targetName + " " + text + "\r\n";
         sendToClient(targetFd, message);
     }
 }

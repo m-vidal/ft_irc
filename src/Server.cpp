@@ -205,7 +205,8 @@ void Server::parseLine(int fd, std::string line)
     // 3. If we found a colon part, add it as the final argument
     if (colonPos != std::string::npos)
     {
-        args.push_back(trailing);
+        if (trailing != ":")
+            args.push_back(trailing);
     }
     // 4. Special case: If there was no colon, but there is no "trailing",
     // it doesn't matter. The last word in args is already the "trailing".

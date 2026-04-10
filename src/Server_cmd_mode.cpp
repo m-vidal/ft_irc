@@ -19,30 +19,42 @@ void Server::mode(int fd, std::vector<std::string> &params)
     std::string target = params[0];
     if (target[0] != '&' && target[0] != '#')
     {
-        std::map<int, User>::iterator it = _users.find(fd);
-        if (it == _users.end())
+        User *target_user = findUserByNick(target);
+        if (!target_user)
             return sendNumeric(fd, ERR_NOSUCHNICK, target);
-        return sendNumeric(fd, RPL_UMODEIS, " +");
-    }
+        else{
+            std::cout << "mode found user " << target_user->getNick() << std::endl;
+            std::cout << "user " << _users[fd].getNick() << std::endl;
+            if (target_user->getNick() != _users[fd].getNick())
+                return sendNumeric(fd, ERR_USERSDONTMATCH , " +");
 
-    std::map<std::string, Channel>::iterator it = _channels.find(target);
-    if (it == _channels.end())
-        return sendNumeric(fd, ERR_NOSUCHCHANNEL, target);
-
-    Channel &channel = (it->second);
-    if (!channel.isMember(fd))
+            if (params.size() == 1){
+                return sendNumeric(fd, RPL_UMODEIS, " +");
+            }
+            else if (params.size() > 1 && !params[1].empty()){
+                return sendNumeric(fd, ERR_UMODEUNKNOWNFLAG);
+            }
+        } 
+   }
+    else{
+        std::map<std::string, Channel>::iterator it = _channels.find(target);
+        if (it == _channels.end())
+        return sendNumeric(fd, ERR_NOSUCHCHANNEL, target);        
+        Channel &channel = (it->second);
+        if (!channel.isMember(fd))
         return sendNumeric(fd, ERR_NOTONCHANNEL, target);
-    if (params.size() == 1)
-    {
-        sendNumeric(fd, RPL_CHANNELMODEIS, target + " " + channel.getModeStr());
-        return sendNumeric(fd, RPL_CREATIONTIME, target + " " + timeToStr(channel.getCreationTime()));
-    }
-    if (params.size() > 1 && !params[1].empty())
-    {
-        if (!channel.isOperator(fd))
+        if (params.size() == 1)
+        {
+            sendNumeric(fd, RPL_CHANNELMODEIS, target + " " + channel.getModeStr());
+            return sendNumeric(fd, RPL_CREATIONTIME, target + " " + timeToStr(channel.getCreationTime()));
+        }
+        if (params.size() > 1 && !params[1].empty())
+        {
+            if (!channel.isOperator(fd))
             return sendNumeric(fd, ERR_CHANOPRIVSNEEDED, target);
-
-        applyModeString(fd, params, channel);  
+            
+            applyModeString(fd, params, channel);  
+        }
     }
 }
 
