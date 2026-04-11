@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/19 14:04:26 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/11 15:22:20 by marcsilv         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,10 +69,11 @@ void Server::disconnectClient(int fd)
             break;
         }
     }
+	if (_users[fd].isAuthenticated() == true) 
+		decUsers();
     close(fd);
     _users.erase(fd);
     std::cout << "Client [" << fd << "]  disconnected" << std::endl;
-    decUsers();
 }
 
 void Server::listenMode()
