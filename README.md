@@ -1,41 +1,38 @@
+*This project has been created as part of the 42 curriculum by atambo, m-vidal, marcsilv.*
+
 # ft_irc
 
-[![Ask DeepWiki](https://devin.ai/assets/askdeepwiki.png)](https://deepwiki.com/m-vidal/Ft_IRC)
+## Description
 
-An IRC (Internet Relay Chat) server implementation in C++98, compliant with RFC 2812. This project provides a robust, non-blocking server capable of handling multiple clients simultaneously using `poll()`. It supports user authentication, channel management, private messaging, and various channel modes.
+`ft_irc` is a fully functional IRC (Internet Relay Chat) server written in C++98, compliant with [RFC 2812](https://datatracker.ietf.org/doc/html/rfc2812). The goal of this project is to implement a real network server from scratch, gaining a deep understanding of socket programming, non-blocking I/O, and the IRC protocol.
 
-## ✨ Features
+The server is capable of handling multiple simultaneous client connections using the `poll()` system call. It supports user authentication, channel creation and management, private messaging, operator privileges, and a full set of channel modes — all in line with the standard IRC specification.
 
-- **Concurrent Client Handling**: Manages multiple simultaneous connections using `poll()`.
-- **User Authentication**: Secure connection process with `PASS`, `NICK`, and `USER` commands.
-- **Channel Management**: Create, join, part, and manage channels with commands like `JOIN`, `PART`, `TOPIC`, `KICK`, `INVITE`, `LIST`, and `NAMES`.
-- **Messaging**: Supports public channel messages and private one-on-one communication via `PRIVMSG` and `NOTICE`.
-- **Channel Modes**: Implements key channel modes for enhanced control:
-  - `i`: Invite-only
-  - `t`: Topic protection
-  - `k`: Channel key (password)
-  - `o`: Operator status management
-  - `l`: User limit
-  - `n`: No messages from outside users
-- **IRC Numeric Replies**: Provides standard numeric replies and error codes for client-server communication.
-- **Operator Privileges**: Channel creators are automatically granted operator status, with the ability to grant it to others.
+### Key Features
 
-## 🛠️ Tech Stack
+- **Concurrent Client Handling**: Manages multiple simultaneous connections using `poll()` for non-blocking I/O.
+- **User Authentication**: Secure connection handshake with `PASS`, `NICK`, and `USER` commands.
+- **Channel Management**: Create, join, leave, and manage channels with `JOIN`, `PART`, `TOPIC`, `KICK`, `INVITE`, `LIST`, and `NAMES`.
+- **Messaging**: Public channel messages and private one-on-one communication via `PRIVMSG` and `NOTICE`.
+- **Channel Modes**: Implements the following modes:
+  - `i` - Invite-only
+  - `t` -Topic definition 
+  - `k` - Channel key (password)
+  - `o` - Operator status grant/revoke
+  - `l` - User limit
+- **IRC Numeric Replies**: Standard numeric replies and error codes for proper client-server communication.
+- **Operator Privileges**: Channel creators are automatically granted operator status and may promote others.
 
-- **Language**: C++98
-- **Concurrency**: `poll()` system call for non-blocking I/O.
-- **Networking**: Berkeley Sockets API.
-
-## 🚀 Getting Started
+## Instructions
 
 ### Prerequisites
 
-- A C++ compiler (like `g++` or `clang++`)
+- A C++ compiler (`c++`)
 - `make`
 
 ### Compilation
 
-Clone the repository and compile the server using the provided `Makefile`:
+Clone the repository and build the server:
 
 ```bash
 git clone https://github.com/m-vidal/Ft_IRC.git
@@ -43,17 +40,17 @@ cd Ft_IRC
 make
 ```
 
-This will create an executable file named `ircserv`.
+This produces an executable named `ircserv`.
 
 ### Running the Server
-
-Execute the server by providing a port number and a password as arguments. The port must be within the range of 6660-7000.
 
 ```bash
 ./ircserv <port> <password>
 ```
 
-Example:
+The port must be in the range **6660–7000**.
+
+**Example:**
 
 ```bash
 ./ircserv 6667 mysecretpassword
@@ -63,66 +60,66 @@ The server will start and listen for incoming connections on the specified port.
 
 ### Connecting with an IRC Client
 
-You can connect to the server using any standard IRC client (e.g., `irssi`, `HexChat`, `mIRC`).
+Standard IRC clients should work (e.g., `irssi`).
 
-**Connection Details:**
-- **Server Address**: `127.0.0.1` or `localhost`
-- **Port**: The port you specified when running `ircserv`.
-- **Password**: The password you specified.
+**Connection details:**
+- **Server Address**: `127.0.0.1` / `localhost`
+- **Port**: The port passed to `ircserv`
+- **Password**: The password passed to `ircserv`
 
 **Example using `irssi`:**
 
-1.  Start `irssi`.
-2.  Add the server to your network list:
-    ```
-    /server add -network ft_irc -port 6667 -password mysecretpassword localhost
-    ```
-3.  Connect to the server:
-    ```
-    /connect ft_irc
-    ```
-
-Once connected, you can set your nickname and begin chatting.
-
 ```
+/server add -network ft_irc -port 6667 -password mysecretpassword localhost
+/connect ft_irc
 /nick your_nickname
 /join #channel_name
 ```
 
-## 📋 Commands Implemented
+### Commands Implemented
 
-The server supports the following IRC commands:
+| Command     | Description                                                |
+|-------------|------------------------------------------------------------|
+| `PASS`      | Provide the server password for authentication.            |
+| `NICK`      | Set or change your nickname.                               |
+| `USER`      | Specify your username and real name.                       |
+| `PING`      | Server responds with `PONG` to verify the connection.      |
+| `QUIT`      | Disconnect from the server.                                |
+| `JOIN`      | Join a channel; creates it if it does not exist.           |
+| `PART`      | Leave a channel.                                           |
+| `PRIVMSG`   | Send a private message to a user or channel.               |
+| `NOTICE`    | Send a notice to a user or channel (no automatic reply).   |
+| `KICK`      | Eject a user from a channel (operator only).               |
+| `TOPIC`     | View or set the topic of a channel.                        |
+| `INVITE`    | Invite a user to a channel.                                |
+| `MODE`      | View or change channel/user modes.                         |
+| `LIST`      | List all available channels on the server.                 |
+| `NAMES`     | List all users in a specific channel.                      |
 
-| Command     | Description                                               |
-|-------------|-----------------------------------------------------------|
-| **PASS**    | Provide the server password for authentication.           |
-| **NICK**    | Set or change your nickname.                              |
-| **USER**    | Specify your username and real name.                      |
-| **PING**    | Responds with a `PONG` to check if the connection is alive.|
-| **QUIT**    | Disconnect from the server.                               |
-| **JOIN**    | Join a channel. Creates one if it doesn't exist.          |
-| **PART**    | Leave a channel.                                          |
-| **PRIVMSG** | Send a private message to a user or a channel.            |
-| **NOTICE**  | Send a notice to a user or a channel (no auto-reply).     |
-| **KICK**    | Eject a user from a channel (operator only).              |
-| **TOPIC**   | View or set the topic for a channel.                      |
-| **INVITE**  | Invite a user to a channel.                               |
-| **MODE**    | View or change channel/user modes.                        |
-| **LIST**    | List all available channels on the server.                |
-| **NAMES**   | List all users in a specific channel.                     |
-
-## 📁 File Structure
+### File Structure
 
 ```
 .
-├── Makefile          # Build instructions for the project.
-├── inc/              # Header files for classes and definitions.
+├── Makefile          # Build instructions.
+├── inc/              # Header files.
 │   ├── Channel.hpp
 │   ├── Server.hpp
 │   ├── User.hpp
 │   └── replyCodes.hpp
-└── src/              # Source code implementation.
+└── src/              # Source files.
     ├── Channel.cpp
     ├── Server.cpp
     ├── User.cpp
     └── main.cpp
+```
+
+## Resources
+
+### IRC Protocol & Networking
+
+- [RFC 2812 — Internet Relay Chat: Client Protocol](https://datatracker.ietf.org/doc/html/rfc2812) — The primary specification this server is built against.
+- [RFC 1459 — Internet Relay Chat Protocol](https://datatracker.ietf.org/doc/html/rfc1459) — The original IRC RFC, useful as a companion reference.
+- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/) — Comprehensive guide to socket programming in C/C++.
+- [poll() man page (Linux)](https://man7.org/linux/man-pages/man2/poll.2.html) — Reference for the `poll()` system call used for non-blocking I/O.
+- [Modern IRC documentation (ircdocs.horse)](https://modern.ircdocs.horse/) — Up-to-date, readable documentation of the IRC protocol with practical examples.
+
