@@ -304,11 +304,8 @@ void Server::msg(int fd, std::vector<std::string> &params)
             sendNumeric(fd, ERR_CANNOTSENDTOCHAN, target);
             return;
         }
-        std::string message =
-            ":" + sender.getNick() + "!" +
-            sender.getUsername() + "@" +
-            sender.getHostname() +
-            " PRIVMSG " + target + " :" + params[1];
+        std::string message = sender.getPrefix() + 
+        " PRIVMSG " + target + " :" + params[1];
 
         std::set<int> notified;
         notified.insert(fd);
