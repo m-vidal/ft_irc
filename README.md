@@ -22,39 +22,29 @@ The server is capable of handling multiple simultaneous client connections using
   - `l` - User limit
 - **IRC Numeric Replies**: Standard numeric replies and error codes for proper client-server communication.
 - **Operator Privileges**: Channel creators are automatically granted operator status and may promote others.
-
-## Instructions
-
 ### Prerequisites
 
-- A C++ compiler (`c++`)
-- `make`
+- A C++98 compatible compiler (`clang++` or `g++`)
+- `make` build utility
+- An IRC client for testing (recommended: `irssi`)
 
-### Compilation
-
-Clone the repository and build the server:
+### Compilation & Usage
 
 ```bash
-git clone https://github.com/m-vidal/Ft_IRC.git
-cd Ft_IRC
+# Clone the repository
+git clone <repository-url> ft_irc
+cd ft_irc
+
+# Compile the server
 make
-```
 
-This produces an executable named `ircserv`.
-
-### Running the Server
-
-```bash
+# Run the server with default port and password
 ./ircserv <port> <password>
-```
 
-The port must be in the range **6660–7000**.
-
-**Example:**
-
-```bash
+# Example:
 ./ircserv 6667 mysecretpassword
 ```
+## 📚 Resources
 
 The server will start and listen for incoming connections on the specified port.
 
@@ -122,4 +112,3 @@ Standard IRC clients should work (e.g., `irssi`).
 - [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/) — Comprehensive guide to socket programming in C/C++.
 - [poll() man page (Linux)](https://man7.org/linux/man-pages/man2/poll.2.html) — Reference for the `poll()` system call used for non-blocking I/O.
 - [Modern IRC documentation (ircdocs.horse)](https://modern.ircdocs.horse/) — Up-to-date, readable documentation of the IRC protocol with practical examples.
-
