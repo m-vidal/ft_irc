@@ -44,28 +44,6 @@ make
 # Example:
 ./ircserv 6667 mysecretpassword
 ```
-## 📚 Resources
-
-The server will start and listen for incoming connections on the specified port.
-
-### Connecting with an IRC Client
-
-Standard IRC clients should work (e.g., `irssi`).
-
-**Connection details:**
-- **Server Address**: `127.0.0.1` / `localhost`
-- **Port**: The port passed to `ircserv`
-- **Password**: The password passed to `ircserv`
-
-**Example using `irssi`:**
-
-```
-/server add -network ft_irc -port 6667 -password mysecretpassword localhost
-/connect ft_irc
-/nick your_nickname
-/join #channel_name
-```
-
 ### Commands Implemented
 
 | Command     | Description                                                |
@@ -86,26 +64,7 @@ Standard IRC clients should work (e.g., `irssi`).
 | `LIST`      | List all available channels on the server.                 |
 | `NAMES`     | List all users in a specific channel.                      |
 
-### File Structure
-
-```
-.
-├── Makefile          # Build instructions.
-├── inc/              # Header files.
-│   ├── Channel.hpp
-│   ├── Server.hpp
-│   ├── User.hpp
-│   └── replyCodes.hpp
-└── src/              # Source files.
-    ├── Channel.cpp
-    ├── Server.cpp
-    ├── User.cpp
-    └── main.cpp
-```
-
-## Resources
-
-### IRC Protocol & Networking
+## 📚 Resources
 
 - [RFC 2812 — Internet Relay Chat: Client Protocol](https://datatracker.ietf.org/doc/html/rfc2812) — The primary specification this server is built against.
 - [RFC 1459 — Internet Relay Chat Protocol](https://datatracker.ietf.org/doc/html/rfc1459) — The original IRC RFC, useful as a companion reference.
