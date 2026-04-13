@@ -35,63 +35,45 @@ void Server::setknowncommands(void)
 // commands
 void Server::pass(int fd, std::vector<std::string> &params)
 {
-    if (_users[fd].checkIsPassAccepted() == true)
-        return sendNumeric(fd, ERR_ALREADYREGISTERED, "PASS");
+    User &user = _users[fd];
 
     if (params[0] != _password)
         return sendNumeric(fd, ERR_PASSWDMISMATCH, "PASS");
 
-    _users[fd].setPassAccepted(); // sets passAccepted to true
-    checkRegistration(fd);
+    user.setPassAccepted(); // sets passAccepted to true
+     if (_users[fd].isAuthenticated() == false)
+        checkRegistration(fd);
+    else
+        return sendNumeric(fd, ERR_ALREADYREGISTERED);
 }
 
 void Server::nick(int fd, std::vector<std::string> &params)
 {
-    // If your parser puts the nick in trailing when no colon is used,
-    // or if it's the only param, we check both.
     if (params.empty())
-    {
-        sendNumeric(fd, ERR_NONICKNAMEGIVEN);
-        return;
-    }
-    std::string newNick = params[0];
-    // IRC Nick Rules: No leading digits, no forbidden chars
-    if (std::isdigit(newNick[0]) || newNick.find_first_of(" ,*!@:#\n") != std::string::npos)
-    {
-        sendNumeric(fd, ERR_ERRONEUSNICKNAME, newNick);
-        return;
-    }
-    // Case-insensitive check (assuming findUserByNick handles it)
-    if (isNickTaken(newNick, fd))
-    {
-        sendNumeric(fd, ERR_NICKNAMEINUSE, newNick);
-        return;
-    }
+        return sendNumeric(fd, ERR_NONICKNAMEGIVEN);
+
     User &user = _users[fd];
-    std::string oldPrefix = user.getPrefix(); // Capture prefix BEFORE changing nick
+    std::string newNick = params[0];
+    if (newNick == user.getNick())
+        return;
+
+    if (std::isdigit(newNick[0]) || newNick.find_first_of(" ,*!@:#\n") != std::string::npos)
+        return sendNumeric(fd, ERR_ERRONEUSNICKNAME, newNick);
+
+    if (isNickTaken(newNick, fd))
+        return sendNumeric(fd, ERR_NICKNAMEINUSE, newNick);
+
+    std::string oldPrefix = user.getPrefix();
     bool wasAuthenticated = user.isAuthenticated();
     user.setNick(newNick);
     if (wasAuthenticated)
     {
-        // Format: :oldnick!user@host NICK :newnick
-        // We use a raw sender here because NICK isn't a numeric reply
-        std::string notifyMsg = ":" + oldPrefix + " NICK :" + newNick + "\r\n";
-        // 1. Send to self
-        sendToClient(fd, notifyMsg);
-        // 2. Notify everyone who shares a channel with the user
-        std::set<int> notified;
-        notified.insert(fd); // Don't send to self again via broadcast
-        std::map<std::string, Channel>::iterator it;
-        for (it = _channels.begin(); it != _channels.end(); ++it)
-        {
-            if (it->second.isMember(user))
-            {
-                sendToChannel(it->second, notifyMsg, notified);
-            }
-        }
+        std::string msg = ":" + oldPrefix + " NICK :" + newNick + "\r\n";
+        sendToClient(fd, msg);
+        sendToUserChannels(user, msg);
     }
-    std::cout << "nickname set\n";
-    checkRegistration(fd);
+    if (!_users[fd].isAuthenticated())
+        checkRegistration(fd);
 }
 
 void Server::user(int fd, std::vector<std::string> &params)
@@ -99,7 +81,12 @@ void Server::user(int fd, std::vector<std::string> &params)
     _users[fd].setUser(params[0]);
     _users[fd].setRealname(params[1]);
     std::cout << "username set\n";
-    checkRegistration(fd);
+    if (!_users[fd].isAuthenticated())
+        checkRegistration(fd);
+    else
+        return sendNumeric(fd, ERR_ALREADYREGISTERED);
+//  :uranium.libera.chat 462 atambo :You are already connected and cannot handshake again
+
 }
 
 void Server::ping(int fd, std::vector<std::string> &params)
