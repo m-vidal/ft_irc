@@ -40,7 +40,7 @@ void Server::initReplies()
     _replyMessages[ERR_ERRONEUSNICKNAME] = "Erroneous nickname";
     _replyMessages[ERR_NICKNAMEINUSE] = "Nickname is already in use";
     _replyMessages[ERR_NOTREGISTERED] = "You have not registered";
-    _replyMessages[ERR_ALREADYREGISTERED] = "Unauthorized command (already registered)";
+    _replyMessages[ERR_ALREADYREGISTERED] = "You are already connected and cannot handshake again";
     _replyMessages[ERR_PASSWDMISMATCH] = "Password incorrect";
 
     // Misc Errors
