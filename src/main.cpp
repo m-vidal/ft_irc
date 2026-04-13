@@ -24,7 +24,7 @@ int main(int ac, char **av)
 
 	std::stringstream ss(av[1]);
 	if (!(ss >> port_check) || ss.fail() || ss >> c  || port_check < PORT_MIN || port_check > PORT_MAX)
-		return (std::cerr << "Error: invalid port.Port number must be between " << PORT_MIN << "-" << PORT_MAX << std::endl, 1);
+		return (std::cerr << "Error: invalid port '" << av[1] << "'.\nPort number must be between " << PORT_MIN << "-" << PORT_MAX << std::endl, 1);
 	port = static_cast<unsigned short>(port_check);
 	std::cout << "IRC Server starting..." << std::endl;
 
