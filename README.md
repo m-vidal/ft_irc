@@ -1,128 +1,48 @@
 # ft_irc
 
-[![Ask DeepWiki](https://devin.ai/assets/askdeepwiki.png)](https://deepwiki.com/m-vidal/Ft_IRC)
+*This project has been created as part of the 42 curriculum by atambo, marcsilv, mvidal.*
 
-An IRC (Internet Relay Chat) server implementation in C++98, compliant with RFC 2812. This project provides a robust, non-blocking server capable of handling multiple clients simultaneously using `poll()`. It supports user authentication, channel management, private messaging, and various channel modes.
+## 📝 Description
 
-## ✨ Features
+**ft_irc** is a custom IRC (Internet Relay Chat) server implementation written in **C++98**.  
+The goal of this project is to recreate a functional IRC server compliant with the **RFC 2812** protocol.
 
-- **Concurrent Client Handling**: Manages multiple simultaneous connections using `poll()`.
-- **User Authentication**: Secure connection process with `PASS`, `NICK`, and `USER` commands.
-- **Channel Management**: Create, join, part, and manage channels with commands like `JOIN`, `PART`, `TOPIC`, `KICK`, `INVITE`, `LIST`, and `NAMES`.
-- **Messaging**: Supports public channel messages and private one-on-one communication via `PRIVMSG` and `NOTICE`.
-- **Channel Modes**: Implements key channel modes for enhanced control:
-  - `i`: Invite-only
-  - `t`: Topic protection
-  - `k`: Channel key (password)
-  - `o`: Operator status management
-  - `l`: User limit
-  - `n`: No messages from outside users
-- **IRC Numeric Replies**: Provides standard numeric replies and error codes for client-server communication.
-- **Operator Privileges**: Channel creators are automatically granted operator status, with the ability to grant it to others.
+The server handles multiple simultaneous client connections using non-blocking I/O through the `poll()` system call. It manages networking logic, user authentication, channel management, operator privileges, and real-time messaging.
 
-## 🛠️ Tech Stack
+### Key Features
 
-- **Language**: C++98
-- **Concurrency**: `poll()` system call for non-blocking I/O.
-- **Networking**: Berkeley Sockets API.
+- **Non-blocking Concurrency**: Efficiently manages multiple clients using a single `poll()` loop.
+- **Full Authentication**: Handles `PASS`, `NICK`, and `USER` command sequences.
+- **Channel Operations**: Full support for `JOIN`, `PART`, `KICK`, `INVITE`, `TOPIC`, and `MODE`.
+- **Communication**: Private messaging (`PRIVMSG`) and server notices (`NOTICE`).
+- **Channel Modes**: Support for `i` (invite-only), `t` (topic protection), `k` (key), `o` (operator), `l` (limit), and `n` (no external messages).
 
-## 🚀 Getting Started
+## 🚀 Instructions
 
 ### Prerequisites
 
-- A C++ compiler (like `g++` or `clang++`)
-- `make`
+- A C++98 compatible compiler (`clang++` or `g++`)
+- `make` build utility
+- An IRC client for testing (recommended: `irssi`)
 
-### Compilation
-
-Clone the repository and compile the server using the provided `Makefile`:
+### Compilation & Usage
 
 ```bash
-git clone https://github.com/m-vidal/Ft_IRC.git
-cd Ft_IRC
+# Clone the repository
+git clone <repository-url> ft_irc
+cd ft_irc
+
+# Compile the server
 make
-```
 
-This will create an executable file named `ircserv`.
-
-### Running the Server
-
-Execute the server by providing a port number and a password as arguments. The port must be within the range of 6660-7000.
-
-```bash
+# Run the server with default port and password
 ./ircserv <port> <password>
-```
 
-Example:
-
-```bash
+# Example:
 ./ircserv 6667 mysecretpassword
 ```
+## 📚 Resources
 
-The server will start and listen for incoming connections on the specified port.
-
-### Connecting with an IRC Client
-
-You can connect to the server using any standard IRC client (e.g., `irssi`, `HexChat`, `mIRC`).
-
-**Connection Details:**
-- **Server Address**: `127.0.0.1` or `localhost`
-- **Port**: The port you specified when running `ircserv`.
-- **Password**: The password you specified.
-
-**Example using `irssi`:**
-
-1.  Start `irssi`.
-2.  Add the server to your network list:
-    ```
-    /server add -network ft_irc -port 6667 -password mysecretpassword localhost
-    ```
-3.  Connect to the server:
-    ```
-    /connect ft_irc
-    ```
-
-Once connected, you can set your nickname and begin chatting.
-
-```
-/nick your_nickname
-/join #channel_name
-```
-
-## 📋 Commands Implemented
-
-The server supports the following IRC commands:
-
-| Command     | Description                                               |
-|-------------|-----------------------------------------------------------|
-| **PASS**    | Provide the server password for authentication.           |
-| **NICK**    | Set or change your nickname.                              |
-| **USER**    | Specify your username and real name.                      |
-| **PING**    | Responds with a `PONG` to check if the connection is alive.|
-| **QUIT**    | Disconnect from the server.                               |
-| **JOIN**    | Join a channel. Creates one if it doesn't exist.          |
-| **PART**    | Leave a channel.                                          |
-| **PRIVMSG** | Send a private message to a user or a channel.            |
-| **NOTICE**  | Send a notice to a user or a channel (no auto-reply).     |
-| **KICK**    | Eject a user from a channel (operator only).              |
-| **TOPIC**   | View or set the topic for a channel.                      |
-| **INVITE**  | Invite a user to a channel.                               |
-| **MODE**    | View or change channel/user modes.                        |
-| **LIST**    | List all available channels on the server.                |
-| **NAMES**   | List all users in a specific channel.                     |
-
-## 📁 File Structure
-
-```
-.
-├── Makefile          # Build instructions for the project.
-├── inc/              # Header files for classes and definitions.
-│   ├── Channel.hpp
-│   ├── Server.hpp
-│   ├── User.hpp
-│   └── replyCodes.hpp
-└── src/              # Source code implementation.
-    ├── Channel.cpp
-    ├── Server.cpp
-    ├── User.cpp
-    └── main.cpp
+- [Modern IRC Documentation](https://modern.ircdocs.horse/) — Excellent and up-to-date reference of the IRC protocol as implemented in practice.
+- [RFC 1459 - IRC Protocol](https://datatracker.ietf.org/doc/html/rfc1459) — Original IRC protocol specification.
+- [RFC 2812 - IRC Client Protocol](https://datatracker.ietf.org/doc/html/rfc2812) — Protocol for IRC clients.
