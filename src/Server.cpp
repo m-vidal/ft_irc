@@ -340,7 +340,6 @@ void Server::checkRegistration(int fd)
         sendNumeric(fd, RPL_MYINFO, _serverName + " 1.0 ~NA +" + mode_chars);
         incUsers();
 
-        _users.insert(std::make_pair(fd, User(user)));
         std::cout << "User has been registered!\n";
     }
 }
