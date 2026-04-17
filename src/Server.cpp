@@ -83,20 +83,56 @@ void Server::listenMode()
 
     while (is_running)
     {
-        if (poll(_polls.data(), _polls.size(), -1) < 0)
+        // Update interest bits based on buffer state
+        for (size_t i = 0; i < _polls.size(); ++i) {
+            int fd = _polls[i].fd;
+            if (fd == _socket) continue; // Listener only cares about POLLIN
+
+            // If this user has data waiting to go out, we want POLLOUT
+            if (!_users[fd].getOutbuff().empty())
+                _polls[i].events = POLLIN | POLLOUT;
+            else
+                _polls[i].events = POLLIN;
+        }
+
+        if (poll(_polls.data(), _polls.size(), -1) < 0) 
+        {
+            if (errno == EINTR)
+                continue; 
+
+            std::cerr << "Poll error: " << strerror(errno) << std::endl;
+            is_running = false; 
             break;
+        }
 
         for (size_t i = 0; i < _polls.size(); ++i)
         {
-            if (!(_polls[i].revents & POLLIN))
-                continue;
+            // --- HANDLE INCOMING
+            if (_polls[i].revents & POLLIN) {
+                if (_polls[i].fd == _socket) acceptNewClient();
+                else handleClientData(i);
+            }
 
-            if (_polls[i].fd == _socket)
-                acceptNewClient();
-            else
-                handleClientData(i);
+            // --- HANDLE OUTGOING
+            if (_polls[i].revents & POLLOUT) {
+                handleOutbuff(i);
+            }
         }
     }
+}
+
+void Server::handleOutbuff(size_t idx)
+{
+    int fd = _polls[idx].fd;
+    std::string &outBuf = _users[fd].getOutbuff();
+
+    if (outBuf.empty()) return;
+
+    ssize_t n = send(fd, outBuf.c_str(), outBuf.size(), 0);
+
+    if (n > 0) {
+        _users[fd].clearOutbound(n);
+    } 
 }
 
 void Server::initPoll()
@@ -154,13 +190,13 @@ void Server::handleClientData(size_t &idx)
         return;
     }
     buffer[n] = '\0';
-    _users[fd].appendToBuffer(buffer);
+    _users[fd].appendInbuff(buffer);
     consumeBuffer(fd);
 }
 
 void Server::consumeBuffer(int fd)
 {
-    std::string buf = _users[fd].getBuffer();
+    std::string buf = _users[fd].getInbuff();
     size_t pos;
 
     std::cout << "\nbuffer [" << fd << "] " << buf << std::endl;
@@ -209,11 +245,7 @@ void Server::parseLine(int fd, std::string line)
         if (trailing != ":")
             args.push_back(trailing);
     }
-    // 4. Special case: If there was no colon, but there is no "trailing",
-    // it doesn't matter. The last word in args is already the "trailing".
-    // Example: KICK #chan Bob -> args[0] is #chan, args[1] is Bob.
 
-    // Debug output
     std::cout << "cmd = " << command << "\n";
     for (size_t i = 0; i < args.size(); i++)
         std::cout << "param[" << i << "] = " << args[i] << "\n";
@@ -316,11 +348,7 @@ void Server::sendToUserChannels(const User &user, const std::string &msg)
 void Server::sendToClient(int fd, std::string rawMsg)
 {
     rawMsg += "\r\n";
-    // In production/42 eval, it's good to check if send() fails
-    if (send(fd, rawMsg.c_str(), rawMsg.size(), 0) == -1)
-    {
-        // Log error or handle disconnected peer if necessary
-    }
+    _users[fd].appendOutbuff(rawMsg);
 }
 
 void Server::checkRegistration(int fd)
