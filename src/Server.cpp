@@ -83,20 +83,56 @@ void Server::listenMode()
 
     while (is_running)
     {
-        if (poll(_polls.data(), _polls.size(), -1) < 0)
+        // Update interest bits based on buffer state
+        for (size_t i = 0; i < _polls.size(); ++i) {
+            int fd = _polls[i].fd;
+            if (fd == _socket) continue; // Listener only cares about POLLIN
+
+            // If this user has data waiting to go out, we want POLLOUT
+            if (!_users[fd].getOutbuff().empty())
+                _polls[i].events = POLLIN | POLLOUT;
+            else
+                _polls[i].events = POLLIN;
+        }
+
+        if (poll(_polls.data(), _polls.size(), -1) < 0) 
+        {
+            if (errno == EINTR)
+                continue; 
+
+            std::cerr << "Poll error: " << strerror(errno) << std::endl;
+            is_running = false; 
             break;
+        }
 
         for (size_t i = 0; i < _polls.size(); ++i)
         {
-            if (!(_polls[i].revents & POLLIN))
-                continue;
+            // --- HANDLE INCOMING
+            if (_polls[i].revents & POLLIN) {
+                if (_polls[i].fd == _socket) acceptNewClient();
+                else handleClientData(i);
+            }
 
-            if (_polls[i].fd == _socket)
-                acceptNewClient();
-            else
-                handleClientData(i);
+            // --- HANDLE OUTGOING
+            if (_polls[i].revents & POLLOUT) {
+                handleOutbuff(i);
+            }
         }
     }
+}
+
+void Server::handleOutbuff(size_t idx)
+{
+    int fd = _polls[idx].fd;
+    std::string &outBuf = _users[fd].getOutbuff();
+
+    if (outBuf.empty()) return;
+
+    ssize_t n = send(fd, outBuf.c_str(), outBuf.size(), 0);
+
+    if (n > 0) {
+        _users[fd].clearOutbound(n);
+    } 
 }
 
 void Server::initPoll()
@@ -142,42 +178,53 @@ void Server::acceptNewClient()
 
 void Server::handleClientData(size_t &idx)
 {
-    char buffer[512]; // IRC messages are capped at 512 bytes
+    char buffer[4096]; 
     int fd = _polls[idx].fd;
-    ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
-
-    if (n <= 0)
+    
+    while (true) 
     {
-        std::vector<std::string> msg;
-        msg.push_back("Remote host closed the connection");
-        quit(fd, msg);
-        return;
+        ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
+        if (n > 0) {
+            buffer[n] = '\0';
+            _users[fd].appendInbuff(buffer);
+        } 
+        else if (n == -1) {
+            // EWOULDBLOCK means the kernel buffer is empty—we are done reading!
+            if (errno != EWOULDBLOCK && errno != EAGAIN)
+                disconnectClient(fd);
+            break;
+        } 
+        else { // n == 0
+            disconnectClient(fd);
+            return;
+        }
     }
-    buffer[n] = '\0';
-    _users[fd].appendToBuffer(buffer);
-    consumeBuffer(fd);
+    consumeInbuff(fd);
 }
 
-void Server::consumeBuffer(int fd)
+void Server::consumeInbuff(int fd)
 {
-    std::string buf = _users[fd].getBuffer();
+    User &user = _users[fd];
+    const std::string &buf = user.getInbuff();
     size_t pos;
 
-    std::cout << "\nbuffer [" << fd << "] " << buf << std::endl;
     while ((pos = buf.find("\r\n")) != std::string::npos)
     {
         std::string line = buf.substr(0, pos);
-        buf.erase(0, pos + 2);
-        _users[fd].clearBuffer(pos + 2);
-
-        if (!line.empty())
-        {
-            this->parseLine(fd, line);
-            const char *raw = "- - - - - - - - - - - - - - - - - - \n";
-            write(1, raw, 37);
+        
+        // --- THE TRUNCATION LOGIC ---
+        if (line.length() > 510) {
+            line = line.substr(0, 510);
         }
+
+        user.clearInbuff(pos + 2);        
+        if (!line.empty())
+            this->parseLine(fd, line);
     }
 }
+
+
 
 void Server::parseLine(int fd, std::string line)
 {
@@ -209,11 +256,7 @@ void Server::parseLine(int fd, std::string line)
         if (trailing != ":")
             args.push_back(trailing);
     }
-    // 4. Special case: If there was no colon, but there is no "trailing",
-    // it doesn't matter. The last word in args is already the "trailing".
-    // Example: KICK #chan Bob -> args[0] is #chan, args[1] is Bob.
 
-    // Debug output
     std::cout << "cmd = " << command << "\n";
     for (size_t i = 0; i < args.size(); i++)
         std::cout << "param[" << i << "] = " << args[i] << "\n";
@@ -316,11 +359,7 @@ void Server::sendToUserChannels(const User &user, const std::string &msg)
 void Server::sendToClient(int fd, std::string rawMsg)
 {
     rawMsg += "\r\n";
-    // In production/42 eval, it's good to check if send() fails
-    if (send(fd, rawMsg.c_str(), rawMsg.size(), 0) == -1)
-    {
-        // Log error or handle disconnected peer if necessary
-    }
+    _users[fd].appendOutbuff(rawMsg);
 }
 
 void Server::checkRegistration(int fd)

@@ -73,14 +73,14 @@ void User::authenticate() { _isAuthenticated = true; }
 bool User::isAuthenticated() const { return (_isAuthenticated); }
 
 int User::getFd(void) const { return (_fd); }
-const std::string &User::getBuffer(void) const { return (_inbuffer); }
+const std::string &User::getInbuff(void) const { return (_inbuffer); }
 const std::string &User::getNick(void) const { return (this->_nickname); }
 const std::string &User::getUsername(void) const { return (this->_username); }
 const std::string &User::getRealname(void) const { return (this->_realName); }
 const std::string &User::getHostname(void) const { return (this->_hostname); }
 
-void User::appendToBuffer(std::string data) { _inbuffer += data; }
-void User::clearBuffer(size_t pos) { _inbuffer.erase(0, pos); }
+void User::appendInbuff(std::string data) { _inbuffer += data; }
+void User::clearInbuff(size_t pos) { _inbuffer.erase(0, pos); }
 
 User::~User(void) {}
 
@@ -132,3 +132,9 @@ const std::vector<std::string> &User::getChannels(void) const
 {
 	return _channels;
 }
+
+void User::appendOutbuff(const std::string &msg) { _outbuffer += msg; }
+
+std::string &User::getOutbuff() { return _outbuffer; }
+
+void User::clearOutbound(size_t n) { _outbuffer.erase(0, n); }	

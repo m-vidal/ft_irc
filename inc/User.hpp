@@ -48,7 +48,7 @@ public:
 	const std::string &getHostname(void) const;
 	const std::string &getUsername(void) const;
 	const std::string &getRealname(void) const;
-	const std::string &getBuffer(void) const;
+	const std::string &getInbuff(void) const;
 	const std::string &getNick(void) const;
 	size_t getChannelCount() const;
 	int getFd(void) const;
@@ -69,8 +69,8 @@ public:
 
 	// regular methods
 	void authenticate();
-	void clearBuffer(size_t pos);
-	void appendToBuffer(std::string data);
+	void clearInbuff(size_t pos);
+	void appendInbuff(std::string data);
 
 	void addChannel(std::string channel_name);
 	void removeChannel(std::string channel_name);
@@ -81,6 +81,10 @@ public:
 	std::map<std::string, time_t> &getInvites();
 
 	std::string getPrefix() const;
+
+	void appendOutbuff(const std::string &msg);
+	std::string &getOutbuff();
+	void clearOutbound(size_t n);
 };
 
 #endif
