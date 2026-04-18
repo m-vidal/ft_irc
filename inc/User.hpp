@@ -69,7 +69,7 @@ public:
 
 	// regular methods
 	void authenticate();
-	void clearBuffer(size_t pos);
+	void clearInbuff(size_t pos);
 	void appendInbuff(std::string data);
 
 	void addChannel(std::string channel_name);

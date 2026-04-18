@@ -80,7 +80,7 @@ const std::string &User::getRealname(void) const { return (this->_realName); }
 const std::string &User::getHostname(void) const { return (this->_hostname); }
 
 void User::appendInbuff(std::string data) { _inbuffer += data; }
-void User::clearBuffer(size_t pos) { _inbuffer.erase(0, pos); }
+void User::clearInbuff(size_t pos) { _inbuffer.erase(0, pos); }
 
 User::~User(void) {}
 

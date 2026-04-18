@@ -178,42 +178,53 @@ void Server::acceptNewClient()
 
 void Server::handleClientData(size_t &idx)
 {
-    char buffer[512]; // IRC messages are capped at 512 bytes
+    char buffer[4096]; 
     int fd = _polls[idx].fd;
-    ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
-
-    if (n <= 0)
+    
+    while (true) 
     {
-        std::vector<std::string> msg;
-        msg.push_back("Remote host closed the connection");
-        quit(fd, msg);
-        return;
+        ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
+        if (n > 0) {
+            buffer[n] = '\0';
+            _users[fd].appendInbuff(buffer);
+        } 
+        else if (n == -1) {
+            // EWOULDBLOCK means the kernel buffer is empty—we are done reading!
+            if (errno != EWOULDBLOCK && errno != EAGAIN)
+                disconnectClient(fd);
+            break;
+        } 
+        else { // n == 0
+            disconnectClient(fd);
+            return;
+        }
     }
-    buffer[n] = '\0';
-    _users[fd].appendInbuff(buffer);
-    consumeBuffer(fd);
+    consumeInbuff(fd);
 }
 
-void Server::consumeBuffer(int fd)
+void Server::consumeInbuff(int fd)
 {
-    std::string buf = _users[fd].getInbuff();
+    User &user = _users[fd];
+    const std::string &buf = user.getInbuff();
     size_t pos;
 
-    std::cout << "\nbuffer [" << fd << "] " << buf << std::endl;
     while ((pos = buf.find("\r\n")) != std::string::npos)
     {
         std::string line = buf.substr(0, pos);
-        buf.erase(0, pos + 2);
-        _users[fd].clearBuffer(pos + 2);
-
-        if (!line.empty())
-        {
-            this->parseLine(fd, line);
-            const char *raw = "- - - - - - - - - - - - - - - - - - \n";
-            write(1, raw, 37);
+        
+        // --- THE TRUNCATION LOGIC ---
+        if (line.length() > 510) {
+            line = line.substr(0, 510);
         }
+
+        user.clearInbuff(pos + 2);        
+        if (!line.empty())
+            this->parseLine(fd, line);
     }
 }
+
+
 
 void Server::parseLine(int fd, std::string line)
 {

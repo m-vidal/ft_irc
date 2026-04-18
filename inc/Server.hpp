@@ -15,6 +15,7 @@
 
 #define PORT_MAX  7000
 #define PORT_MIN  6660
+#define BUFFER_SIZE 512  // IRC messages are capped at 512 bytes
 
 
 #include <sys/socket.h>
@@ -105,7 +106,7 @@ private:
 	void acceptNewClient();
 
 	void handleClientData(size_t &idx);
-	void consumeBuffer(int fd);
+	void consumeInbuff(int fd);
 
 	void processMessage(int fd, std::string str);
 	void parseLine(int fd, std::string line);
