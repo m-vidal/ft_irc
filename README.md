@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by atambo, m-vidal, marcsilv.*
+z*This project has been created as part of the 42 curriculum by atambo, m-vidal, marcsilv.*
 
 # ft_irc
 
@@ -71,3 +71,8 @@ make
 - [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/) — Comprehensive guide to socket programming in C/C++.
 - [poll() man page (Linux)](https://man7.org/linux/man-pages/man2/poll.2.html) — Reference for the `poll()` system call used for non-blocking I/O.
 - [Modern IRC documentation (ircdocs.horse)](https://modern.ircdocs.horse/) — Up-to-date, readable documentation of the IRC protocol with practical examples.
+
+In this project we used AI tools in order to:
+  - get specific insights about the protocol
+  - to help with hard to find bugs
+  - to create tests and scripts for the project
