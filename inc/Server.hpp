@@ -13,8 +13,9 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#define PORT_MAX  7000
-#define PORT_MIN  6660
+
+#define PORT_MAX  49151
+#define PORT_MIN  1024
 #define BUFFER_SIZE 512  // IRC messages are capped at 512 bytes
 
 
