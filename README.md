@@ -2,7 +2,7 @@
 
 # ft_irc
 
-## Description
+## 📝 Description
 
 This project is a fully functional IRC (Internet Relay Chat) server written in C++98, compliant with [RFC 2812](https://datatracker.ietf.org/doc/html/rfc2812). The goal of this project is to implement a real network server from scratch, gaining a deep understanding of socket programming, non-blocking I/O, and the IRC protocol.
 
