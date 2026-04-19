@@ -170,7 +170,7 @@ void Server::part(int fd, std::vector<std::string> &params)
     if (!channel.isMember(fd))
         return sendNumeric(fd, ERR_NOTONCHANNEL, channel_name);
     User &user = _users.at(fd);
-    std::string message = ":" + user.getPrefix() + " PART " + channel_name;
+    std::string message = formatNotice(user, "PART", channel_name);
     if (params.size() > 1)
         message += " " + params[1];
     sendToChannel(channel, message, -1); 
@@ -291,8 +291,8 @@ void Server::msg(int fd, std::vector<std::string> &params)
             sendNumeric(fd, ERR_CANNOTSENDTOCHAN, target);
             return;
         }
-        std::string message = sender.getPrefix() + 
-        " PRIVMSG " + target + " :" + params[1];
+
+        std::string message = formatNotice(sender, "PRIVMSG", target + " :" + params[1]);
 
         std::set<int> notified;
         notified.insert(fd);
@@ -308,7 +308,6 @@ void Server::msg(int fd, std::vector<std::string> &params)
             sendNumeric(fd, ERR_NOSUCHNICK, target);
             return;
         }
-
         std::string user_and_msg = target + " :" + params[1];
         std::string message = formatNotice(sender, "PRIVMSG", user_and_msg);
         sendToClient(targetFd, message);
@@ -366,7 +365,7 @@ void Server::notice(int fd, std::vector<std::string> &params)
         if (!channel.isMember(fd) && channel.hasMode('n'))
             return;
 
-        std::string message = ":" + sender.getPrefix() + " NOTICE " + targetName + " :" + text + "\r\n";
+        std::string message = formatNotice(sender, "NOTICE", targetName + " :" + text);
 
         // Broadcast to everyone in channel EXCEPT the sender
         std::set<int> exclude;
@@ -383,7 +382,7 @@ void Server::notice(int fd, std::vector<std::string> &params)
         if (itTarget == _users.end())
             return;
 
-        std::string message = ":" + sender.getPrefix() + " NOTICE " + targetName + " :" + text + "\r\n";
+        std::string message = formatNotice(sender, "NOTICE", targetName + " :" + text);
         sendToClient(targetFd, message);
     }
 }

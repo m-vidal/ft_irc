@@ -132,7 +132,54 @@ void Server::handleOutbuff(size_t idx)
 
     if (n > 0) {
         _users[fd].clearOutbound(n);
-    } 
+    }
+}
+
+void Server::consumeInbuff(int fd)
+{
+    User &user = _users[fd];
+    const std::string &buf = user.getInbuff();
+    size_t pos;
+
+    while ((pos = buf.find("\r\n")) != std::string::npos)
+    {
+        std::string line = buf.substr(0, pos);
+        
+        if (line.length() > 510) {
+            line = line.substr(0, 510);
+        }
+
+        user.clearInbuff(pos + 2);        
+        if (!line.empty())
+            this->parseLine(fd, line);
+    }
+}
+
+void Server::handleClientData(size_t &idx)
+{
+    char buffer[4096]; 
+    int fd = _polls[idx].fd;
+    
+    while (true) 
+    {
+        ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
+        if (n > 0) {
+            buffer[n] = '\0';
+            _users[fd].appendInbuff(buffer);
+        } 
+        else if (n == -1) {
+            // EWOULDBLOCK means the kernel buffer is empty—we are done reading!
+            if (errno != EWOULDBLOCK && errno != EAGAIN)
+                disconnectClient(fd);
+            break;
+        } 
+        else { // n == 0
+            disconnectClient(fd);
+            return;
+        }
+    }
+    consumeInbuff(fd);
 }
 
 void Server::initPoll()
@@ -176,62 +223,13 @@ void Server::acceptNewClient()
     std::cout << "New connection: FD " << fd << " from " << finalHost << std::endl;
 }
 
-void Server::handleClientData(size_t &idx)
-{
-    char buffer[4096]; 
-    int fd = _polls[idx].fd;
-    
-    while (true) 
-    {
-        ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
-
-        if (n > 0) {
-            buffer[n] = '\0';
-            _users[fd].appendInbuff(buffer);
-        } 
-        else if (n == -1) {
-            // EWOULDBLOCK means the kernel buffer is empty—we are done reading!
-            if (errno != EWOULDBLOCK && errno != EAGAIN)
-                disconnectClient(fd);
-            break;
-        } 
-        else { // n == 0
-            disconnectClient(fd);
-            return;
-        }
-    }
-    consumeInbuff(fd);
-}
-
-void Server::consumeInbuff(int fd)
-{
-    User &user = _users[fd];
-    const std::string &buf = user.getInbuff();
-    size_t pos;
-
-    while ((pos = buf.find("\r\n")) != std::string::npos)
-    {
-        std::string line = buf.substr(0, pos);
-        
-        // --- THE TRUNCATION LOGIC ---
-        if (line.length() > 510) {
-            line = line.substr(0, 510);
-        }
-
-        user.clearInbuff(pos + 2);        
-        if (!line.empty())
-            this->parseLine(fd, line);
-    }
-}
-
-
 
 void Server::parseLine(int fd, std::string line)
 {
     std::string command;
     std::vector<std::string> args;
     std::string trailing;
-
+    std::cout << "-------------------------------------------------" << std::endl;
     // 1. Check for the colon (the "multi-word" parameter)
     size_t colonPos = line.find(" :");
     if (colonPos != std::string::npos)
@@ -240,7 +238,7 @@ void Server::parseLine(int fd, std::string line)
         line = line.substr(0, colonPos);      // Keep only the part before " :"
     }
 
-    // 2. Parse the command and middle parameters
+    // Parse the command and middle parameters
     std::stringstream ss(line);
     ss >> command;
     for (size_t i = 0; i < command.length(); ++i)
@@ -250,7 +248,7 @@ void Server::parseLine(int fd, std::string line)
     while (ss >> temp)
         args.push_back(temp);
 
-    // 3. If we found a colon part, add it as the final argument
+    // If we found a colon part, add it as the final argument
     if (colonPos != std::string::npos)
     {
         if (trailing != ":")
@@ -358,8 +356,8 @@ void Server::sendToUserChannels(const User &user, const std::string &msg)
 
 void Server::sendToClient(int fd, std::string rawMsg)
 {
-    rawMsg += "\r\n";
-    _users[fd].appendOutbuff(rawMsg);
+    std::string formattedMsg = capMessage(rawMsg);
+    _users[fd].appendOutbuff(formattedMsg);
 }
 
 void Server::checkRegistration(int fd)
