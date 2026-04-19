@@ -218,3 +218,18 @@ bool Server::isNickTaken(const std::string &nick, int ignoreFd)
     }
     return false;
 }
+
+std::string Server::capMessage(std::string msg)
+{
+    const std::string terminator = "\r\n";
+    size_t maxPayload = 512 - terminator.length();
+
+    // If the message already has \r\n, remove it temporarily to measure/truncate accurately
+    if (msg.size() >= 2 && msg.substr(msg.size() - 2) == terminator)
+        msg.erase(msg.size() - 2);
+
+    if (msg.length() > maxPayload)
+        msg = msg.substr(0, maxPayload);
+
+    return msg + terminator;
+}
