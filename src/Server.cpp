@@ -133,7 +133,7 @@ void Server::consumeInbuff(int fd)
     User &user = _users[fd];
     const std::string &buf = user.getInbuff();
     size_t pos;
-
+    std::cout << "buffer [" << fd << "] = " << buf << std::endl; 
     while ((pos = buf.find("\r\n")) != std::string::npos)
     {
         std::string line = buf.substr(0, pos);
