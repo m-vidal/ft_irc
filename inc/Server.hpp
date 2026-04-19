@@ -38,7 +38,6 @@
 #include <vector>
 #include <list>
 #include <set>
-#include <cerrno>
 #include <map>
 #include <unistd.h>
 
