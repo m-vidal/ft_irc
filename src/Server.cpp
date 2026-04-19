@@ -47,9 +47,7 @@ Server::Server(unsigned short &port, std::string &password, std::string name)
     _addr.sin_addr.s_addr = INADDR_ANY;
 
     // 3. Now bind (The OS now knows REUSEADDR is allowed)
-    if (bind(_socket, reinterpret_cast<struct sockaddr *>(&_addr), sizeof(_addr)) < 0)
-    {
-        std::cerr << "Bind error: " << strerror(errno) << " " << port << std::endl;
+    if (bind(_socket, reinterpret_cast<struct sockaddr *>(&_addr), sizeof(_addr)) < 0){
         throw std::runtime_error("Error: failure to associate the port.");
     }
 
@@ -83,7 +81,6 @@ void Server::listenMode()
 
     while (is_running)
     {
-        // Update interest bits based on buffer state
         for (size_t i = 0; i < _polls.size(); ++i) {
             int fd = _polls[i].fd;
             if (fd == _socket) continue; // Listener only cares about POLLIN
@@ -97,10 +94,7 @@ void Server::listenMode()
 
         if (poll(_polls.data(), _polls.size(), -1) < 0) 
         {
-            if (errno == EINTR)
-                continue; 
-
-            std::cerr << "Poll error: " << strerror(errno) << std::endl;
+            std::cerr << "Poll error: " << std::endl;
             is_running = false; 
             break;
         }
@@ -112,7 +106,6 @@ void Server::listenMode()
                 if (_polls[i].fd == _socket) acceptNewClient();
                 else handleClientData(i);
             }
-
             // --- HANDLE OUTGOING
             if (_polls[i].revents & POLLOUT) {
                 handleOutbuff(i);
@@ -160,26 +153,17 @@ void Server::handleClientData(size_t &idx)
     char buffer[4096]; 
     int fd = _polls[idx].fd;
     
-    while (true) 
-    {
-        ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
-        if (n > 0) {
-            buffer[n] = '\0';
-            _users[fd].appendInbuff(buffer);
-        } 
-        else if (n == -1) {
-            // EWOULDBLOCK means the kernel buffer is empty—we are done reading!
-            if (errno != EWOULDBLOCK && errno != EAGAIN)
-                disconnectClient(fd);
-            break;
-        } 
-        else { // n == 0
-            disconnectClient(fd);
-            return;
-        }
+    ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
+    if (n > 0) {
+        buffer[n] = '\0';
+        _users[fd].appendInbuff(buffer);
+        consumeInbuff(fd);
+    } 
+    else {
+        disconnectClient(fd);
     }
-    consumeInbuff(fd);
 }
 
 void Server::initPoll()
