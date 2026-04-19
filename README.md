@@ -1,8 +1,8 @@
-z*This project has been created as part of the 42 curriculum by atambo, m-vidal, marcsilv.*
+*This project has been created as part of the 42 curriculum by marcsilv, atambo, mvidal*
 
 # ft_irc
 
-## Description
+## 📝 Description
 
 This project is a fully functional IRC (Internet Relay Chat) server written in C++98, compliant with [RFC 2812](https://datatracker.ietf.org/doc/html/rfc2812). The goal of this project is to implement a real network server from scratch, gaining a deep understanding of socket programming, non-blocking I/O, and the IRC protocol.
 
@@ -22,13 +22,13 @@ The server is capable of handling multiple simultaneous client connections using
   - `l` - User limit
 - **IRC Numeric Replies**: Standard numeric replies and error codes for proper client-server communication.
 - **Operator Privileges**: Channel creators are automatically granted operator status and may promote others.
-### Prerequisites
+
+## 🚀 Instructions
+#### Prerequisites
 
 - A C++98 compatible compiler (`clang++` or `g++`)
 - `make` build utility
 - An IRC client for testing (recommended: `irssi`)
-
-### Compilation & Usage
 
 ```bash
 # Clone the repository
@@ -72,7 +72,18 @@ make
 - [poll() man page (Linux)](https://man7.org/linux/man-pages/man2/poll.2.html) — Reference for the `poll()` system call used for non-blocking I/O.
 - [Modern IRC documentation (ircdocs.horse)](https://modern.ircdocs.horse/) — Up-to-date, readable documentation of the IRC protocol with practical examples.
 
-In this project we used AI tools in order to:
-  - get specific insights about the protocol
-  - to help with hard to find bugs
-  - to create tests and scripts for the project
+### AI Utilization
+
+AI tools were used to assist in the following areas during development:
+
+- Test Automation: Created Python scripts to simulate multiple concurrent clients and stress-test the poll() loop.
+
+- Protocol Research: Interpreted complex sections of RFC 1459/2812, specifically regarding message formatting and numeric replies.
+
+- Irssi Compatibility: Identified specific client requirements, such as the mandatory leading colon (:) for trailing parameters.
+
+- Logic Verification: Verified the 512-byte IRC message limit and ensured correct socket buffer management.
+
+- Edge Case Simulation: Generated scenarios for complex channel mode interactions (e.g., +itkln behavior).
+
+- Source Discovery: Streamlined the search for historical IRC documentation and networking best practices.
