@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/04/11 15:22:20 by marcsilv         ###   ########.fr       */
+/*   Updated: 2026/04/26 09:16:13 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,6 +180,53 @@ void Server::handleClientData(int fd)
             reason.push_back("Connection error");
         quit(fd, reason);
     }
+}
+
+void Server::consumeInbuff(int fd)
+{
+    User &user = _users[fd];
+    const std::string &buf = user.getInbuff();
+    size_t pos;
+
+    while ((pos = buf.find("\r\n")) != std::string::npos)
+    {
+        std::string line = buf.substr(0, pos);
+        
+        if (line.length() > 510) {
+            line = line.substr(0, 510);
+        }
+
+        user.clearInbuff(pos + 2);        
+        if (!line.empty())
+            this->parseLine(fd, line);
+    }
+}
+
+void Server::handleClientData(size_t &idx)
+{
+    char buffer[4096]; 
+    int fd = _polls[idx].fd;
+    
+    while (true) 
+    {
+        ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
+        if (n > 0) {
+            buffer[n] = '\0';
+            _users[fd].appendInbuff(buffer);
+        } 
+        else if (n == -1) {
+            // EWOULDBLOCK means the kernel buffer is empty—we are done reading!
+            if (errno != EWOULDBLOCK && errno != EAGAIN)
+                disconnectClient(fd);
+            break;
+        } 
+        else { // n == 0
+            disconnectClient(fd);
+            return;
+        }
+    }
+    consumeInbuff(fd);
 }
 
 void Server::initPoll()

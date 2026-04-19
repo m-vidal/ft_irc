@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/19 13:58:09 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 09:14:25 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,6 +159,7 @@ private:
 	const std::string &getNumericMsg(int code);
 	std::string getCreationTimeStr(time_t time) const;
 	bool isNickTaken(const std::string &nick, int ignoreFd);
+	void handleOutbuff(size_t idx);
 	std::string capMessage(std::string msg);
 };
 
