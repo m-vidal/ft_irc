@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/04/26 09:16:13 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 09:17:48 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,26 +207,17 @@ void Server::handleClientData(size_t &idx)
     char buffer[4096]; 
     int fd = _polls[idx].fd;
     
-    while (true) 
-    {
-        ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
-        if (n > 0) {
-            buffer[n] = '\0';
-            _users[fd].appendInbuff(buffer);
-        } 
-        else if (n == -1) {
-            // EWOULDBLOCK means the kernel buffer is empty—we are done reading!
-            if (errno != EWOULDBLOCK && errno != EAGAIN)
-                disconnectClient(fd);
-            break;
-        } 
-        else { // n == 0
-            disconnectClient(fd);
-            return;
-        }
+    ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
+    if (n > 0) {
+        buffer[n] = '\0';
+        _users[fd].appendInbuff(buffer);
+        consumeInbuff(fd);
+    } 
+    else {
+        disconnectClient(fd);
     }
-    consumeInbuff(fd);
 }
 
 void Server::initPoll()
