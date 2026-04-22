@@ -126,6 +126,9 @@ void Server::handleOutbuff(size_t idx)
     if (n > 0) {
         _users[fd].clearOutbound(n);
     }
+   else {
+        disconnectClient(fd);
+    }
 }
 
 void Server::consumeInbuff(int fd)
