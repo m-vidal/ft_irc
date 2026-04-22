@@ -89,7 +89,7 @@ void Server::sendNumeric(int fd, int code, const std::string &params)
     sendToClient(fd, msg);
 }
 
-void Server::sendNumeric(Channel &channel, int fd, int code, const std::string &params)
+void Server::sendNumeric(Channel &channel, int fd, int code, const std::string &params = "")
 {
     // 1. Get the nick of the user who triggered this (or "*" if not set)
     std::string nick = _users[fd].getNick();
@@ -104,7 +104,3 @@ void Server::sendNumeric(Channel &channel, int fd, int code, const std::string &
     this->sendToChannel(channel, msg, fd);
 }
 
-void Server::sendNumeric(int fd, int code)
-{
-    sendNumeric(fd, code, "");
-}

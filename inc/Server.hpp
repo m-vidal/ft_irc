@@ -81,8 +81,7 @@ public:
 	std::string formatNotice(const User &source, const std::string &command, const std::string &params);
 	void sendNotice(int fd, const User &source, const std::string &command, const std::string &params);
 	void sendToClient(int fd, const std::string rawMsg);
-	void sendNumeric(int fd, int code);
-	void sendNumeric(int fd, int code, const std::string &params);
+	void sendNumeric(int fd, int code, const std::string &params = "");
 	void sendNumeric(Channel &channel, int fd, int code, const std::string &params);
 
 private:
