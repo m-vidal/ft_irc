@@ -180,6 +180,9 @@ void Server::handleClientData(int fd)
             reason.push_back("Connection error");
         quit(fd, reason);
     }
+   else {
+        disconnectClient(fd);
+    }
 }
 
 void Server::consumeInbuff(int fd)
