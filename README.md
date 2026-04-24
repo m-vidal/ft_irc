@@ -2,7 +2,7 @@
 
 # ft_irc
 
-## 📝 Description
+## Description
 
 This project is a fully functional IRC (Internet Relay Chat) server written in C++98, compliant with [RFC 2812](https://datatracker.ietf.org/doc/html/rfc2812). The goal of this project is to implement a real network server from scratch, gaining a deep understanding of socket programming, non-blocking I/O, and the IRC protocol.
 
@@ -23,10 +23,10 @@ The server is capable of handling multiple simultaneous client connections using
 - **IRC Numeric Replies**: Standard numeric replies and error codes for proper client-server communication.
 - **Operator Privileges**: Channel creators are automatically granted operator status and may promote others.
 
-## 🚀 Instructions
+## Instructions
 #### Prerequisites
 
-- A C++98 compatible compiler (`clang++` or `g++`)
+- A C++98 compatible compiler
 - `make` build utility
 - An IRC client for testing (recommended: `irssi`)
 
@@ -64,7 +64,7 @@ make
 | `LIST`      | List all available channels on the server.                 |
 | `NAMES`     | List all users in a specific channel.                      |
 
-## 📚 Resources
+## Resources
 
 - [RFC 2812 — Internet Relay Chat: Client Protocol](https://datatracker.ietf.org/doc/html/rfc2812) — The primary specification this server is built against.
 - [RFC 1459 — Internet Relay Chat Protocol](https://datatracker.ietf.org/doc/html/rfc1459) — The original IRC RFC, useful as a companion reference.
