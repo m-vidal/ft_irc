@@ -99,34 +99,45 @@ void Server::listenMode()
             break;
         }
 
-        for (size_t i = 0; i < _polls.size(); ++i)
-        {
-            // --- HANDLE INCOMING
-            if (_polls[i].revents & POLLIN) {
-                if (_polls[i].fd == _socket) acceptNewClient();
-                else handleClientData(i);
+        for (size_t i = 0; i < _polls.size(); ++i) {
+            int fd = _polls[i].fd;
+            short revents = _polls[i].revents;
+
+            // 1. Check for errors/hangups first
+            if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
+                disconnectClient(fd);
+                --i; // Adjust index because we erased an element
+                continue;
             }
-            // --- HANDLE OUTGOING
-            if (_polls[i].revents & POLLOUT) {
-                handleOutbuff(i);
+
+            // 2. Handle Reading
+            if (revents & POLLIN) {
+                if (fd == _socket)
+                    acceptNewClient();
+                else
+                    handleClientData(fd);
+            }
+
+            if (_users.find(fd) != _users.end() && (revents & POLLOUT)) {
+                handleOutbuff(fd);
+            }
+
+            if (_users.find(fd) == _users.end()) {
+                --i;
             }
         }
     }
 }
 
-void Server::handleOutbuff(size_t idx)
+void Server::handleOutbuff(int fd)
 {
-    int fd = _polls[idx].fd;
     std::string &outBuf = _users[fd].getOutbuff();
-
     if (outBuf.empty()) return;
 
     ssize_t n = send(fd, outBuf.c_str(), outBuf.size(), 0);
-
     if (n > 0) {
         _users[fd].clearOutbound(n);
-    }
-   else {
+    } else {
         disconnectClient(fd);
     }
 }
@@ -151,12 +162,9 @@ void Server::consumeInbuff(int fd)
     }
 }
 
-void Server::handleClientData(size_t &idx)
+void Server::handleClientData(int fd)
 {
     char buffer[4096]; 
-    int fd = _polls[idx].fd;
-    
-
     ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
     if (n > 0) {

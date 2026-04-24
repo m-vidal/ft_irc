@@ -104,7 +104,8 @@ private:
 	void initPoll();
 	void acceptNewClient();
 
-	void handleClientData(size_t &idx);
+	void handleClientData(int fd);
+	void handleOutbuff(int fd);
 	void consumeInbuff(int fd);
 
 	void processMessage(int fd, std::string str);
@@ -157,7 +158,6 @@ private:
 	const std::string &getNumericMsg(int code);
 	std::string getCreationTimeStr(time_t time) const;
 	bool isNickTaken(const std::string &nick, int ignoreFd);
-	void handleOutbuff(size_t idx);
 	std::string capMessage(std::string msg);
 };
 
