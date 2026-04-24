@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/04/26 09:17:48 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 09:21:44 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,12 +205,9 @@ void Server::consumeInbuff(int fd)
     }
 }
 
-void Server::handleClientData(size_t &idx)
+void Server::handleClientData(int fd)
 {
     char buffer[4096]; 
-    int fd = _polls[idx].fd;
-    
-
     ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
     if (n > 0) {

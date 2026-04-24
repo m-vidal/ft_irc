@@ -159,7 +159,6 @@ private:
 	const std::string &getNumericMsg(int code);
 	std::string getCreationTimeStr(time_t time) const;
 	bool isNickTaken(const std::string &nick, int ignoreFd);
-	void handleOutbuff(size_t idx);
 	std::string capMessage(std::string msg);
 };
 
