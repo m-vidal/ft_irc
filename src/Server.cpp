@@ -121,10 +121,6 @@ void Server::listenMode()
             if (_users.find(fd) != _users.end() && (revents & POLLOUT)) {
                 handleOutbuff(fd);
             }
-
-            if (_users.find(fd) == _users.end()) {
-                --i;
-            }
         }
     }
 }
