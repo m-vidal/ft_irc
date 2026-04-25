@@ -115,6 +115,7 @@ private:
 	bool checkPassword(std::string password);
 	void disconnectClient(int fd);
 	void setknowncommands();
+	void removeChannelMember(Channel &channel, const int &target_fd);
 
 	// command functions ------------------------------------------------------
 	void pass(int fd, std::vector<std::string> &params);

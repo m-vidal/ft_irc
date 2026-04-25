@@ -105,7 +105,9 @@ void Server::listenMode()
 
             // 1. Check for errors/hangups first
             if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
-                disconnectClient(fd);
+                std::vector<std::string> reason;
+                reason.push_back("Remote host closed the connection");
+                quit(fd, reason);
                 --i; // Adjust index because we erased an element
                 continue;
             }
@@ -134,7 +136,9 @@ void Server::handleOutbuff(int fd)
     if (n > 0) {
         _users[fd].clearOutbound(n);
     } else {
-        disconnectClient(fd);
+        std::vector<std::string> reason;
+        reason.push_back("Connection error");
+        quit(fd, reason);
     }
 }
 
@@ -169,7 +173,12 @@ void Server::handleClientData(int fd)
         consumeInbuff(fd);
     } 
     else {
-        disconnectClient(fd);
+        std::vector<std::string> reason;
+        if (n == 0)
+            reason.push_back("Remote host closed the connection");
+        else
+            reason.push_back("Connection error");
+        quit(fd, reason);
     }
 }
 
@@ -369,5 +378,22 @@ void Server::checkRegistration(int fd)
         incUsers();
 
         std::cout << "User has been registered!\n";
+    }
+}
+
+void Server::removeChannelMember(Channel &channel, const int &target_fd) {
+    std::string channelName = channel.getName(); // Save name before potential deletion
+    channel.removeMember(target_fd);
+
+    if (channel.getMemberCount() <= 0) {
+        // We use the name to find the element in the map
+        std::map<std::string, Channel>::iterator it = _channels.find(channelName);
+        
+        if (it != _channels.end()) {
+            std::cout << "Channel " << channelName << " has been erased (empty)." << std::endl;
+            _channels.erase(it); 
+            // After this line, the 'channel' reference passed to this function 
+            // is now INVALID (it's a dangling reference).
+        }
     }
 }

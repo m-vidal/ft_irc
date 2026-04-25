@@ -20,6 +20,7 @@ void Server::initReplies()
     // replies
     _replyMessages[RPL_ENDOFINVITELIST] = "End of /INVITE list";
     _replyMessages[RPL_ENDOFNAMES] = "End of /NAMES list";
+    _replyMessages[RPL_LISTEND] = "End of /LIST";
     // Channel & Mode Errors
     _replyMessages[ERR_NOSUCHNICK] = "No such nick/channel";
     _replyMessages[ERR_NOSUCHCHANNEL] = "No such channel";
