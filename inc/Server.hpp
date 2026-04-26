@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/04/26 09:23:37 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 09:26:14 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,7 +109,7 @@ private:
 	void initPoll();
 	void acceptNewClient();
 
-	void handleClientData(int fd);
+	void handleInbuff(int fd);
 	void handleOutbuff(int fd);
 	void consumeInbuff(int fd);
 

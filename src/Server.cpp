@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/04/26 09:23:22 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 09:26:14 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,7 @@ void Server::listenMode()
                 if (fd == _socket)
                     acceptNewClient();
                 else
-                    handleClientData(fd);
+                    handleInbuff(fd);
             }
 
             if (_users.find(fd) != _users.end() && (revents & POLLOUT)) {
@@ -144,27 +144,7 @@ void Server::handleOutbuff(int fd)
     }
 }
 
-void Server::consumeInbuff(int fd)
-{
-    User &user = _users[fd];
-    const std::string &buf = user.getInbuff();
-    size_t pos;
-    std::cout << "buffer [" << fd << "] = " << buf << std::endl; 
-    while ((pos = buf.find("\r\n")) != std::string::npos)
-    {
-        std::string line = buf.substr(0, pos);
-        
-        if (line.length() > 510) {
-            line = line.substr(0, 510);
-        }
-
-        user.clearInbuff(pos + 2);        
-        if (!line.empty())
-            this->parseLine(fd, line);
-    }
-}
-
-void Server::handleClientData(int fd)
+void Server::handleInbuff(int fd)
 {
     char buffer[4096]; 
     ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
@@ -201,21 +181,6 @@ void Server::consumeInbuff(int fd)
         user.clearInbuff(pos + 2);        
         if (!line.empty())
             this->parseLine(fd, line);
-    }
-}
-
-void Server::handleClientData(int fd)
-{
-    char buffer[4096]; 
-    ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
-
-    if (n > 0) {
-        buffer[n] = '\0';
-        _users[fd].appendInbuff(buffer);
-        consumeInbuff(fd);
-    } 
-    else {
-        disconnectClient(fd);
     }
 }
 
