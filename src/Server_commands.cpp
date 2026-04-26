@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/04/26 11:24:49 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 13:19:59 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,7 +256,7 @@ void Server::msg(int fd, std::vector<std::string> &params)
 
     if (params.empty() || params[0].empty())
     {
-        sendNumeric(fd, ERR_NORECIPIENT, "PRIVMSG");
+        sendNumeric(fd, ERR_NORECIPIENT);
         return;
     }
 
