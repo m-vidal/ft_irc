@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/04/26 08:09:19 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 11:24:49 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,12 @@ void Server::setknowncommands(void)
     _commands["MODE"] = Command(&Server::mode, 1);
     _commands["INVITE"] = Command(&Server::invite, 0);
     _commands["TOPIC"] = Command(&Server::topic, 1);
-    _commands["PRIVMSG"] = Command(&Server::msg, 1);
+    _commands["PRIVMSG"] = Command(&Server::msg, 0);
     _commands["KICK"] = Command(&Server::kick, 2);
     _commands["NOTICE"] = Command(&Server::notice, 0);
     _commands["QUIT"] = Command(&Server::quit, 0);
     _commands["NAMES"] = Command(&Server::names, 0);
+    _commands["LIST"] = Command(&Server::list, 0);
 }
 // commands
 void Server::pass(int fd, std::vector<std::string> &params)
@@ -174,13 +175,7 @@ void Server::part(int fd, std::vector<std::string> &params)
     if (params.size() > 1)
         message += " " + params[1];
     sendToChannel(channel, message, -1); 
-    channel.removeMember(fd);
-    user.removeChannel(channel_name);
-    if (channel.getMemberCount() == 0)
-    {
-        _channels.erase(it);
-        std::cout << "Channel " << channel_name << " has been erased (empty)." << std::endl;
-    }
+    removeChannelMember(channel, fd);
 }
 
 void Server::invite(int fd, std::vector<std::string> &params)
@@ -337,8 +332,7 @@ void Server::kick(int fd, std::vector<std::string> &params)
     //:<kicker_prefix> KICK <channel> <target> :<reason>"
     std::string msg = ":" + user.getPrefix() + " KICK " + channel.getName() + " " + target->getNick() + reason;
     sendToChannel(channel, msg, 0);
-    channel.removeMember(target->getFd());
-    target->removeChannel(channel_name);
+    removeChannelMember(channel, target->getFd());
 }
 
 void Server::notice(int fd, std::vector<std::string> &params)
@@ -463,15 +457,7 @@ void Server::quit(int fd, std::vector<std::string> &params)
             continue;
 
         sendToChannel(it->second, msg, notified);
-        it->second.removeMember(fd);
-
-        if (it->second.getMemberCount() == 0)
-            empty_channels.push_back(it->second.getName());
-    }
-    for (size_t i = 0; i < empty_channels.size(); i++)
-    {
-        _channels.erase(empty_channels[i]);
-        std::cout << "Channel " << empty_channels[i] << " deleted (empty)." << std::endl;
+        removeChannelMember(it->second, fd);
     }
     disconnectClient(fd);
 }

@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/04/26 08:13:13 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 09:26:14 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@
 #include <set>
 #include <map>
 #include <unistd.h>
+#include <csignal>
 
 #include "replyCodes.hpp"
 
@@ -108,7 +109,7 @@ private:
 	void initPoll();
 	void acceptNewClient();
 
-	void handleClientData(int fd);
+	void handleInbuff(int fd);
 	void handleOutbuff(int fd);
 	void consumeInbuff(int fd);
 
@@ -119,6 +120,7 @@ private:
 	bool checkPassword(std::string password);
 	void disconnectClient(int fd);
 	void setknowncommands();
+	void removeChannelMember(Channel &channel, const int &target_fd);
 
 	// command functions ------------------------------------------------------
 	void pass(int fd, std::vector<std::string> &params);

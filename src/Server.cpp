@@ -6,13 +6,15 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/04/26 08:27:22 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 09:26:14 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Server.hpp"
+
+extern volatile sig_atomic_t kill_server;
 
 // constructor destructor
 
@@ -79,7 +81,7 @@ void Server::listenMode()
     initPoll();
     printBanner();
 
-    while (is_running)
+    while (is_running && !kill_server)
     {
         for (size_t i = 0; i < _polls.size(); ++i) {
             int fd = _polls[i].fd;
@@ -105,7 +107,9 @@ void Server::listenMode()
 
             // 1. Check for errors/hangups first
             if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
-                disconnectClient(fd);
+                std::vector<std::string> reason;
+                reason.push_back("Remote host closed the connection");
+                quit(fd, reason);
                 --i; // Adjust index because we erased an element
                 continue;
             }
@@ -115,7 +119,7 @@ void Server::listenMode()
                 if (fd == _socket)
                     acceptNewClient();
                 else
-                    handleClientData(fd);
+                    handleInbuff(fd);
             }
 
             if (_users.find(fd) != _users.end() && (revents & POLLOUT)) {
@@ -134,7 +138,29 @@ void Server::handleOutbuff(int fd)
     if (n > 0) {
         _users[fd].clearOutbound(n);
     } else {
-        disconnectClient(fd);
+        std::vector<std::string> reason;
+        reason.push_back("Connection error");
+        quit(fd, reason);
+    }
+}
+
+void Server::handleInbuff(int fd)
+{
+    char buffer[4096]; 
+    ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
+    if (n > 0) {
+        buffer[n] = '\0';
+        _users[fd].appendInbuff(buffer);
+        consumeInbuff(fd);
+    } 
+    else {
+        std::vector<std::string> reason;
+        if (n == 0)
+            reason.push_back("Remote host closed the connection");
+        else
+            reason.push_back("Connection error");
+        quit(fd, reason);
     }
 }
 
@@ -155,21 +181,6 @@ void Server::consumeInbuff(int fd)
         user.clearInbuff(pos + 2);        
         if (!line.empty())
             this->parseLine(fd, line);
-    }
-}
-
-void Server::handleClientData(int fd)
-{
-    char buffer[4096]; 
-    ssize_t n = recv(fd, buffer, sizeof(buffer) - 1, 0);
-
-    if (n > 0) {
-        buffer[n] = '\0';
-        _users[fd].appendInbuff(buffer);
-        consumeInbuff(fd);
-    } 
-    else {
-        disconnectClient(fd);
     }
 }
 
@@ -369,5 +380,22 @@ void Server::checkRegistration(int fd)
         incUsers();
 
         std::cout << "User has been registered!\n";
+    }
+}
+
+void Server::removeChannelMember(Channel &channel, const int &target_fd) {
+    std::string channelName = channel.getName(); // Save name before potential deletion
+    channel.removeMember(target_fd);
+
+    if (channel.getMemberCount() <= 0) {
+        // We use the name to find the element in the map
+        std::map<std::string, Channel>::iterator it = _channels.find(channelName);
+        
+        if (it != _channels.end()) {
+            std::cout << "Channel " << channelName << " has been erased (empty)." << std::endl;
+            _channels.erase(it); 
+            // After this line, the 'channel' reference passed to this function 
+            // is now INVALID (it's a dangling reference).
+        }
     }
 }

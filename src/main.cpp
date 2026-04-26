@@ -3,17 +3,29 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/27 09:19:53 by mvidal            #+#    #+#             */
-/*   Updated: 2026/04/01 13:13:17 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/04/26 09:11:06 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
+volatile sig_atomic_t kill_server = 0;
+
+void signalHandler(int signum) {
+    (void)signum;
+    kill_server = 1; // Set the flag
+}
+
 int main(int ac, char **av)
 {
+	// Ignore SIGPIPE to stop the crashes you saw earlier
+    signal(SIGPIPE, SIG_IGN);
+    signal(SIGINT, signalHandler);
+    signal(SIGQUIT, signalHandler);
+	
 	std::string password;
 	long long port_check = 0;
 	unsigned short port;

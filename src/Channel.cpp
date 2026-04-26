@@ -64,9 +64,9 @@ void Channel::addMember(User &user)
 void Channel::removeMember(const int &fd)
 {
 	std::map<int, Member>::iterator it = _members.find(fd);
-	if (it != _members.end())
-	{
+	if (it != _members.end()){
 		std::cout << "User " << it->second.user->getNick() << " left " << _name << "." << std::endl;
+		it->second.user->removeChannel(_name);
 		_members.erase(it);
 	}
 }
