@@ -54,17 +54,26 @@ void Server::initReplies()
 std::string Server::formatNumeric(int code, const std::string &nick, const std::string &arg)
 {
     std::stringstream ss;
-    // Format: :<servername> <3-digit-code> <target_nick>
-    ss << ":" << _serverName << " " << std::setw(3) << std::setfill('0') << code << " " << nick;
+    
+    // 1. Header: :<servername> <3-digit-code> <target_nick>
+    ss << ":" << _serverName << " " 
+       << std::setw(3) << std::setfill('0') << code << " " 
+       << nick;
 
-    // Add the argument (like channel name or nick) if it exists
+    // 2. Middle Argument (e.g., channel name, version, or modes for 004)
+    // We check if it needs a colon (usually 'arg' doesn't, but safety first)
     if (!arg.empty())
-        ss << " " << arg;
+        ss << " " << prefixParam(arg);
 
-    // Append the message from our map
+    // 3. Final Message/Trailing
     std::string msg = getNumericMsg(code);
     if (!msg.empty())
-        ss << " :" << getNumericMsg(code) << "\r\n";
+    {
+        // Add a space before the message, and prefix with colon ONLY if needed
+        ss << " " << prefixParam(msg);
+    }
+
+    ss << "\r\n";
     return ss.str();
 }
 

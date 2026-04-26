@@ -160,6 +160,7 @@ private:
 	std::string getCreationTimeStr(time_t time) const;
 	bool isNickTaken(const std::string &nick, int ignoreFd);
 	std::string capMessage(std::string msg);
+	std::string prefixParam(const std::string &param);
 };
 
 bool valid_channel_name(const std::string &name);

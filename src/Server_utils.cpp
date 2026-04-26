@@ -233,3 +233,13 @@ std::string Server::capMessage(std::string msg)
 
     return msg + terminator;
 }
+
+std::string Server::prefixParam(const std::string &param)
+{
+    if (param.empty())
+        return "";
+    // RFC 2812: If it contains a space, it MUST have a colon.
+    if (param.find(' ') != std::string::npos || param[0] == ':')
+        return ":" + param;
+    return param;
+}
