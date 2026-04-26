@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/04/26 09:22:49 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 09:23:37 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@
 #include <set>
 #include <map>
 #include <unistd.h>
+#include <csignal>
 
 #include "replyCodes.hpp"
 

@@ -6,13 +6,15 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/04/26 09:22:29 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 09:23:22 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Server.hpp"
+
+extern volatile sig_atomic_t kill_server;
 
 // constructor destructor
 
@@ -79,7 +81,7 @@ void Server::listenMode()
     initPoll();
     printBanner();
 
-    while (is_running)
+    while (is_running && !kill_server)
     {
         for (size_t i = 0; i < _polls.size(); ++i) {
             int fd = _polls[i].fd;
