@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/04/26 08:09:19 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 11:24:49 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ void Server::setknowncommands(void)
     _commands["MODE"] = Command(&Server::mode, 1);
     _commands["INVITE"] = Command(&Server::invite, 0);
     _commands["TOPIC"] = Command(&Server::topic, 1);
-    _commands["PRIVMSG"] = Command(&Server::msg, 1);
+    _commands["PRIVMSG"] = Command(&Server::msg, 0);
     _commands["KICK"] = Command(&Server::kick, 2);
     _commands["NOTICE"] = Command(&Server::notice, 0);
     _commands["QUIT"] = Command(&Server::quit, 0);

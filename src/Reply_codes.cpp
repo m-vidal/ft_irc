@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   replyCodes.cpp                                     :+:      :+:    :+:   */
+/*   Reply_codes.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/26 07:38:07 by atambo            #+#    #+#             */
-/*   Updated: 2026/04/26 07:38:11 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 11:52:06 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ void Server::initReplies()
     _replyMessages[ERR_UNKNOWNMODE] = "is unknown mode char to me";
     _replyMessages[ERR_BADCHANMASK] = "Bad Channel Mask";
     _replyMessages[ERR_CANNOTSENDTOCHAN] = "Cannot send to channel";
+    _replyMessages[RPL_NOTOPIC] = "No topic is set";
     // Nickname & Registration Errors
     _replyMessages[ERR_NONICKNAMEGIVEN] = "No nickname given";
     _replyMessages[ERR_ERRONEUSNICKNAME] = "Erroneous nickname";
@@ -48,4 +49,5 @@ void Server::initReplies()
     _replyMessages[ERR_UNKNOWNCOMMAND] = "Unknown command";
     _replyMessages[ERR_NEEDMOREPARAMS] = "Not enough parameters";
     _replyMessages[ERR_INVALIDMODEPARAM] = "Invalid mode parameter";
+    _replyMessages[ERR_NORECIPIENT] = "No recipient given PRIVMSG";
 }
