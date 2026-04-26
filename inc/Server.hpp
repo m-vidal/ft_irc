@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/03/19 13:58:09 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 08:13:13 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,13 +77,17 @@ public:
 	~Server();
 
 	void listenMode();
-	std::string formatNumeric(int code, const std::string &nick, const std::string &params);
 	std::string formatNotice(const User &source, const std::string &command, const std::string &params);
 	void sendNotice(int fd, const User &source, const std::string &command, const std::string &params);
+	
+	std::string formatNumeric(int code, const std::string &nick, std::vector<std::string> params);
+	void sendNumeric(int fd, int code,	const std::string& arg1 = "",
+										const std::string& arg2 = "",
+										const std::string& arg3 = "");
+	void sendNumeric(Channel &channel, int fd, int code, const std::string &params = "");
+	
 	void sendToClient(int fd, const std::string rawMsg);
-	void sendNumeric(int fd, int code, const std::string &params = "");
-	void sendNumeric(Channel &channel, int fd, int code, const std::string &params);
-
+	
 private:
 	// data ---------------------------
 	size_t _onlineUsers;

@@ -6,7 +6,7 @@
 #    By: atambo <atambo@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/01/30 19:00:19 by marcsilv          #+#    #+#              #
-#    Updated: 2026/03/19 13:15:31 by atambo           ###   ########.fr        #
+#    Updated: 2026/04/26 08:17:07 by atambo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,9 +19,11 @@ SRC_DIR		= src/
 OBJ_DIR		= obj/
 INC_DIR		= inc/
 
-SRC_FILES	=	main.cpp User.cpp Reply.cpp\
+SRC_FILES	=	main.cpp\
+				User.cpp\
+				Channel.cpp Channel_mode.cpp\
 				Server.cpp Server_commands.cpp Server_utils.cpp Server_cmd_mode.cpp\
-				Channel.cpp Channel_mode.cpp
+				Reply_codes.cpp Reply_numeric.cpp Reply_notice.cpp
 				
 HEADERS		=	Server.hpp User.hpp Channel.hpp
 

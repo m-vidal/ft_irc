@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server_commands.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mvidal <mvidal@student.42.fr>              +#+  +:+       +#+        */
+/*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/29 20:09:26 by mvidal           ###   ########.fr       */
+/*   Updated: 2026/04/26 08:09:19 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -389,11 +389,10 @@ void Server::notice(int fd, std::vector<std::string> &params)
 
 void Server::list(int fd, std::vector<std::string> &params)
 {
-    User &user = _users[fd];
     (void)params; // Simplified: list all channels
 
     // 321 RPL_LISTSTART (Often optional, but good practice)
-    sendToClient(fd, formatNumeric(RPL_LISTSTART, user.getNick(), "Channel :Users Name"));
+    sendNumeric(fd, RPL_LISTSTART, "Channel :Users Name");
 
     for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)
     {
@@ -401,18 +400,18 @@ void Server::list(int fd, std::vector<std::string> &params)
         ss << it->first << " " << it->second.getMemberCount();
 
         // RPL_LIST (322): #channel 5 :[Topic]
-        sendToClient(fd, formatNumeric(RPL_LIST, user.getNick(), ss.str() + " :" + it->second.getTopic().content));
+        sendNumeric(fd, RPL_LIST, ss.str() + " :" + it->second.getTopic().content);
     }
 
     // 323 RPL_LISTEND
-    sendToClient(fd, formatNumeric(RPL_LISTEND, user.getNick(), ""));
+    sendNumeric(fd, RPL_LISTEND, "");
 }
 
 void Server::names(int fd, std::vector<std::string> &params)
 {
     User &user = _users[fd];
     if (!user.isAuthenticated())
-        return sendToClient(fd, formatNumeric(ERR_NOTREGISTERED, user.getNick(), "NAMES"));
+        return sendNumeric(fd, ERR_NOTREGISTERED, "NAMES");
 
     std::vector<std::string> channelsToShow;
     if (params.empty())
@@ -431,10 +430,10 @@ void Server::names(int fd, std::vector<std::string> &params)
         {
             // RPL_NAMREPLY (353):  = #channel :@op member1 member2
             std::string chanData = "= " + it->first;
-            sendToClient(fd, formatNumeric(RPL_NAMREPLY, user.getNick(), chanData + " :" + it->second.getMemberList()));
+            sendNumeric(fd, RPL_NAMREPLY, chanData, it->second.getMemberList());
 
             // RPL_ENDOFNAMES (366): #channel :End of /NAMES list
-            sendToClient(fd, formatNumeric(RPL_ENDOFNAMES, user.getNick(), it->first));
+            sendNumeric(fd, RPL_ENDOFNAMES, it->first);
         }
     }
 }

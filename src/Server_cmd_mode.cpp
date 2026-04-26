@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/11 12:29:57 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/14 11:17:50 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 08:00:18 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, Channel &
                 if (j < params.size()) {
                     mode_o(fd, params, channel, j++, adding);
                 } else {
-                    sendNumeric(fd, ERR_NEEDMOREPARAMS, "MODE +o");
+                    sendNumeric(fd, ERR_NEEDMOREPARAMS, "MODE", "+o");
                 }
                 break;
 
@@ -129,13 +129,13 @@ bool Server::mode_k(int fd, std::vector<std::string> &params, Channel &channel, 
 
     if (params.size() <= j)
     {
-        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName() + " +k missing key parameter");
+        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName(), "+k", "missing key parameter");
         return 1;
     }
     if (params[j].find_first_of(" ") != params[j].npos)
     {
 
-        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName() + " +k '" + params[j]);
+        sendNumeric(fd, ERR_INVALIDMODEPARAM, channel.getName(), "+k", params[j]);
         return 1;
     }
     if (params[j].size() > MAX_CHAN_KEY_LEN)
