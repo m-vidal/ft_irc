@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Reply.cpp                                          :+:      :+:    :+:   */
+/*   replyCodes.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/06 14:24:18 by atambo            #+#    #+#             */
-/*   Updated: 2026/03/14 16:23:41 by atambo           ###   ########.fr       */
+/*   Created: 2026/04/26 07:38:07 by atambo            #+#    #+#             */
+/*   Updated: 2026/04/26 07:38:11 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,68 +49,3 @@ void Server::initReplies()
     _replyMessages[ERR_NEEDMOREPARAMS] = "Not enough parameters";
     _replyMessages[ERR_INVALIDMODEPARAM] = "Invalid mode parameter";
 }
-
-// For Numerics (e.g., :ircserv 001 target :Welcome)
-std::string Server::formatNumeric(int code, const std::string &nick, const std::string &arg)
-{
-    std::stringstream ss;
-    
-    // 1. Header: :<servername> <3-digit-code> <target_nick>
-    ss << ":" << _serverName << " " 
-       << std::setw(3) << std::setfill('0') << code << " " 
-       << nick;
-
-    // 2. Middle Argument (e.g., channel name, version, or modes for 004)
-    // We check if it needs a colon (usually 'arg' doesn't, but safety first)
-    if (!arg.empty())
-        ss << " " << prefixParam(arg);
-
-    // 3. Final Message/Trailing
-    std::string msg = getNumericMsg(code);
-    if (!msg.empty())
-    {
-        // Add a space before the message, and prefix with colon ONLY if needed
-        ss << " " << prefixParam(msg);
-    }
-
-    ss << "\r\n";
-    return ss.str();
-}
-
-// For Commands (e.g., :nick!user@host JOIN #channel)
-std::string Server::formatNotice(const User &source, const std::string &command, const std::string &params)
-{
-    std::string msg = ":" + source.getPrefix() + " " + command;
-    if (!params.empty())
-        msg += " " + params;
-    return msg;
-}
-
-void Server::sendNotice(int fd, const User &source, const std::string &command, const std::string &params)
-{
-    std::string msg = formatNotice(source, command, params);
-    sendToClient(fd, msg);
-}
-
-void Server::sendNumeric(int fd, int code, const std::string &params)
-{
-    std::string nick = _users[fd].getNick();
-    std::string msg = formatNumeric(code, nick, params);
-    sendToClient(fd, msg);
-}
-
-void Server::sendNumeric(Channel &channel, int fd, int code, const std::string &params = "")
-{
-    // 1. Get the nick of the user who triggered this (or "*" if not set)
-    std::string nick = _users[fd].getNick();
-    if (nick.empty())
-        nick = "*";
-
-    // 2. Generate the formatted numeric string using your helper
-    // Format: :ircserv <CODE> <target_nick> <params> :<trailing>
-    std::string msg = formatNumeric(code, nick, params);
-
-    // 3. Broadcast to the channel, skipping the person who triggered it
-    this->sendToChannel(channel, msg, fd);
-}
-

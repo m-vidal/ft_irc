@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/14 14:33:23 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/04/26 09:21:44 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/26 09:22:29 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,9 +179,6 @@ void Server::handleClientData(int fd)
         else
             reason.push_back("Connection error");
         quit(fd, reason);
-    }
-   else {
-        disconnectClient(fd);
     }
 }
 
@@ -403,7 +400,7 @@ void Server::checkRegistration(int fd)
     std::map<int, User>::iterator it = _users.find(fd);
 
     if (it == _users.end())
-        throw std::runtime_error("Non auth user not _users");
+        throw std::runtime_error("Non auth user not on users list");
     User &user = it->second;
     if ((user.checkIsPassAccepted() == true) && (user.checkIsUserSet() == true) && (user.checkIsNickSet() == true))
     {
