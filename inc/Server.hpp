@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/10 18:13:32 by marcsilv          #+#    #+#             */
-/*   Updated: 2026/04/26 09:26:14 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/28 15:57:51 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,8 @@ public:
 	~Server();
 
 	void listenMode();
-	std::string formatNotice(const User &source, const std::string &command, const std::string &params);
+	std::string formatNotice(const User &source, const std::string &command,
+    const std::string &param1 = "", const std::string &param2 = "", const std::string &param3 = "");
 	void sendNotice(int fd, const User &source, const std::string &command, const std::string &params);
 	
 	std::string formatNumeric(int code, const std::string &nick, std::vector<std::string> params);

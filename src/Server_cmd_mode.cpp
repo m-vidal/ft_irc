@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/11 12:29:57 by atambo            #+#    #+#             */
-/*   Updated: 2026/04/28 15:19:21 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/28 15:57:29 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,7 @@ void Server::applyModeString(int fd, std::vector<std::string> &params, Channel &
         }
     }
     if (old_modes != channel.getModeStr()){
-        std::string msg = formatNotice(_users[fd], "MODE", channel.getModeStr());
+        std::string msg = formatNotice(_users[fd], "MODE", channel.getName(), channel.getModeStr());
         // Start from index 1 to capture the full message trailing after the command
         for (size_t i = 2; i < params.size(); ++i)
         {
