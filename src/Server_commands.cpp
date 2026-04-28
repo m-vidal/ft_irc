@@ -6,7 +6,7 @@
 /*   By: atambo <atambo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/06 14:10:42 by atambo            #+#    #+#             */
-/*   Updated: 2026/04/26 13:19:59 by atambo           ###   ########.fr       */
+/*   Updated: 2026/04/28 14:56:20 by atambo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,16 +133,13 @@ void Server::join(int fd, std::vector<std::string> &params)
             std::string key = "";
             if (params.size() > 1)
                 key = params[1];
-            else
-                return sendNumeric(fd, ERR_INVALIDMODEPARAM, "JOIN");
-
             if (!channel.verifyKey(key))
-                return sendNumeric(fd, ERR_BADCHANNELKEY, "JOIN");
+                return sendNumeric(fd, ERR_BADCHANNELKEY, channel_name);
         }
         if (channel.hasMode('i') && !channel.isInvited(user.getNick()))
-            return sendNumeric(fd, ERR_INVITEONLYCHAN, "JOIN");
+            return sendNumeric(fd, ERR_INVITEONLYCHAN, channel_name);
         if (channel.hasMode('l') && channel.getMemberCount() >= channel.getLimit())
-            return sendNumeric(fd, ERR_CHANNELISFULL, "JOIN");
+            return sendNumeric(fd, ERR_CHANNELISFULL, channel_name);
         user.addChannel(channel_name);
         it->second.addMember(user);
     }
